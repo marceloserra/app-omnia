@@ -1,0 +1,7 @@
+# Monorepo workspace definition
+workspaces:
+  - apps/*
+  - packages/*
+
+# Required for React Native libraries in Expo monorepos
+nodeLinker: hoisted

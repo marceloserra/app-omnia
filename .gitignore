@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.next/
+build/
+
+# Expo artifacts
+.expo/
+expo/
+
+# Metro cache
+.metro/
+
+# Platform-specific builds
+android/app/build/
+ios/build/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment files (never commit secrets)
+.env*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage reports
+coverage/
+
+# Temporary files
+tmp/
+temp/

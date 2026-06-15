@@ -1,0 +1,22 @@
+{
+  "name": "omnia",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "description": "One app. Every model.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "build": "turbo run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "eslint": "^9.36.0",
+    "@types/eslint": "^9.0.0",
+    "turbo": "^2.4.0",
+    "standard-changelog": "^1.2.0"
+  },
+  "packageManager": "pnpm@10.5.0"
+}
