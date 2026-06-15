@@ -1,4 +1,4 @@
-import { DarkTheme, LightTheme, ThemeProvider } from "@react-navigation/native";
+import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
@@ -17,7 +17,7 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <ThemeProvider value={themeScheme === "dark" ? DarkTheme : LightTheme}>
+    <ThemeProvider value={themeScheme === "dark" ? DarkTheme : DefaultTheme}>
       <StatusBar style={themeScheme === "dark" ? "light" : "dark"} />
     </ThemeProvider>
   );
