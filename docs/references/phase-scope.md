@@ -17,13 +17,18 @@ Agents must not implement work from a later phase unless the user explicitly adv
 - Documentation
 - Quality gates
 
-## Phase 2
+## Phase 2 (Active)
+
+- Design Foundation
+- Theme System & Design Tokens
+- Storybook Setup
+- Primitive & Composed UI Components
+
+## Phase 3
 
 - Domain models
 - Shared types
 - Provider abstraction
-
-## Phase 3
 
 - OpenAI provider
 - OpenAI-compatible provider
