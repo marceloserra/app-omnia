@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { Text } from 'react-native';
 import { Button } from './Button';
 
 const meta: Meta<typeof Button> = {
@@ -9,23 +10,22 @@ const meta: Meta<typeof Button> = {
     docs: {
       description: {
         component: `
-Button is the primary interactive element for actions in Omnia. It supports multiple variants and sizes to accommodate different contexts.
+Button is the primary interactive element in Omnia.
+
+> **Architecture Note:** Components use React Native inline style objects (not NativeWind className / cva).
+> See troubleshooting.md Issue 8 for why.
 
 ## Variants
-- **primary**: Main action buttons (send message, confirm)
-- **secondary**: Supporting actions (cancel, back)
-- **ghost**: Minimal visual weight (icon buttons, links)
-- **destructive**: Destructive actions (delete, remove)
+- **default**: Primary indigo action (send message, confirm)
+- **secondary**: Light indigo tint (cancel, secondary action)
+- **outline**: Transparent with indigo border
+- **ghost**: Minimal visual weight (links, tertiary)
+- **destructive**: Red (delete, remove)
 
 ## Sizes
-- **sm**: Compact spaces (toolbars, inline)
-- **md**: Standard size (default)
-- **lg**: Emphasized actions (primary CTAs)
-
-## States
-- Default: Normal interactive state
-- Loading: Shows spinner, disables interaction
-- Disabled: Non-interactive, reduced opacity
+- **sm**: Compact (toolbars, inline)
+- **md**: Standard (default)
+- **lg**: Emphasized CTAs
         `,
       },
     },
@@ -33,15 +33,14 @@ Button is the primary interactive element for actions in Omnia. It supports mult
   argTypes: {
     variant: {
       control: { type: 'select' },
-      options: ['primary', 'secondary', 'ghost', 'destructive'],
+      options: ['default', 'secondary', 'outline', 'ghost', 'destructive'],
     },
     size: {
       control: { type: 'select' },
       options: ['sm', 'md', 'lg'],
     },
-    loading: {
-      control: { type: 'boolean' },
-    },
+    loading: { control: { type: 'boolean' } },
+    disabled: { control: { type: 'boolean' } },
   },
 };
 
@@ -49,25 +48,33 @@ export default meta;
 
 type Story = StoryObj<typeof Button>;
 
-export const Primary: Story = {
+export const Default: Story = {
   args: {
-    children: 'Send Message',
-    variant: 'primary',
+    children: <Text style={{ color: '#fff', fontWeight: '600' }}>Send Message</Text>,
+    variant: 'default',
     size: 'md',
   },
 };
 
 export const Secondary: Story = {
   args: {
-    children: 'Cancel',
+    children: <Text style={{ color: '#6366f1', fontWeight: '600' }}>Cancel</Text>,
     variant: 'secondary',
+    size: 'md',
+  },
+};
+
+export const Outline: Story = {
+  args: {
+    children: <Text style={{ color: '#6366f1', fontWeight: '600' }}>Outline</Text>,
+    variant: 'outline',
     size: 'md',
   },
 };
 
 export const Ghost: Story = {
   args: {
-    children: 'Settings',
+    children: <Text style={{ color: '#9d9bcc', fontWeight: '600' }}>Ghost</Text>,
     variant: 'ghost',
     size: 'md',
   },
@@ -75,7 +82,7 @@ export const Ghost: Story = {
 
 export const Destructive: Story = {
   args: {
-    children: 'Delete Conversation',
+    children: <Text style={{ color: '#fff', fontWeight: '600' }}>Delete Conversation</Text>,
     variant: 'destructive',
     size: 'md',
   },
@@ -83,29 +90,16 @@ export const Destructive: Story = {
 
 export const Loading: Story = {
   args: {
-    children: 'Sending...',
-    variant: 'primary',
+    children: <Text style={{ color: '#fff', fontWeight: '600' }}>Sending...</Text>,
+    variant: 'default',
     loading: true,
   },
 };
 
-export const Sizes: Story = {
-  render: () => (
-    <>
-      <Button size="sm">Small</Button>
-      <Button size="md">Medium</Button>
-      <Button size="lg">Large</Button>
-    </>
-  ),
-};
-
-export const AllVariants: Story = {
-  render: () => (
-    <>
-      <Button variant="primary">Primary</Button>
-      <Button variant="secondary">Secondary</Button>
-      <Button variant="ghost">Ghost</Button>
-      <Button variant="destructive">Destructive</Button>
-    </>
-  ),
+export const Disabled: Story = {
+  args: {
+    children: <Text style={{ color: '#fff', fontWeight: '600' }}>Disabled</Text>,
+    variant: 'default',
+    disabled: true,
+  },
 };

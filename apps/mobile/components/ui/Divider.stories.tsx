@@ -1,33 +1,34 @@
-import React from 'react';
-import { View, Text } from 'react-native';
 import type { Meta, StoryObj } from '@storybook/react';
+import { View } from 'react-native';
 import { Divider } from './Divider';
 
 const meta: Meta<typeof Divider> = {
   title: 'Primitives/Divider',
   component: Divider,
+  parameters: {
+    docs: {
+      description: {
+        component: `Divider renders a subtle 1px indigo-tinted separator line for separating content sections inside Cards or Lists.`,
+      },
+    },
+  },
 };
 
 export default meta;
-
 type Story = StoryObj<typeof Divider>;
 
-export const Default: Story = {
+export const Horizontal: Story = {
   render: () => (
-    <View style={{ width: 300, gap: 16 }}>
-      <Text>Above Divider</Text>
+    <View style={{ width: 300, padding: 16, backgroundColor: '#13112a' }}>
       <Divider />
-      <Text>Below Divider</Text>
     </View>
   ),
 };
 
-export const WithSpacing: Story = {
+export const Vertical: Story = {
   render: () => (
-    <View style={{ width: 300 }}>
-      <Text>Above Divider</Text>
-      <Divider spacing="lg" />
-      <Text>Below Divider</Text>
+    <View style={{ height: 60, flexDirection: 'row', padding: 16, backgroundColor: '#13112a', alignItems: 'center' }}>
+      <Divider orientation="vertical" />
     </View>
   ),
 };
