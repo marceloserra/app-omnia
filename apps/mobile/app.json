@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "scheme": "omnia-mobile",
     "ios": {
       "supportsTablet": true
     },

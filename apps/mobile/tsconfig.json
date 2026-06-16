@@ -3,12 +3,21 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": [
         "./*"
       ]
     },
-    "typeRoots": ["./node_modules/@types", "./types"]
-  }
+    "types": [
+      "jest",
+      "nativewind/types"
+    ]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/**/*.js",
+    ".expo/**/*.jsx",
+    "nativewind-env.d.ts"
+  ]
 }
