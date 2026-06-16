@@ -5,6 +5,7 @@ node_modules/
 dist/
 .next/
 build/
+.turbo/
 
 # Expo artifacts
 .expo/
