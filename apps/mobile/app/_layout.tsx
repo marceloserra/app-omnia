@@ -1,10 +1,11 @@
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { Pressable } from "react-native";
+import { Settings } from "lucide-react-native";
 import "../assets/css/global.css";
 
 const HEADER_BG = "#0a0918";
 const HEADER_TEXT = "#f0efff";
-const HEADER_BORDER = "#1e1b4b";
 
 export default function RootLayout() {
   return (
@@ -26,6 +27,15 @@ export default function RootLayout() {
             title: "Omnia",
             headerLargeTitle: true,
             headerLargeTitleStyle: { color: HEADER_TEXT, fontWeight: "700" },
+            headerRight: () => (
+              <Pressable
+                onPress={() => router.push("/settings")}
+                style={{ padding: 6 }}
+                accessibilityLabel="Open settings"
+              >
+                <Settings size={20} color={HEADER_TEXT} />
+              </Pressable>
+            ),
           }}
         />
         <Stack.Screen
