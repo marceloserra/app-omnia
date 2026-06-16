@@ -226,6 +226,8 @@ Each phase records:
 
 A new session reads this spec + agent log and continues from the first pending item.
 
+Agents must also read root `AGENTS.md` before changing files. The root file defines the current phase boundary, quality gates, and repository-specific operating rules.
+
 ---
 
 ## Next Phase Preview
