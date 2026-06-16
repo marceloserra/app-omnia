@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, ActivityIndicator, ViewStyle } from 'react-native';
+import { Pressable, ActivityIndicator, ViewStyle, Text } from 'react-native';
 import { cva } from 'class-variance-authority';
 
 /**
@@ -23,6 +23,8 @@ interface ButtonProps {
   disabled?: boolean;
   /** Additional styles for customization */
   style?: ViewStyle;
+  /** Test identifier */
+  testID?: string;
 }
 
 const buttonVariants = cva(
@@ -55,10 +57,12 @@ export function Button({
   size = 'md',
   loading = false,
   disabled = false,
-  style 
+  style,
+  testID
 }: ButtonProps) {
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       disabled={loading || disabled}
       className={buttonVariants({ variant, size })}
@@ -66,6 +70,8 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator size="small" color="currentColor" />
+      ) : typeof children === 'string' ? (
+        <Text>{children}</Text>
       ) : (
         children
       )}

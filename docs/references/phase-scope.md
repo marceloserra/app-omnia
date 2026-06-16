@@ -7,6 +7,7 @@ Keep implementation work aligned with the Omnia foundation prompt.
 ## Agent Rule
 
 Agents must not implement work from a later phase unless the user explicitly advances the active phase.
+*Crucially, this means no "mock UIs" or placeholder scaffolding for features belonging to future phases (e.g., no mock chat interfaces during Phase 1).*
 
 ## Phase 1
 

@@ -3,20 +3,20 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Button } from '@/components/ui/Button';
 
 describe('Button Component', () => {
-  it('renders button with children correctly', () => {
-    const { getByText } = render(<Button>Test Button</Button>);
+  it('renders button with children correctly', async () => {
+    const { getByText } = await render(<Button>Test Button</Button>);
     expect(getByText('Test Button')).toBeTruthy();
   });
 
-  it('applies correct variant classes', () => {
-    const { debug } = render(<Button variant="primary">Primary</Button>);
+  it('applies correct variant classes', async () => {
+    const { debug } = await render(<Button variant="primary">Primary</Button>);
     // In a real test, we would check the className prop
     expect(true).toBe(true); // Placeholder assertion
   });
 
-  it('handles onPress correctly', () => {
+  it('handles onPress correctly', async () => {
     const onPressMock = jest.fn();
-    const { getByText } = render(
+    const { getByText } = await render(
       <Button onPress={onPressMock}>Click Me</Button>
     );
     
@@ -24,8 +24,8 @@ describe('Button Component', () => {
     expect(onPressMock).toHaveBeenCalledTimes(1);
   });
 
-  it('shows loading state when loading prop is true', () => {
-    const { getByText } = render(
+  it('shows loading state when loading prop is true', async () => {
+    const { getByText } = await render(
       <Button loading={true}>Loading</Button>
     );
     
@@ -33,13 +33,13 @@ describe('Button Component', () => {
     expect(true).toBe(true); // Placeholder - would check for ActivityIndicator in real test
   });
 
-  it('disables button when loading is true', () => {
+  it('disables button when loading is true', async () => {
     const onPressMock = jest.fn();
-    const { getByText } = render(
-      <Button loading={true} onPress={onPressMock}>Disabled</Button>
+    const { getByTestId } = await render(
+      <Button loading={true} onPress={onPressMock} testID="loading-button">Disabled</Button>
     );
     
-    fireEvent.press(getByText('Disabled'));
+    fireEvent.press(getByTestId('loading-button'));
     expect(onPressMock).not.toHaveBeenCalled();
   });
 });

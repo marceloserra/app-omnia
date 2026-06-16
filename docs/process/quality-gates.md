@@ -11,7 +11,7 @@ Define the checks required before an Omnia phase is considered complete.
 | Dependency reproducibility | `pnpm install --frozen-lockfile` | Lockfile installs without mutation |
 | Lint | `pnpm lint` | No lint errors |
 | Typecheck | `pnpm typecheck` | No TypeScript errors |
-| Tests | `pnpm test` | Test command exits successfully |
+| Tests | `pnpm test` (using Jest for mobile) | Test command exits successfully |
 | iOS bundle | `pnpm --filter ./apps/mobile exec expo export --platform ios --output-dir /private/tmp/omnia-ios-export --clear` | Bundle completes |
 | Android bundle | `pnpm --filter ./apps/mobile exec expo export --platform android --output-dir /private/tmp/omnia-android-export --clear` | Bundle completes |
 
