@@ -1,37 +1,38 @@
-import "react-native-gesture-handler";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { Drawer } from "expo-router/drawer";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useColorScheme } from "react-native";
 import "../assets/css/global.css";
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+const HEADER_BG = "#0a0918";
+const HEADER_TEXT = "#f0efff";
+const HEADER_BORDER = "#1e1b4b";
 
+export default function RootLayout() {
   return (
-    <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
-      <StatusBar style={isDark ? "light" : "dark"} />
-      <Drawer
+    <>
+      <StatusBar style="light" />
+      <Stack
         screenOptions={{
-          headerShown: true,
+          headerStyle: { backgroundColor: HEADER_BG },
+          headerTintColor: HEADER_TEXT,
+          headerTitleStyle: { fontWeight: "700", fontSize: 17 },
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: HEADER_BG },
+          headerTitleAlign: "center",
         }}
       >
-        <Drawer.Screen
+        <Stack.Screen
           name="index"
           options={{
-            drawerLabel: "Conversations",
-            title: "Chat",
+            title: "Omnia",
+            headerLargeTitle: true,
+            headerLargeTitleStyle: { color: HEADER_TEXT, fontWeight: "700" },
           }}
         />
-        <Drawer.Screen
+        <Stack.Screen
           name="settings"
-          options={{
-            drawerLabel: "Settings",
-            title: "Settings",
-          }}
+          options={{ title: "Settings" }}
         />
-      </Drawer>
-    </ThemeProvider>
+      </Stack>
+    </>
   );
 }
