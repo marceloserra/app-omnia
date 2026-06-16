@@ -28,8 +28,9 @@ This document serves as a centralized knowledge base for critical errors encount
   2. Run `pnpm update --filter mobile <packages>` to force lockfile re-resolution (do NOT use `pnpm install` alone — it respects stale lockfile).
   3. **Explicitly add** `@expo/metro-runtime@^56.0.15` as a direct dependency via `pnpm --filter mobile add @expo/metro-runtime@^56.0.15`.
   4. Add `import "react-native-gesture-handler";` as the **very first line** of `_layout.tsx`.
-  5. Add `"react-native-reanimated/plugin"` to `plugins` in `babel.config.js`.
-  6. Clear Metro cache: `expo start -c`.
+  5. **Crucial:** Wrap the `Drawer` or the entire return inside `_layout.tsx` with `<GestureHandlerRootView style={{ flex: 1 }}>`.
+  6. Add `"react-native-reanimated/plugin"` to `plugins` in `babel.config.js`.
+  7. Clear Metro cache: `expo start -c`.
 - **Required `package.json` versions for SDK 56:**
   ```json
   "expo": "~56.0.12",
@@ -42,3 +43,122 @@ This document serves as a centralized knowledge base for critical errors encount
   "@types/jest": "29.5.14"
   ```
 - **Validated by:** `expo export --platform android` → 4.1MB bundle ✅, `expo export --platform ios` → 3.9MB bundle ✅
+
+### Issue 2: Storybook Story TypeScript Compilation & Jest Test Failures (RNTL v14)
+- **Date:** 2026-06-16
+- **Phase/Context:** Phase 02 (Design Foundation UI Components)
+- **Status:** ✅ RESOLVED
+- **Error/Symptom:**
+  - `pnpm typecheck` failed on Storybook files because of invalid or obsolete prop signatures (e.g. `elevation` on `CardProps`, `spacing` on `DividerProps`, invalid variants, and string icon references).
+  - Jest unit tests for `ChatBubble` failed with `TypeError: getByText is not a function`.
+- **Root Cause:**
+  - Storybook files were written with outdated/incorrect props that didn't match the final TypeScript types defined on UI components.
+  - React Native Testing Library (RNTL) v14 supports React 19 concurrent features, where the `render` function returns a `Promise<RenderResult>`. Calling it synchronously resulted in destructuring from a Promise, making `getByText` undefined.
+- **Solution:**
+  - Updated all Storybook files to match the correct types (e.g. removed `elevation` from `Card` story, replaced string icon names with imported Lucide icon components in `IconButton` story, split string `error` prop into boolean `error` + `errorMessage` in `Input` story).
+  - Added `async/await` to all test `render(...)` calls in `apps/mobile/__tests__/ChatBubble.test.tsx` (matching `Button.test.tsx`).
+- **Validated by:** `pnpm typecheck` → 0 errors ✅, `pnpm test` → 10/10 tests passed ✅
+
+### Issue 3: Reanimated Version Mismatch Crash in Expo Go
+- **Date:** 2026-06-16
+- **Phase/Context:** Phase 02 (Design Foundation Runtime integration)
+- **Status:** ✅ RESOLVED
+- **Error/Symptom:**
+  ```text
+  ERROR  [Error: Exception in HostFunction: TurboModule method "installTurboModule" called with 1 arguments (expected argument count: 0).]
+  ```
+- **Root Cause:**
+  - The Expo Go client for Expo SDK 56 includes native binaries for `react-native-reanimated` compiled at version `4.3.1` (Reanimated 4).
+  - Reanimated 4's native `installTurboModule` expects 0 arguments.
+  - Downgrading the JavaScript package to `~3.16.7` (Reanimated 3) causes the JS layer to call the function with 1 argument, triggering a fatal C++ host function mismatch.
+- **Solution:**
+  - Restored `react-native-reanimated` back to `4.3.1` in `apps/mobile/package.json`.
+  - Ran `pnpm install --frozen-lockfile` to synchronize the JavaScript and native versions.
+- **Validated by:** Dev server runs successfully, and bundle exports for iOS/Android compile without errors.
+
+### Issue 4: Blank Screen After Fixing Navigation Crashes
+- **Date:** 2026-06-16
+- **Phase/Context:** Phase 01/02
+- **Status:** ✅ RESOLVED (Expected Behavior)
+- **Symptom:** App successfully builds and opens but shows only a blank white screen with no components.
+- **Root Cause:** The `_layout.tsx` was stripped down to a bare minimum layout (e.g. rendering `<Slot />` or empty views) during the isolation of the Expo Router and Reanimated crashes. The UI hasn't been implemented yet in Phase 2.
+- **Solution:** This is expected. The next steps in Phase 2 will introduce the Design System, Theme Provider, and proper UI components to populate the screens.
+
+### Issue 5: Expo Router Drawer + Reanimated 4 Runtime Crash in Expo Go
+- **Date:** 2026-06-16
+- **Phase/Context:** Phase 01/02
+- **Status:** ✅ RESOLVED (Architectural Workaround)
+- **Error/Symptom:**
+  ```text
+  ERROR  [TypeError: undefined is not a function]
+  WARN  Route "./_layout.tsx" is missing the required default export. Ensure a React component is exported as default.
+  ERROR  [TypeError: Cannot read property 'ErrorBoundary' of undefined]
+  ```
+- **Root Cause:**
+  - Even with `@expo/metro-runtime` fixed, the `import { Drawer } from "expo-router/drawer"` causes a fatal runtime evaluation error specifically within the Expo Go client environment for SDK 56.
+  - This is tied to how `Drawer` initializes its `react-native-reanimated` bindings. Although the production bundle (`expo export --platform android`) compiles 100% cleanly without errors, the dev-mode execution in Expo Go crashes completely.
+  - **Important Context:** We also found that `react-native-reanimated/plugin` should NOT be manually added to `babel.config.js` in SDK 56 because `babel-preset-expo` already includes it. Duplicating it corrupts the AST.
+- **Solution (Mandatory Rule for Agents):**
+  - **DO NOT attempt to use `Drawer` from `expo-router/drawer` during the development of Phase 1 and Phase 2 while using Expo Go.**
+  - We have temporarily swapped the root layout navigation to `<Stack>` to bypass this environment bug and unblock the development of the Design System and UI components.
+  - If a Drawer is absolutely required later, it must be tested exclusively on a standalone development build (Dev Client) and not on Expo Go.
+
+### Issue 6: NativeWind v4 "transition-colors" / Reanimated "makeMutable" crash
+- **Date:** 2026-06-16
+- **Phase/Context:** Phase 02 (UI Components)
+- **Status:** ✅ RESOLVED (Nuclear Workaround)
+- **Error/Symptom:** 
+  ```text
+  ERROR  [TypeError: Cannot read property 'makeMutable' of undefined]
+  ```
+  Followed by `undefined is not a function` evaluating UI component files.
+- **Root Cause:** 
+  - The `Button.tsx` component had a Tailwind class `transition-colors`.
+  - When NativeWind v4 encounters `transition-*` classes, its Babel preset silently injects imports to `react-native-reanimated` to power the animations.
+  - However, `react-native-reanimated` v4 native engine fails to initialize properly inside the Expo Go SDK 56 environment. Thus, the JS injection attempts to call the uninitialized C++ `makeMutable`, crashing the entire JS thread immediately.
+- **Solution (Mandatory Rule for Agents):**
+  - **REMOVED `react-native-reanimated` completely from `package.json`.**
+  - **REMOVED `transition-colors` (and any other `transition-*` classes) from UI components.**
+  - If Reanimated is ever added back, you must ensure that NativeWind doesn't accidentally trigger a silent Reanimated crash on Expo Go. For Phase 2, we rely on standard React Native styles/animations to keep the app 100% stable.
+
+### Issue 7: `lucide-react-native` crashing with `undefined is not a function`
+- **Date:** 2026-06-16
+- **Phase/Context:** Phase 02
+- **Status:** ✅ RESOLVED
+- **Root Cause:** `lucide-react-native` was installed without its mandatory peer dependency `react-native-svg`. Importing any icon silently threw `undefined is not a function` during module evaluation.
+- **Solution:** Installed `react-native-svg` via `expo install`.
+
+### Issue 8: `cva` + NativeWind dynamic className produces zero styling in React Native
+- **Date:** 2026-06-16
+- **Phase/Context:** Phase 02 (UI Components)
+- **Status:** ✅ RESOLVED (Architecture Decision)
+- **Symptom:** Components rendered but had zero styling — no colors, no padding, no borders. Everything looked like plain unstyled text.
+- **Root Cause:**
+  - `cva` (class-variance-authority) generates class strings **dynamically at runtime**.
+  - NativeWind v4 requires its Babel plugin to **statically analyze** class names at compile time to generate native `StyleSheet` objects. Dynamic runtime strings from `cva` are invisible to the Babel transform and are silently dropped.
+  - Additionally, web-only Tailwind classes like `inline-flex`, `hover:*`, and `min-h-[100px]` do not exist in React Native and are silently ignored.
+- **Solution (Mandatory Rule for Agents):**
+  - **DO NOT use `cva`, `tailwind-variants`, or any runtime class-string-generator for styling native components.**
+  - **DO NOT use web-only Tailwind classes** (`inline-flex`, `hover:*`, `focus:*`, `min-h-[...]`) in NativeWind RN components.
+  - All UI components were **rewritten using React Native inline style objects** with the design token colors hard-coded from our palette.
+  - Design token palette: `BG=#0a0918`, `SURFACE=#13112a`, `PRIMARY_INDIGO=#6366f1`, `ACCENT_VIOLET=#8b5cf6`, `TEXT_PRIMARY=#f0efff`, `TEXT_SECONDARY=#9d9bcc`.
+
+### Issue 9: Stack header appearing white despite dark theme
+- **Date:** 2026-06-16
+- **Phase/Context:** Phase 02
+- **Status:** ✅ RESOLVED
+- **Symptom:** The `<Stack>` navigator header rendered with a white background and dark text, completely out of sync with the dark indigo app theme.
+- **Root Cause:** `<ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>` from `@react-navigation/native` was wrapping the `<Stack>`. Even when the device is in dark mode, the `DarkTheme` colors from React Navigation are grey/black (`#1c1c1e`) — not our custom palette. The `ThemeProvider` was overriding every `screenOptions` we tried to set.
+- **Solution (Mandatory Rule for Agents):**
+  - **Removed `ThemeProvider` entirely from `_layout.tsx`.**
+  - Applied our custom palette directly via `screenOptions` on the `<Stack>`:
+    ```tsx
+    screenOptions={{
+      headerStyle: { backgroundColor: "#0a0918" },
+      headerTintColor: "#f0efff",
+      headerTitleStyle: { fontWeight: "700" },
+      headerShadowVisible: false,
+      contentStyle: { backgroundColor: "#0a0918" },
+    }}
+    ```
+  - Also set `headerLargeTitle: true` on the index screen for the native iOS large title effect.

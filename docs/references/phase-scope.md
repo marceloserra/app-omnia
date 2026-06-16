@@ -17,14 +17,14 @@ Agents must not implement work from a later phase unless the user explicitly adv
 - Documentation
 - Quality gates
 
-## Phase 2 (Active)
+## Phase 2
 
 - Design Foundation
 - Theme System & Design Tokens
 - Storybook Setup
 - Primitive & Composed UI Components
 
-## Phase 3
+## Phase 3 (Active)
 
 - Domain models
 - Shared types
