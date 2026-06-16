@@ -48,7 +48,7 @@ pnpm --filter mobile add zustand
 
 ---
 
-## Step 2 — SQLite Persistence (Phase 4)
+## Step 2 — SQLite Persistence ✅ DONE (2026-06-16)
 
 **Goal:** Persist conversations and messages locally on-device using Expo SQLite.
 
@@ -92,7 +92,7 @@ CREATE TABLE messages (
 
 ---
 
-## Step 3 — Chat Interface (Phase 5)
+## Step 3 — Chat Interface ✅ DONE (2026-06-16)
 
 **Goal:** A functional chat screen where the user can send messages and receive streaming AI responses.
 
