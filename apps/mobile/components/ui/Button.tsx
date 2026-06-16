@@ -1,77 +1,63 @@
 import React from 'react';
-import { Pressable, ActivityIndicator, ViewStyle, Text } from 'react-native';
-import { cva } from 'class-variance-authority';
+import { Pressable, ActivityIndicator, ViewStyle, Text, View } from 'react-native';
 
-/**
- * Button component with variant and size support.
- * 
- * @example
- * <Button variant="primary" onPress={() => console.log('pressed')}>Send</Button>
- */
 interface ButtonProps {
-  /** Button content */
   children: React.ReactNode;
-  /** Click handler */
   onPress?: () => void;
-  /** Button visual style - affects color and border */
-  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive';
-  /** Button dimensions preset */
+  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
   size?: 'sm' | 'md' | 'lg';
-  /** Loading state shows spinner instead of children */
   loading?: boolean;
-  /** Disabled state prevents interaction */
   disabled?: boolean;
-  /** Additional styles for customization */
   style?: ViewStyle;
-  /** Test identifier */
+  className?: string;
   testID?: string;
 }
 
-const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md font-medium transition-colors',
-  {
-    variants: {
-      variant: {
-        primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-      },
-      size: {
-        sm: 'h-9 px-3 text-sm',
-        md: 'h-10 px-4 text-base',
-        lg: 'h-11 px-6 text-lg',
-      },
-    },
-    defaultVariants: {
-      variant: 'primary',
-      size: 'md',
-    },
-  }
-);
+const variantStyles: Record<string, ViewStyle> = {
+  default: { backgroundColor: '#6366f1' },
+  secondary: { backgroundColor: '#e0e7ff' },
+  outline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#6366f1' },
+  ghost: { backgroundColor: 'transparent' },
+  destructive: { backgroundColor: '#ef4444' },
+};
 
-export function Button({ 
-  children, 
-  onPress, 
-  variant = 'primary', 
+const sizeStyles: Record<string, ViewStyle> = {
+  sm: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  md: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 },
+  lg: { paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12 },
+};
+
+export function Button({
+  children,
+  onPress,
+  variant = 'default',
   size = 'md',
   loading = false,
   disabled = false,
   style,
-  testID
+  testID,
 }: ButtonProps) {
+  const opacity = disabled || loading ? 0.5 : 1;
+
   return (
     <Pressable
       testID={testID}
       onPress={onPress}
       disabled={loading || disabled}
-      className={buttonVariants({ variant, size })}
-      style={style}
+      style={({ pressed }) => [
+        {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: pressed ? 0.8 : opacity,
+        },
+        variantStyles[variant],
+        sizeStyles[size],
+        style,
+      ]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color="currentColor" />
-      ) : typeof children === 'string' ? (
-        <Text>{children}</Text>
+        <ActivityIndicator size="small" color="white" />
       ) : (
         children
       )}

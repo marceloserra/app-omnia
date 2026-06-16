@@ -2,39 +2,31 @@ import React from 'react';
 import { Pressable, ViewStyle } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
 
-/**
- * IconButton component for icon-only interactions.
- * 
- * @example
- * <IconButton icon={Settings} size="md" />
- */
 interface IconButtonProps {
-  /** Icon component from lucide-react-native */
   icon: LucideIcon;
-  /** Button size - affects icon size and padding */
   size?: 'sm' | 'md' | 'lg';
-  /** Button variant for styling */
-  variant?: 'default' | 'ghost' | 'destructive';
-  /** Click handler */
+  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
   onPress?: () => void;
-  /** Disabled state */
   disabled?: boolean;
-  /** Accessibility label for screen readers */
   accessibilityLabel?: string;
-  /** Additional styles */
   style?: ViewStyle;
 }
 
-const sizeMap = {
-  sm: 'p-2',
-  md: 'p-3',
-  lg: 'p-4',
+const sizeMap = { sm: 28, md: 36, lg: 44 };
+const iconSizeMap = { sm: 14, md: 18, lg: 22 };
+
+const variantStyles: Record<string, ViewStyle> = {
+  default: { backgroundColor: '#6366f1' },
+  outline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#6366f1' },
+  ghost: { backgroundColor: 'transparent' },
+  destructive: { backgroundColor: '#ef4444' },
 };
 
-const iconSizeMap = {
-  sm: 16,
-  md: 20,
-  lg: 24,
+const iconColorMap: Record<string, string> = {
+  default: '#ffffff',
+  outline: '#6366f1',
+  ghost: '#a5b4fc',
+  destructive: '#ffffff',
 };
 
 export function IconButton({
@@ -46,21 +38,28 @@ export function IconButton({
   accessibilityLabel,
   style,
 }: IconButtonProps) {
-  const variantClasses = {
-    default: '',
-    ghost: 'hover:bg-accent',
-    destructive: 'text-destructive hover:bg-destructive/10',
-  };
+  const dim = sizeMap[size];
+  const iconSize = iconSizeMap[size];
 
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       accessibilityLabel={accessibilityLabel || 'Button'}
-      className={`inline-flex items-center justify-center rounded-md ${sizeMap[size]} ${variantClasses[variant]} disabled:opacity-50`}
-      style={style}
+      style={({ pressed }) => [
+        {
+          width: dim,
+          height: dim,
+          borderRadius: dim / 2,
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: pressed ? 0.75 : disabled ? 0.4 : 1,
+        },
+        variantStyles[variant],
+        style,
+      ]}
     >
-      <Icon size={iconSizeMap[size]} color="currentColor" />
+      <Icon size={iconSize} color={iconColorMap[variant]} />
     </Pressable>
   );
 }

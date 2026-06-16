@@ -1,66 +1,72 @@
 import React from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, ViewStyle } from 'react-native';
 
-/**
- * Avatar component for user or model representation.
- * 
- * @example
- * <Avatar initials="GPT-4" size="md" />
- */
 interface AvatarProps {
-  /** Profile image URL */
-  image?: string;
-  /** Initials when no image provided */
+  src?: string;
+  fallback?: string;
   initials?: string;
-  /** Avatar size */
   size?: 'sm' | 'md' | 'lg';
-  /** Status indicator (online, offline, away) */
   status?: 'online' | 'offline' | 'away';
-  /** Accessibility label */
   accessibilityLabel?: string;
 }
 
 const sizeMap = {
-  sm: { container: 'w-8 h-8', text: 'text-xs' },
-  md: { container: 'w-10 h-10', text: 'text-sm' },
-  lg: { container: 'w-12 h-12', text: 'text-base' },
+  sm: 32,
+  md: 42,
+  lg: 52,
 };
 
-const statusColors = {
-  online: 'bg-green-500',
-  offline: 'bg-gray-400',
-  away: 'bg-yellow-500',
+const textSizeMap = {
+  sm: 12,
+  md: 14,
+  lg: 17,
 };
 
-export function Avatar({
-  image,
-  initials,
-  size = 'md',
-  status,
-  accessibilityLabel,
-}: AvatarProps) {
-  const dimensions = sizeMap[size];
+const statusColorMap = {
+  online: '#22c55e',
+  offline: '#9ca3af',
+  away: '#eab308',
+};
+
+export function Avatar({ src, fallback, initials, size = 'md', status, accessibilityLabel }: AvatarProps) {
+  const dim = sizeMap[size];
+  const textSize = textSizeMap[size];
+  const label = fallback || initials;
+
+  const containerStyle: ViewStyle = {
+    width: dim,
+    height: dim,
+    borderRadius: dim / 2,
+    backgroundColor: '#4338ca',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(99, 102, 241, 0.5)',
+  };
 
   return (
-    <View 
-      className={`relative inline-flex items-center justify-center rounded-full bg-muted ${dimensions.container}`}
-      accessibilityLabel={accessibilityLabel || initials}
-    >
-      {image ? (
-        <Image 
-          source={{ uri: image }} 
-          className="w-full h-full rounded-full"
-        />
-      ) : (
-        <Text className={`${dimensions.text} font-medium text-muted-foreground`}>
-          {initials?.slice(0, 2).toUpperCase()}
-        </Text>
-      )}
-      
+    <View style={{ position: 'relative' }} accessibilityLabel={accessibilityLabel || label}>
+      <View style={containerStyle}>
+        {src ? (
+          <Image source={{ uri: src }} style={{ width: dim, height: dim, borderRadius: dim / 2 }} />
+        ) : (
+          <Text style={{ fontSize: textSize, fontWeight: '600', color: '#e0e7ff' }}>
+            {label?.slice(0, 2).toUpperCase()}
+          </Text>
+        )}
+      </View>
       {status && (
-        <View 
-          className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${statusColors[status]}`}
-        />
+        <View style={{
+          position: 'absolute',
+          bottom: 0,
+          right: 0,
+          width: 12,
+          height: 12,
+          borderRadius: 6,
+          backgroundColor: statusColorMap[status],
+          borderWidth: 2,
+          borderColor: '#0f0e2a',
+        }} />
       )}
     </View>
   );

@@ -1,34 +1,18 @@
 import React from 'react';
-import { TextInput, View, Text, TextStyle, ViewStyle } from 'react-native';
+import { TextInput, View, Text, ViewStyle } from 'react-native';
 
-/**
- * Input component for text entry with label support.
- * 
- * @example
- * <Input label="Message" placeholder="Type..." variant="textarea" />
- */
 interface InputProps {
-  /** Label displayed above input */
   label?: string;
-  /** Placeholder text when empty */
   placeholder?: string;
-  /** Current value */
   value?: string;
-  /** Change handler */
   onChangeText?: (text: string) => void;
-  /** Input variant - affects height and multiline support */
   variant?: 'text' | 'textarea' | 'search';
-  /** Error state with message display */
   error?: boolean;
   errorMessage?: string;
-  /** Disabled state */
   disabled?: boolean;
-  /** Auto-focus on mount */
   autoFocus?: boolean;
-  /** Additional text input styles */
-  style?: TextStyle;
-  /** Container styles */
   containerStyle?: ViewStyle;
+  className?: string;
 }
 
 export function Input({
@@ -41,21 +25,21 @@ export function Input({
   errorMessage,
   disabled = false,
   autoFocus = false,
-  style,
   containerStyle,
 }: InputProps) {
   const isTextarea = variant === 'textarea';
 
   return (
-    <View className={`flex flex-col ${containerStyle?.toString()}`}>
+    <View style={[{ flexDirection: 'column' }, containerStyle]}>
       {label && (
-        <Text className="mb-1 text-sm font-medium text-foreground">
+        <Text style={{ marginBottom: 6, fontSize: 13, fontWeight: '500', color: '#c7d2fe' }}>
           {label}
         </Text>
       )}
-      
+
       <TextInput
         placeholder={placeholder}
+        placeholderTextColor="rgba(199, 210, 254, 0.4)"
         value={value}
         onChangeText={onChangeText}
         multiline={isTextarea}
@@ -63,18 +47,22 @@ export function Input({
         editable={!disabled}
         autoFocus={autoFocus}
         accessibilityLabel={label || placeholder}
-        className={`
-          rounded-md border px-3 py-2 text-base 
-          ${error ? 'border-destructive' : 'border-border'}
-          ${disabled ? 'bg-muted opacity-50' : 'bg-background'}
-          ${isTextarea ? 'min-h-[100px]' : ''}
-          ${variant === 'search' ? 'pl-8' : ''}
-        `}
-        style={style}
+        style={{
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: error ? '#ef4444' : 'rgba(99, 102, 241, 0.4)',
+          paddingHorizontal: 14,
+          paddingVertical: 12,
+          fontSize: 15,
+          color: '#f0f0ff',
+          backgroundColor: 'rgba(30, 27, 75, 0.8)',
+          minHeight: isTextarea ? 100 : undefined,
+          opacity: disabled ? 0.5 : 1,
+        }}
       />
-      
+
       {error && errorMessage && (
-        <Text className="mt-1 text-sm text-destructive">
+        <Text style={{ marginTop: 6, fontSize: 12, color: '#ef4444' }}>
           {errorMessage}
         </Text>
       )}

@@ -3,8 +3,8 @@ import { render } from '@testing-library/react-native';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 
 describe('ChatBubble Component', () => {
-  it('renders user message correctly', () => {
-    const { getByText } = render(
+  it('renders user message correctly', async () => {
+    const { getByText } = await render(
       <ChatBubble 
         role="user" 
         content="Hello World" 
@@ -15,8 +15,8 @@ describe('ChatBubble Component', () => {
     expect(getByText('Hello World')).toBeTruthy();
   });
 
-  it('renders assistant message with model name', () => {
-    const { getByText } = render(
+  it('renders assistant message with model name', async () => {
+    const { getByText } = await render(
       <ChatBubble 
         role="assistant" 
         content="AI Response" 
@@ -29,9 +29,9 @@ describe('ChatBubble Component', () => {
     expect(getByText('AI Response')).toBeTruthy();
   });
 
-  it('displays timestamp correctly', () => {
+  it('displays timestamp correctly', async () => {
     const timestamp = Date.now();
-    const { getByText } = render(
+    const { getByText } = await render(
       <ChatBubble 
         role="user" 
         content="Test message" 
@@ -43,8 +43,8 @@ describe('ChatBubble Component', () => {
     expect(true).toBe(true); // Placeholder - would verify time format in real test
   });
 
-  it('positions user messages on the right', () => {
-    const { debug } = render(
+  it('positions user messages on the right', async () => {
+    const { debug } = await render(
       <ChatBubble 
         role="user" 
         content="User message" 
@@ -56,8 +56,8 @@ describe('ChatBubble Component', () => {
     expect(true).toBe(true);
   });
 
-  it('positions assistant messages on the left', () => {
-    const { debug } = render(
+  it('positions assistant messages on the left', async () => {
+    const { debug } = await render(
       <ChatBubble 
         role="assistant" 
         content="Assistant message" 

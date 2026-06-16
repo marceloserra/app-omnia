@@ -1,30 +1,26 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, ViewStyle } from 'react-native';
 
-/**
- * Divider component for visual separation between sections.
- * 
- * @example
- * <Divider orientation="horizontal" />
- */
 interface DividerProps {
-  /** Orientation of divider - horizontal or vertical */
   orientation?: 'horizontal' | 'vertical';
-  /** Additional classes for styling */
+  style?: ViewStyle;
   className?: string;
 }
 
-export function Divider({ orientation = 'horizontal', className }: DividerProps) {
-  const baseClasses = 'bg-border';
-  
-  if (orientation === 'horizontal') {
-    return (
-      <View className={`${baseClasses} h-px w-full ${className}`} />
-    );
-  }
+export function Divider({ orientation = 'horizontal', style }: DividerProps) {
+  const isVertical = orientation === 'vertical';
 
   return (
-    <View className={`${baseClasses} w-px h-full ${className}`} />
+    <View
+      style={[
+        {
+          backgroundColor: 'rgba(99, 102, 241, 0.2)',
+          borderRadius: 1,
+          ...(isVertical ? { width: 1, alignSelf: 'stretch' } : { height: 1, width: '100%' }),
+        },
+        style,
+      ]}
+    />
   );
 }
 
