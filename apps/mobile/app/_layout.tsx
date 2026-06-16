@@ -42,6 +42,10 @@ export default function RootLayout() {
           name="settings"
           options={{ title: "Settings" }}
         />
+        <Stack.Screen
+          name="chat/[conversationId]"
+          options={{ title: "Chat", headerBackTitle: "Chats" }}
+        />
       </Stack>
     </>
   );

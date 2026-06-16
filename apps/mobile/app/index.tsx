@@ -1,108 +1,96 @@
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
-import { Avatar } from '../components/ui/Avatar';
-import { Divider } from '../components/ui/Divider';
-import { IconButton } from '../components/ui/IconButton';
-import { Send, Settings } from 'lucide-react-native';
+import React from "react";
+import { View, Text, ScrollView, Pressable } from "react-native";
+import { router } from "expo-router";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { useProviderStore } from "../store/provider-store";
+import { MessageSquare, Plus } from "lucide-react-native";
 
-const BG = '#0a0918';
-const SURFACE = '#13112a';
-const INDIGO = '#6366f1';
-const VIOLET = '#8b5cf6';
-const TEXT_PRIMARY = '#f0efff';
-const TEXT_SECONDARY = '#9d9bcc';
+const BG = "#0a0918";
+const INDIGO = "#6366f1";
+const TEXT_PRIMARY = "#f0efff";
+const TEXT_SECONDARY = "#9d9bcc";
 
-export default function ShowcaseScreen() {
+// Placeholder conversations — will be replaced with SQLite in Phase 4 wiring
+const PLACEHOLDER_CONVERSATIONS = [
+  { id: "1", title: "Getting started with Omnia", preview: "Hello! How can I help you today?", updatedAt: Date.now() - 60000 },
+  { id: "2", title: "Explain quantum computing", preview: "Quantum computing leverages quantum...", updatedAt: Date.now() - 3600000 },
+];
+
+export default function ConversationsScreen() {
+  const store = useProviderStore();
+
+  const startNewChat = () => {
+    router.push("/chat/new");
+  };
+
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: BG }}
-      contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
-    >
-      {/* Header */}
-      <View style={{ marginTop: 16, marginBottom: 32 }}>
-        <Text style={{ fontSize: 28, fontWeight: '700', color: TEXT_PRIMARY, letterSpacing: -0.5 }}>
-          Design System
-        </Text>
-        <Text style={{ fontSize: 14, color: TEXT_SECONDARY, marginTop: 4 }}>
-          Premium Indigo & Glassmorphism
-        </Text>
-      </View>
-
-      {/* Assistant Card */}
-      <Card padding="lg" style={{ marginBottom: 20 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-          <Avatar fallback="AI" size="md" />
-          <View style={{ marginLeft: 14 }}>
-            <Text style={{ fontSize: 16, fontWeight: '600', color: TEXT_PRIMARY }}>Omnia Assistant</Text>
-            <Text style={{ fontSize: 13, color: TEXT_SECONDARY, marginTop: 2 }}>Always here to help</Text>
-          </View>
+    <View style={{ flex: 1, backgroundColor: BG }}>
+      {/* Provider status bar */}
+      {store.activeProviderId && store.isConnected && (
+        <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: "rgba(99,102,241,0.08)", borderBottomWidth: 1, borderBottomColor: "rgba(99,102,241,0.15)" }}>
+          <Text style={{ fontSize: 12, color: INDIGO, fontWeight: "600" }}>
+            ✦ {store.activeProviderId === "openai" ? "OpenAI" : "Local AI"} · {store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
+          </Text>
         </View>
-        <Divider style={{ marginBottom: 14 }} />
-        <Text style={{ fontSize: 14, color: TEXT_SECONDARY, lineHeight: 22 }}>
-          Built on a premium Design System with deep indigo tonalities and glassmorphism effects.
-        </Text>
-      </Card>
+      )}
 
-      {/* Buttons Section */}
-      <Text style={{ fontSize: 17, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 }}>Buttons</Text>
-
-      <Button variant="default" size="lg" style={{ marginBottom: 10 }}>
-        <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15 }}>✦ Generate Response</Text>
-      </Button>
-
-      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-        <Button variant="secondary" style={{ flex: 1 }}>
-          <Text style={{ color: INDIGO, fontWeight: '600', fontSize: 14 }}>Secondary</Text>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+        {/* New conversation button */}
+        <Button variant="default" size="lg" onPress={startNewChat} style={{ marginBottom: 24 }}>
+          <Plus size={18} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>New Conversation</Text>
         </Button>
-        <Button variant="outline" style={{ flex: 1 }}>
-          <Text style={{ color: INDIGO, fontWeight: '600', fontSize: 14 }}>Outline</Text>
-        </Button>
-      </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-        <Button variant="ghost" style={{ flex: 1 }}>
-          <Text style={{ color: TEXT_SECONDARY, fontWeight: '600', fontSize: 14 }}>Ghost</Text>
-        </Button>
-        <IconButton icon={Settings} variant="outline" accessibilityLabel="Settings" />
-        <IconButton icon={Send} variant="default" accessibilityLabel="Send" />
-      </View>
+        {!store.isConnected && (
+          <Card padding="md" style={{ marginBottom: 20 }}>
+            <Text style={{ color: TEXT_SECONDARY, fontSize: 14, textAlign: "center" }}>
+              No provider connected.{"\n"}
+              <Text
+                style={{ color: INDIGO, fontWeight: "600" }}
+                onPress={() => router.push("/settings")}
+              >
+                Open Settings →
+              </Text>
+            </Text>
+          </Card>
+        )}
 
-      {/* Inputs Section */}
-      <Text style={{ fontSize: 17, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 }}>Inputs</Text>
-
-      <Input
-        placeholder="Ask Omnia anything..."
-        containerStyle={{ marginBottom: 12 }}
-      />
-      <Input
-        placeholder="Error state"
-        error={true}
-        errorMessage="Connection to provider lost."
-        containerStyle={{ marginBottom: 28 }}
-      />
-
-      {/* Color Palette Preview */}
-      <Text style={{ fontSize: 17, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 }}>Color Palette</Text>
-      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 32 }}>
-        {[
-          { color: INDIGO, label: 'Primary' },
-          { color: VIOLET, label: 'Accent' },
-          { color: '#22c55e', label: 'Success' },
-          { color: '#ef4444', label: 'Error' },
-        ].map(({ color, label }) => (
-          <View key={label} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
-            <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: color }} />
-            <Text style={{ fontSize: 11, color: TEXT_SECONDARY }}>{label}</Text>
-          </View>
-        ))}
-      </View>
-
-      <View style={{ alignItems: 'center', paddingVertical: 16 }}>
-        <Text style={{ fontSize: 12, color: TEXT_SECONDARY }}>Omnia Design System · Phase 2</Text>
-      </View>
-    </ScrollView>
+        {/* Conversation list */}
+        {PLACEHOLDER_CONVERSATIONS.length > 0 && (
+          <>
+            <Text style={{ fontSize: 13, fontWeight: "600", color: TEXT_SECONDARY, marginBottom: 10, letterSpacing: 1, textTransform: "uppercase" }}>
+              Recent
+            </Text>
+            {PLACEHOLDER_CONVERSATIONS.map((conv) => (
+              <Pressable
+                key={conv.id}
+                onPress={() => router.push(`/chat/${conv.id}`)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 10 })}
+              >
+                <Card padding="md">
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                    <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(99,102,241,0.2)", alignItems: "center", justifyContent: "center" }}>
+                      <MessageSquare size={16} color={INDIGO} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: TEXT_PRIMARY, fontWeight: "600", fontSize: 14, marginBottom: 2 }}>
+                        {conv.title}
+                      </Text>
+                      <Text style={{ color: TEXT_SECONDARY, fontSize: 13 }} numberOfLines={1}>
+                        {conv.preview}
+                      </Text>
+                    </View>
+                    <Text style={{ color: TEXT_SECONDARY, fontSize: 11 }}>
+                      {new Date(conv.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </Text>
+                  </View>
+                </Card>
+              </Pressable>
+            ))}
+          </>
+        )}
+      </ScrollView>
+    </View>
   );
 }
