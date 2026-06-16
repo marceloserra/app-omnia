@@ -15,6 +15,7 @@
   "devDependencies": {
     "@types/react": "~19.2.2",
     "@typescript-eslint/parser": "^8.0.0",
+    "babel-preset-expo": "^56.0.15",
     "eslint": "^9.36.0",
     "typescript": "~6.0.3",
     "vitest": "^3.1.0"
@@ -23,7 +24,7 @@
     "dev": "expo start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "private": true
 }

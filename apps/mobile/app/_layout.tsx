@@ -1,24 +1,21 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useColorScheme } from "react-native";
 import "../assets/css/global.css";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({});
-  const [themeScheme, setThemeScheme] = useState<"light" | "dark">("light");
-
-  useEffect(() => {
-    // Detect system theme preference on mount
-    const colorScheme = require("react-native").Appearance.getColorScheme();
-    setThemeScheme(colorScheme ?? "light");
-  }, []);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   if (!fontsLoaded) return null;
 
   return (
-    <ThemeProvider value={themeScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <StatusBar style={themeScheme === "dark" ? "light" : "dark"} />
+    <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+      <Stack screenOptions={{ headerShown: false }} />
+      <StatusBar style={isDark ? "light" : "dark"} />
     </ThemeProvider>
   );
 }
