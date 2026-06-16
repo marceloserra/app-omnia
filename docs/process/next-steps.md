@@ -7,7 +7,7 @@ The goal is to go from a working Design System to a fully functional chat experi
 
 ---
 
-## Step 1 — Provider Settings Screen (Phase 3 completion)
+## Step 1 — Provider Settings Screen ✅ DONE (2026-06-16)
 
 **Goal:** Allow the user to select a provider, enter credentials, and validate the connection on-device.
 
