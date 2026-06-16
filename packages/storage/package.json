@@ -1,0 +1,28 @@
+{
+  "name": "@omnia/storage",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "description": "SQLite persistence layer for Omnia conversations and messages",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@omnia/shared-types": "workspace:*",
+    "expo-sqlite": "~56.0.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "eslint": "^9.36.0",
+    "vitest": "^3.1.0"
+  },
+  "peerDependencies": {
+    "expo": "~56.0.12"
+  }
+}
