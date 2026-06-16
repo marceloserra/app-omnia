@@ -56,6 +56,18 @@ Verify adb is available:
 adb version
 ```
 
+#### Create an Android Virtual Device (AVD)
+
+Expo requires a running emulator or connected device. To create one:
+
+1. Open **Android Studio** → `Tools` → `Device Manager`
+2. Click **"Create Device"** and pick a hardware profile (e.g., Pixel 6 or Pixel 7)
+3. On the "System Image" screen, select an image with **"Google Play"** matching your SDK API level
+4. Download the system image if prompted, then click **"Next"** → **"Finish"**
+5. In Device Manager, click the ▶️ play button to start the emulator
+
+See [Expo Android Studio Emulator docs](https://docs.expo.dev/workflow/android-studio-emulator) for detailed setup and troubleshooting.
+
 ## Setup
 
 ```bash
@@ -90,6 +102,8 @@ npx expo start --android # launches Android emulator or connected device
 ```
 
 If `--android` fails with "Failed to resolve the Android SDK path", verify `ANDROID_HOME` is set and `adb` exists on PATH (see Local Environment Setup above).
+
+If `--android` reports "No Android connected device found", ensure an AVD is created and running in Device Manager.
 
 ## Phase Discipline
 
