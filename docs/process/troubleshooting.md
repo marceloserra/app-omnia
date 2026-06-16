@@ -17,21 +17,28 @@ This document serves as a centralized knowledge base for critical errors encount
 - **Error/Symptom:**
   ```text
   ERROR  [TypeError: undefined is not a function]
-  WARN  Route "./_layout.tsx" is missing the required default export. Ensure a React component is exported as default.
+  ERROR  [TypeError: Cannot read property 'ErrorBoundary' of undefined]
+  WARN  Route "./_layout.tsx" is missing the required default export.
   ```
-- **Root Cause:** The `pnpm-lock.yaml` at the monorepo root had stale entries pinning `react-native-gesture-handler@3.0.1` and `expo-router@5.1.11`, which are incompatible with Expo SDK 56. `expo-router/drawer` uses Gesture Handler internals that changed between versions 2.x and 3.x. When the incompatible version loads, it throws `TypeError: undefined is not a function` before the module can export the React component, causing Expo Router to report the misleading "missing default export" warning.
-- **Why it was hard to find:** `pnpm install` respects the lockfile by default and skipped re-resolution even after `package.json` was updated. `expo install --fix` was looping endlessly because the lockfile kept re-winning against the fixes.
-- **Solution (confirmed, both platforms bundle clean):**
-  1. Pin exact SDK 56 compatible versions directly in `apps/mobile/package.json`:
-     - `expo`: `~56.0.12`
-     - `expo-router`: `~56.2.11`
-     - `expo-font`: `~56.0.7`
-     - `react-native-gesture-handler`: `~2.31.1`
-     - `react-native-reanimated`: `4.3.1`
-     - `react-native-safe-area-context`: `~5.7.0`
-     - `@types/jest`: `29.5.14`
-  2. Force the lockfile to update: `pnpm update --filter mobile <packages...>`
-  3. Add `import "react-native-gesture-handler";` as the **very first line** of `apps/mobile/app/_layout.tsx`.
-  4. Add `"react-native-reanimated/plugin"` to the `plugins` array in `babel.config.js`.
-  5. Clear Metro cache on next dev server start: `expo start -c`.
-- **Validated by:** `expo export --platform android` and `expo export --platform ios` both succeed with no errors.
+- **True Root Cause (found via `diagnose` skill):** `@expo/metro-runtime` was hoisted to root `node_modules` at version `5.0.5` (the pre-SDK 56 series). `expo-router 56.2.11` requires `^56.0.15`. The old runtime bootstraps a completely different module registry that doesn't populate `ErrorBoundary`, causing the entire layout module to crash on evaluation. Expo Router then reports the misleading "missing default export" warning because the file never finishes evaluating.
+  - **Why `expo install --fix` looped forever:** It updated `expo`, `expo-router`, and gesture-handler correctly, but never updated `@expo/metro-runtime` because it's an indirect/peer dependency — not listed in `package.json` directly.
+  - **Why it looked like a gesture handler issue first:** The `TypeError: undefined is not a function` is the same error surface for both a Gesture Handler API break (3.x vs 2.x) and a Metro runtime mismatch. Fixing gesture handler did nothing because the runtime was still broken.
+- **Solution (confirmed ✅ — both platforms export clean):**
+  1. Pin exact SDK 56 versions directly in `apps/mobile/package.json` (see below).
+  2. Run `pnpm update --filter mobile <packages>` to force lockfile re-resolution (do NOT use `pnpm install` alone — it respects stale lockfile).
+  3. **Explicitly add** `@expo/metro-runtime@^56.0.15` as a direct dependency via `pnpm --filter mobile add @expo/metro-runtime@^56.0.15`.
+  4. Add `import "react-native-gesture-handler";` as the **very first line** of `_layout.tsx`.
+  5. Add `"react-native-reanimated/plugin"` to `plugins` in `babel.config.js`.
+  6. Clear Metro cache: `expo start -c`.
+- **Required `package.json` versions for SDK 56:**
+  ```json
+  "expo": "~56.0.12",
+  "expo-router": "~56.2.11",
+  "expo-font": "~56.0.7",
+  "@expo/metro-runtime": "^56.0.15",
+  "react-native-gesture-handler": "~2.31.1",
+  "react-native-reanimated": "4.3.1",
+  "react-native-safe-area-context": "~5.7.0",
+  "@types/jest": "29.5.14"
+  ```
+- **Validated by:** `expo export --platform android` → 4.1MB bundle ✅, `expo export --platform ios` → 3.9MB bundle ✅
