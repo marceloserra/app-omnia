@@ -21,7 +21,6 @@ import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
 import { AlignLeft, Settings, Sparkles } from "lucide-react-native";
-import * as Haptics from "expo-haptics";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
@@ -102,7 +101,6 @@ export default function HomeScreen() {
       timestamp: Date.now(),
     };
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setMessages([userMessage, assistantMessage]);
     setIsStreaming(true);
 
@@ -128,20 +126,15 @@ export default function HomeScreen() {
         setMessages((prev) =>
           prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent } : m))
         );
-        flatListRef.current?.scrollToEnd({ animated: true });
       }
 
       try {
         msgRepo.updateContent(assistantId, fullContent);
-        if (!isAbortedRef.current) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        }
       } catch (err) {
         logger.error("SQLite", "Failed to update assistant message", err);
       }
     } catch (e: any) {
       if (isAbortedRef.current) return;
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
       setMessages((prev) =>
         prev.map((m) => (m.id === assistantId ? { ...m, content: errorMsg } : m))
@@ -170,7 +163,6 @@ export default function HomeScreen() {
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         {/* Hamburger */}
         <Pressable
-          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setSidebarOpen(true); }}
           style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
           accessibilityLabel="Open menu"
         >
@@ -201,6 +193,7 @@ export default function HomeScreen() {
         data={[...messages].reverse()}
         inverted
         keyExtractor={(m) => m.id}
+        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
         renderItem={({ item }) => <MessageBubble message={item} />}
         contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
         ListEmptyComponent={

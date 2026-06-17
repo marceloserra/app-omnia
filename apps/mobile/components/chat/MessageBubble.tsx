@@ -9,7 +9,6 @@ import {
 import { Message } from "@omnia/shared-types";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import Markdown, { ASTNode } from "react-native-markdown-display";
 import { CheckCircle2, Copy } from "lucide-react-native";
@@ -30,7 +29,6 @@ function CodeBlock({ content, language }: { content: string; language?: string }
 
   const handleCopy = async () => {
     await Clipboard.setStringAsync(content);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -213,7 +211,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   const handleCopy = async () => {
     await Clipboard.setStringAsync(message.content);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

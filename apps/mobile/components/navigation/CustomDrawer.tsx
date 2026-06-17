@@ -7,7 +7,6 @@ import { openDatabase, createConversationRepo } from "@omnia/storage";
 import { Conversation } from "@omnia/shared-types";
 import { useProviderStore } from "../../store/provider-store";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
@@ -35,19 +34,16 @@ export function CustomDrawer(props: DrawerContentComponentProps) {
   );
 
   const handleNewChat = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push("/");
     props.navigation.closeDrawer();
   };
 
   const handleOpenChat = (id: string) => {
-    Haptics.selectionAsync();
     router.push(`/chat/${id}`);
     props.navigation.closeDrawer();
   };
 
   const handleSettings = () => {
-    Haptics.selectionAsync();
     router.push("/settings");
     props.navigation.closeDrawer();
   };

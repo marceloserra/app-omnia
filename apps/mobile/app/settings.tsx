@@ -11,7 +11,6 @@ import {
   Alert,
 } from "react-native";
 import { router } from "expo-router";
-import { useProviderStore } from "../store/provider-store";
 import { Input } from "../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
 import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2 } from "lucide-react-native";
@@ -19,7 +18,7 @@ import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
+import { useProviderStore } from "../store/provider-store";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
@@ -55,7 +54,6 @@ export default function SettingsScreen() {
       const db = openDatabase();
       createMessageRepo(db).deleteAll();
       createConversationRepo(db).deleteAll();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       setShowClearConfirm(false);
       router.replace("/");
     } catch (err) {
@@ -75,13 +73,11 @@ export default function SettingsScreen() {
         if (ok) {
           const models = await provider.listModels({ apiKey: localOpenaiKey });
           setTestResult({ ok: true, models: models.map((m) => m.id) });
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           if (!localModel || !models.find((m) => m.id === localModel)) {
             setLocalModel(models[0]?.id || "gpt-4o-mini");
           }
         } else {
           setTestResult({ ok: false, msg: "Invalid API key or network error.", models: [] });
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
       } else {
         const provider = new OpenAICompatibleProvider();
@@ -95,18 +91,15 @@ export default function SettingsScreen() {
             apiKey: localCompatibleKey || undefined,
           });
           setTestResult({ ok: true, models: models.map((m) => m.id) });
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           if (!localModel || !models.find((m) => m.id === localModel)) {
             setLocalModel(models[0]?.id || "");
           }
         } else {
           setTestResult({ ok: false, msg: "Could not connect. Check the base URL.", models: [] });
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
       }
     } catch (e: any) {
       setTestResult({ ok: false, msg: e?.message ?? "Unknown error.", models: [] });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsValidating(false);
     }
@@ -154,7 +147,6 @@ export default function SettingsScreen() {
                 <Pressable
                   key={tab}
                   onPress={() => {
-                    Haptics.selectionAsync();
                     setActiveTab(tab);
                     setTestResult(null);
                     setLocalModel(tab === "openai" ? store.openaiModelId : store.compatibleModelId);

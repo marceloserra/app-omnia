@@ -11,7 +11,6 @@ import { OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
-import * as Haptics from "expo-haptics";
 import { ArrowDown, AlignLeft, Settings } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -106,7 +105,6 @@ export default function ChatScreen() {
       timestamp: Date.now(),
     };
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
     setIsStreaming(true);
 
@@ -152,16 +150,12 @@ export default function ChatScreen() {
       // Finalize the assistant message in SQLite
       try {
         msgRepo.updateContent(assistantId, fullContent);
-        if (!isAbortedRef.current) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        }
       } catch (err) {
         logger.error("SQLite", "Failed to update assistant message content", err);
       }
 
     } catch (e: any) {
       if (isAbortedRef.current) return;
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
       setMessages((prev) =>
         prev.map((m) =>
@@ -202,7 +196,6 @@ export default function ChatScreen() {
       {/* ─── Custom Header ─── */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Pressable
-          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setSidebarOpen(true); }}
           style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
           accessibilityLabel="Open menu"
         >
@@ -235,6 +228,7 @@ export default function ChatScreen() {
         ref={flatListRef}
         data={[...messages].reverse()}
         inverted
+        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
         keyExtractor={(m) => m.id}
         renderItem={({ item }) => <MessageBubble message={item} />}
         contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}

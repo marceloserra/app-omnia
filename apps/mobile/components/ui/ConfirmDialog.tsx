@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Modal, Pressable, Animated } from "react-native";
 import { AlertTriangle } from "lucide-react-native";
-import * as Haptics from "expo-haptics";
 
 interface ConfirmDialogProps {
   visible: boolean;
@@ -59,7 +58,6 @@ export function ConfirmDialog({
           <View style={styles.actions}>
             <Pressable
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 onCancel();
               }}
               style={({ pressed }) => [styles.btnCancel, pressed && { opacity: 0.7 }]}
@@ -69,7 +67,6 @@ export function ConfirmDialog({
             
             <Pressable
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 onConfirm();
               }}
               style={({ pressed }) => [styles.btnConfirm, pressed && { opacity: 0.8 }]}

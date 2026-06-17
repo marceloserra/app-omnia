@@ -9,7 +9,6 @@ import {
   Text,
 } from "react-native";
 import { ArrowUp, Square } from "lucide-react-native";
-import * as Haptics from "expo-haptics";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
@@ -44,7 +43,6 @@ export function ChatInput({
     }
     const trimmed = text.trim();
     if (!trimmed) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onSend(trimmed);
     setText("");
     inputRef.current?.clear();
@@ -52,7 +50,6 @@ export function ChatInput({
 
   const handleStop = () => {
     if (onStop) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       onStop();
     }
   };

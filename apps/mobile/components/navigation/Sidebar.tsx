@@ -13,7 +13,6 @@ import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/
 import { Conversation } from "@omnia/shared-types";
 import { useProviderStore } from "../../store/provider-store";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 
 const BG = "#05050f";
@@ -145,26 +144,22 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
   // ─── Navigation helpers ───────────────────────────────────────────────────
   const handleNewChat = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onClose();
     setTimeout(() => router.replace("/"), 250);
   };
 
   const handleOpenChat = (id: string) => {
-    Haptics.selectionAsync();
     onClose();
     setTimeout(() => router.replace(`/chat/${id}`), 250);
   };
 
   const handleSettings = () => {
-    Haptics.selectionAsync();
     onClose();
     setTimeout(() => router.push("/settings"), 250);
   };
 
   // ─── Context menu ────────────────────────────────────────────────────────
   const openContextMenu = (conv: Conversation) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setContextMenu({ visible: true, conversation: conv });
   };
 
@@ -176,7 +171,6 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   const handlePin = () => {
     if (!contextMenu.conversation) return;
     const id = contextMenu.conversation.id;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPinnedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -202,7 +196,6 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
     if (trimmed) {
       try {
         convRepo.update(id, { title: trimmed });
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } catch {}
     }
     setRename({ active: false, conversationId: null, value: "" });
@@ -210,7 +203,6 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   };
 
   const handleRenameCancel = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setRename({ active: false, conversationId: null, value: "" });
   };
 
@@ -229,7 +221,6 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
     try {
       msgRepo.deleteByConversation(deleteConfirmTarget.id);
       convRepo.delete(deleteConfirmTarget.id);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     } catch {}
     setDeleteConfirmTarget(null);
     refreshConversations();
