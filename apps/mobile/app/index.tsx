@@ -72,8 +72,6 @@ export default function HomeScreen() {
     const providerCtx = getProvider();
     if (!providerCtx) return;
 
-    isAbortedRef.current = false;
-
     const newConvId = generateId();
     convRepo.create({
       id: newConvId,
@@ -82,71 +80,11 @@ export default function HomeScreen() {
       updatedAt: Date.now(),
     });
 
-    const userMessage: Message = {
-      id: generateId(),
-      conversationId: newConvId,
-      role: "user",
-      content: text,
-      timestamp: Date.now(),
-    };
-
-    const assistantId = generateId();
-    const assistantMessage: Message = {
-      id: assistantId,
-      conversationId: newConvId,
-      role: "assistant",
-      content: "",
-      providerId: store.activeProviderId ?? undefined,
-      modelId: providerCtx.modelId,
-      timestamp: Date.now(),
-    };
-
-    setMessages([userMessage, assistantMessage]);
-    setIsStreaming(true);
-
-    try {
-      msgRepo.create(userMessage);
-      msgRepo.create(assistantMessage);
-    } catch (err) {
-      logger.error("SQLite", "Failed to save user message", err);
-    }
-
-    try {
-      const stream = providerCtx.provider.streamChat(providerCtx.config, {
-        messages: [{ role: "user", content: text }],
-        modelId: providerCtx.modelId,
-        stream: true,
-      });
-
-      let fullContent = "";
-      for await (const chunk of stream) {
-        if (isAbortedRef.current) break;
-        if (chunk.done) break;
-        fullContent += chunk.content;
-        setMessages((prev) =>
-          prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent } : m))
-        );
-      }
-
-      try {
-        msgRepo.updateContent(assistantId, fullContent);
-      } catch (err) {
-        logger.error("SQLite", "Failed to update assistant message", err);
-      }
-    } catch (e: any) {
-      if (isAbortedRef.current) return;
-      const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
-      setMessages((prev) =>
-        prev.map((m) => (m.id === assistantId ? { ...m, content: errorMsg } : m))
-      );
-      try {
-        msgRepo.updateContent(assistantId, errorMsg);
-      } catch {}
-    } finally {
-      setIsStreaming(false);
-      router.replace(`/chat/${newConvId}`);
-    }
-  }, [store, getProvider]);
+    router.replace({
+      pathname: `/chat/[conversationId]`,
+      params: { conversationId: newConvId, initialPrompt: text }
+    });
+  }, [getProvider]);
 
   const handleStop = () => {
     isAbortedRef.current = true;
@@ -161,8 +99,8 @@ export default function HomeScreen() {
     >
       {/* ─── Custom Header ─── */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        {/* Hamburger */}
         <Pressable
+          onPress={() => setSidebarOpen(true)}
           style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
           accessibilityLabel="Open menu"
         >

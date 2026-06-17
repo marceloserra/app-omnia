@@ -30,7 +30,8 @@ function generateId() {
 }
 
 export default function ChatScreen() {
-  const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
+  const { conversationId, initialPrompt } = useLocalSearchParams<{ conversationId: string; initialPrompt?: string }>();
+  const hasTriggeredPrompt = useRef(false);
   const store = useProviderStore();
   const insets = useSafeAreaInsets();
   const headerHeight = insets.top + 44;
@@ -44,20 +45,6 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
   const isAbortedRef = useRef(false);
   const scrollOffsetRef = useRef(0); // track position to restore after keyboard hides
-
-  // Load messages from SQLite on mount
-  useEffect(() => {
-    if (!conversationId) return;
-    try {
-      const conv = convRepo.getById(conversationId);
-      if (conv) setConvTitle(conv.title);
-
-      const history = msgRepo.listByConversation(conversationId);
-      setMessages(history);
-    } catch (err) {
-      logger.error("SQLite", "Failed to load chat history", err);
-    }
-  }, [conversationId]);
 
   // No manual keyboard scroll listeners needed when using inverted FlatList
 
@@ -173,6 +160,27 @@ export default function ChatScreen() {
     }
   }, [messages, conversationId, store, getProvider, isScrolledUp]);
 
+  // Load messages from SQLite on mount
+  useEffect(() => {
+    if (!conversationId) return;
+    try {
+      const conv = convRepo.getById(conversationId);
+      if (conv) setConvTitle(conv.title);
+
+      const history = msgRepo.listByConversation(conversationId);
+      setMessages(history);
+
+      if (initialPrompt && !hasTriggeredPrompt.current) {
+        hasTriggeredPrompt.current = true;
+        setTimeout(() => {
+          handleSend(initialPrompt);
+        }, 300);
+      }
+    } catch (err) {
+      logger.error("SQLite", "Failed to load chat history", err);
+    }
+  }, [conversationId, initialPrompt, handleSend]);
+
   const handleStop = () => {
     isAbortedRef.current = true;
     setIsStreaming(false);
@@ -196,6 +204,7 @@ export default function ChatScreen() {
       {/* ─── Custom Header ─── */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Pressable
+          onPress={() => setSidebarOpen(true)}
           style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
           accessibilityLabel="Open menu"
         >
