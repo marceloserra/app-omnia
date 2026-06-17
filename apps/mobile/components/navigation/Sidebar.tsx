@@ -96,8 +96,6 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   const sheetFadeAnim = useRef(new Animated.Value(0)).current;
   const renameRefs = useRef<Record<string, TextInput | null>>({});
 
-  const [isNavigating, setIsNavigating] = useState(false);
-
   const panResponder = useMemo(
     () =>
       PanResponder.create({
@@ -200,33 +198,18 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
   // ─── Navigation helpers ───────────────────────────────────────────────────
   const handleNewChat = () => {
-    if (isNavigating) return;
-    setIsNavigating(true);
     onClose();
-    setTimeout(() => {
-      router.replace("/");
-      setIsNavigating(false);
-    }, 150);
+    router.replace("/");
   };
 
   const handleOpenChat = (id: string) => {
-    if (isNavigating) return;
-    setIsNavigating(true);
     onClose();
-    setTimeout(() => {
-      router.replace(`/chat/${id}`);
-      setIsNavigating(false);
-    }, 150);
+    router.replace(`/chat/${id}`);
   };
 
   const handleSettings = () => {
-    if (isNavigating) return;
-    setIsNavigating(true);
     onClose();
-    setTimeout(() => {
-      router.push("/settings");
-      setIsNavigating(false);
-    }, 150);
+    router.push("/settings");
   };
 
   // ─── Context menu ────────────────────────────────────────────────────────
