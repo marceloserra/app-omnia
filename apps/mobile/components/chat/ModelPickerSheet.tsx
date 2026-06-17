@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, FlatList, Image, PanResponder, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, FlatList, Image, TextInput, KeyboardAvoidingView, Platform } from "react-native";
 import { Check, Cpu, Search } from "lucide-react-native";
 import { ThemePalette } from "../../lib/theme";
 
@@ -39,35 +39,12 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, i
   const [search, setSearch] = useState("");
   const filtered = models.filter((m) => m.toLowerCase().includes(search.toLowerCase()));
 
-  const panResponder = React.useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 10,
-        onPanResponderRelease: (_, gestureState) => {
-          if (gestureState.dy > 50) {
-            onClose();
-          }
-        },
-      }),
-    [onClose]
-  );
-
-  return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={{ flex: 1, backgroundColor: theme.bg }}
     >
-      <View {...panResponder.panHandlers}>
-        <View style={{ alignItems: "center", paddingTop: 12, paddingBottom: 4 }}>
-          <View style={{
-            width: 40, height: 4, borderRadius: 2,
-            backgroundColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)",
-          }} />
-        </View>
-        <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16 }}>
-          <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: "700" }}>Select Model</Text>
-        </View>
+      <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16 }}>
+        <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: "700" }}>Select Model</Text>
       </View>
       {filtered.length === 0 ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingBottom: 60 }}>

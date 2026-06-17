@@ -347,24 +347,31 @@ export default function ChatScreen() {
 
       <Modal
         visible={modelPickerVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
+        animationType="fade"
+        transparent={true}
         onRequestClose={() => setModelPickerVisible(false)}
       >
-        <ModelPickerSheet
-          models={store.availableModels}
-          selected={store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
-          onSelect={(m) => {
-            if (store.activeProviderId === "openai") {
-              store.setOpenaiModelId(m);
-            } else {
-              store.setCompatibleModelId(m);
-            }
-          }}
-          theme={theme}
-          isDark={isDark}
-          onClose={() => setModelPickerVisible(false)}
-        />
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", padding: 24 }}>
+            <Pressable style={StyleSheet.absoluteFill} onPress={() => setModelPickerVisible(false)} />
+            <View style={{ width: "100%", maxHeight: 460, backgroundColor: theme.bg, borderRadius: 32, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 10 }}>
+              <ModelPickerSheet
+                models={store.availableModels}
+                selected={store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
+                onSelect={(m) => {
+                  if (store.activeProviderId === "openai") {
+                    store.setOpenaiModelId(m);
+                  } else {
+                    store.setCompatibleModelId(m);
+                  }
+                }}
+                theme={theme}
+                isDark={isDark}
+                onClose={() => setModelPickerVisible(false)}
+              />
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </KeyboardAvoidingView>
   );
