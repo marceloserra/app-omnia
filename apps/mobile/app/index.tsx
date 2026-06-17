@@ -48,7 +48,7 @@ export default function HomeScreen() {
   const isAbortedRef = useRef(false);
   const flatListRef = useRef<FlatList>(null);
 
-  const noProvider = !store.activeProviderId || !store.isConnected;
+  const noProvider = !store.activeProviderId;
 
   // Keyboard scroll behaviour (Android)
   useEffect(() => {

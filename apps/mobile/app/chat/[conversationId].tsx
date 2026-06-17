@@ -210,7 +210,7 @@ export default function ChatScreen() {
     setIsScrolledUp(false);
   };
 
-  const noProvider = !store.activeProviderId || !store.isConnected;
+  const noProvider = !store.activeProviderId;
 
   return (
     <KeyboardAvoidingView
