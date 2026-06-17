@@ -51,25 +51,21 @@ While I absolutely loved incredible projects like Open WebUI and llama.cpp UI, I
 
 ## Comprehensive Feature Set
 
-We didn't just build a chat wrapper; we built a fully-featured, production-ready mobile application. Here is exactly what is inside the box:
+We didn't just build a chat wrapper; we built a fully-featured, production-ready mobile application. 
 
-### Chat & Conversational Core
-- **New Chat Generation:** Instantly spawn fresh conversation contexts with isolated memory boundaries.
-- **Infinite History:** A dedicated history screen allowing you to infinitely scroll and instantly resume any past conversation without network latency.
-- **Dynamic Title Generation:** The app automatically processes your first prompt and generates a concise, contextual title for the chat.
-- **Real-Time Streaming:** Tokens render smoothly at 60 FPS, optimized for mobile hardware without causing React RAM leaks.
-- **Developer-First Markdown:** Native rendering for complex Markdown, tables, and nested formatting. Code blocks feature full syntax highlighting and a 1-click copy button.
-
-### Providers & AI Integration
-- **Universal Provider Support:** Natively supports commercial giants (OpenAI, Anthropic, Gemini) AND your Local/Custom Endpoints (OpenAI Compatible) for ultimate privacy.
-- **Live Provider Validation:** Real-time ping testing for API keys and Base URLs to ensure your self-hosted endpoints are reachable before saving.
-- **Live Model Switching:** Change your mind mid-conversation? Tap the floating header to open a modal and switch from ChatGPT to your Local Llama on the fly without dropping context.
-- **Dynamic Island Chips:** Know exactly which model you are talking to at a glance with a borderless floating header.
-
-### Native Persistence & UX
-- **Swipe-to-Pin & Delete:** Manage your history like a pro. Swipe left to permanently cascade-delete chats, or swipe right to Pin your most important architecture discussions to the top.
-- **Granular Customization:** A unified dark-mode settings hub to manage your endpoints and application behaviors.
-- **Haptic Engine Toggle:** Deep integration with device haptics provides tactile feedback on stream completions, swipes, and system errors. You can toggle this completely on or off in Settings.
+| Status | Feature | Description |
+| :---: | --- | --- |
+| [x] | **Real-Time Streaming** | Tokens render smoothly at 60 FPS, optimized for mobile hardware without causing React RAM leaks. |
+| [x] | **Universal Provider Support**| Natively supports commercial giants (OpenAI) AND your Local/Custom Endpoints (OpenAI Compatible). |
+| [x] | **Live Model Switching** | Tap the floating header to open a modal and switch models on the fly without dropping context. |
+| [x] | **Developer-First Markdown** | Native rendering for complex Markdown, tables, and nested formatting with 1-click code copying. |
+| [x] | **Auto-Fallback Circuit** | If the cloud rate-limits you, Omnia automatically intercepts the error and routes the prompt to your fallback local models. |
+| [x] | **Swipe-to-Pin & Delete** | Complete local SQLite persistence. Swipe left to permanently delete chats, or swipe right to Pin them. |
+| [x] | **Haptic Engine Toggle** | Deep integration with device haptics provides tactile feedback on stream completions and system errors. |
+| [ ] | **Voice Input (Whisper)** | *Planned:* Speak directly to your models with real-time transcription. |
+| [ ] | **Multimodal Uploads** | *Planned:* Attach images and documents to your prompts for Vision models. |
+| [ ] | **Web Search Integration** | *Planned:* Allow your models to securely browse the web for up-to-date answers. |
+| [ ] | **Tool Calling & MCP** | *Planned:* Support for Model Context Protocol to execute server-side tools natively. |
 
 ---
 
