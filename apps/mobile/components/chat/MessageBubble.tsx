@@ -278,7 +278,9 @@ export const MessageBubble = React.memo(({ message, isStreaming = false }: Messa
     return (
       <Pressable style={[styles.container, styles.userContainer]} onLongPress={handleCopy} delayLongPress={300}>
         <LinearGradient
-          colors={[theme.indigo, theme.indigo]}
+          colors={["#6366f1", "#4338ca"]} // Rich indigo gradient
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={[styles.bubble, styles.userBubble]}
         >
           <Text style={[styles.text, { color: "#ffffff" }]}>{message.content}</Text>
@@ -295,7 +297,7 @@ export const MessageBubble = React.memo(({ message, isStreaming = false }: Messa
 
   return (
     <Pressable style={[styles.container, styles.assistantContainer]} onLongPress={handleCopy} delayLongPress={300}>
-      <BlurView intensity={isDark ? 20 : 60} tint={isDark ? "dark" : "light"} style={[styles.bubble, styles.assistantBubble]}>
+      <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={[styles.bubble, styles.assistantBubble]}>
         {isEmpty ? (
           <TypingIndicator />
         ) : (
@@ -351,19 +353,18 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     borderBottomRightRadius: 6,
     shadowColor: theme.indigo,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
   },
   assistantBubble: {
     maxWidth: "96%",
     flexShrink: 1,
     borderRadius: 20,
     borderBottomLeftRadius: 6,
-    borderWidth: 1,
-    borderColor: theme.border,
+    borderWidth: 0, // Removed border for cleaner glass look
     overflow: "hidden",
-    backgroundColor: "transparent",
+    backgroundColor: theme.bg === "#05050f" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
   },
   text: {
     color: theme.textPrimary,

@@ -85,7 +85,7 @@ export function ChatInput({
               style={({ pressed }) => [styles.sendBtn, styles.stopBtn, pressed && { opacity: 0.75 }]}
               accessibilityLabel="Stop generating"
             >
-              <Square size={16} color={theme.textPrimary} fill={theme.textPrimary} />
+              <Square size={16} color={theme.textPrimary} />
             </Pressable>
           ) : (
             <Pressable

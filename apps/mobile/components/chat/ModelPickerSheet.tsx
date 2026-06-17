@@ -17,9 +17,6 @@ const getModelIcon = (name: string) => {
   if (n.includes("gpt") || n.includes("openai")) return <Brain size={18} color="#10b981" />;
   if (n.includes("claude") || n.includes("anthropic")) return <Sparkles size={18} color="#f59e0b" />;
   if (n.includes("llama") || n.includes("meta")) return <Bot size={18} color="#3b82f6" />;
-  if (n.includes("gemma") || n.includes("gemini") || n.includes("google")) return <Zap size={18} color="#8b5cf6" />;
-  if (n.includes("mistral") || n.includes("mixtral")) return <Wind size={18} color="#0ea5e9" />;
-  if (n.includes("qwen")) return <Globe size={18} color="#ec4899" />;
   return <Cpu size={18} color="#64748b" />;
 };
 
