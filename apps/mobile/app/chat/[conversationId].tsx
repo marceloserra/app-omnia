@@ -311,7 +311,7 @@ export default function ChatScreen() {
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => <MessageBubble message={item} />}
-            contentContainerStyle={{ paddingVertical: 16, paddingBottom: insets.top + 80, flexGrow: 1 }}
+            contentContainerStyle={{ paddingTop: 120, paddingBottom: insets.top + 80, paddingHorizontal: 0, flexGrow: 1 }}
             onScroll={(e) => {
               const { contentOffset } = e.nativeEvent;
               setIsScrolledUp(contentOffset.y > 100);

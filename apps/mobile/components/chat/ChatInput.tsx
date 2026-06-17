@@ -10,6 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { ArrowUp, Square, Plus } from "lucide-react-native";
+import { BlurView } from "expo-blur";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -59,7 +60,11 @@ export function ChatInput({
   };
 
   return (
-    <View style={styles.outerContainer}>
+    <BlurView 
+      intensity={theme.bg === "#05050f" ? 60 : 80}
+      tint={theme.bg === "#05050f" ? "dark" : "light"}
+      style={styles.outerContainer}
+    >
       {/* The pill-shaped input card */}
       <View style={[styles.inputCard, isFocused && styles.inputCardFocused]}>
         <Pressable 
@@ -127,16 +132,21 @@ export function ChatInput({
       <Text style={styles.hint}>
         {disabled ? t("chat.input.disabled") : t("chat.input.hint")}
       </Text>
-    </View>
+    </BlurView>
   );
 }
 
 const createStyles = (theme: ThemePalette) => StyleSheet.create({
   outerContainer: {
-    paddingTop: 8,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 12,
     paddingHorizontal: 16,
     paddingBottom: Platform.select({ ios: 32, android: 20 }),
-    backgroundColor: theme.bg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "rgba(255,255,255,0.05)",
   },
   inputCard: {
     flexDirection: "row",
