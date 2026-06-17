@@ -227,7 +227,7 @@ export default function ChatScreen() {
           style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
           accessibilityLabel="Open menu"
         >
-          <AlignLeft size={21} color={TEXT_PRIMARY} strokeWidth={1.8} />
+          <AlignLeft size={24} color={TEXT_PRIMARY} strokeWidth={1.8} />
         </Pressable>
 
         <Text style={styles.headerTitle} numberOfLines={1}>{convTitle}</Text>
@@ -237,7 +237,7 @@ export default function ChatScreen() {
           style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
           accessibilityLabel="Settings"
         >
-          <Settings size={21} color={TEXT_PRIMARY} strokeWidth={1.8} />
+          <Settings size={24} color={TEXT_PRIMARY} strokeWidth={1.8} />
         </Pressable>
       </View>
       <View style={styles.headerDivider} />
@@ -340,9 +340,9 @@ const styles = StyleSheet.create({
     backgroundColor: BG,
   },
   headerBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: SURFACE,
     borderWidth: 1,
     borderColor: BORDER,

@@ -1,11 +1,15 @@
 import React, { useState, useCallback, useRef } from "react";
 import {
   View, Text, Pressable, StyleSheet, ScrollView,
-  Animated, Modal, TouchableWithoutFeedback, Platform, StatusBar,
+  Animated, Modal, TouchableWithoutFeedback, Platform,
+  StatusBar, TextInput, Alert,
 } from "react-native";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { MessageSquare, Plus, Settings, Sparkles, X } from "lucide-react-native";
-import { openDatabase, createConversationRepo } from "@omnia/storage";
+import { router, useFocusEffect } from "expo-router";
+import {
+  MessageSquare, Plus, Settings, Sparkles, X,
+  Pin, Pencil, Trash2,
+} from "lucide-react-native";
+import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { Conversation } from "@omnia/shared-types";
 import { useProviderStore } from "../../store/provider-store";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,79 +17,91 @@ import * as Haptics from "expo-haptics";
 
 const BG = "#05050f";
 const SURFACE = "#0d0c1d";
+const SURFACE_2 = "#13122a";
 const BORDER = "rgba(255,255,255,0.07)";
 const INDIGO = "#6366f1";
 const TEXT_PRIMARY = "#f8fafc";
 const TEXT_SECONDARY = "#94a3b8";
 const DRAWER_WIDTH = 300;
+const RED = "#ef4444";
 
 const db = openDatabase();
 const convRepo = createConversationRepo(db);
+const msgRepo = createMessageRepo(db);
 
 interface SidebarProps {
   visible: boolean;
   onClose: () => void;
 }
 
+interface ContextMenuState {
+  visible: boolean;
+  conversation: Conversation | null;
+}
+
+interface RenameState {
+  active: boolean;
+  conversationId: string | null;
+  value: string;
+}
+
 export function Sidebar({ visible, onClose }: SidebarProps) {
   const store = useProviderStore();
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>({ visible: false, conversation: null });
+  const [rename, setRename] = useState<RenameState>({ active: false, conversationId: null, value: "" });
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
+  const menuScaleAnim = useRef(new Animated.Value(0.88)).current;
+  const menuFadeAnim = useRef(new Animated.Value(0)).current;
+  const renameRefs = useRef<Record<string, TextInput | null>>({});
 
-  // Animate open/close
+  // Animate drawer open/close
   React.useEffect(() => {
     if (visible) {
       Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 80,
-          friction: 12,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
+        Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 80, friction: 12 }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: -DRAWER_WIDTH,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 180,
-          useNativeDriver: true,
-        }),
+        Animated.timing(slideAnim, { toValue: -DRAWER_WIDTH, duration: 220, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
       ]).start();
     }
   }, [visible]);
 
-  // Load conversations whenever sidebar opens
-  useFocusEffect(
-    useCallback(() => {
-      if (!visible) return;
-      try {
-        const data = convRepo.listAll();
-        setConversations(data);
-      } catch (err) {}
-    }, [visible])
-  );
+  // Animate context menu open
+  React.useEffect(() => {
+    if (contextMenu.visible) {
+      Animated.parallel([
+        Animated.spring(menuScaleAnim, { toValue: 1, useNativeDriver: true, tension: 100, friction: 10 }),
+        Animated.timing(menuFadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+      ]).start();
+    } else {
+      menuScaleAnim.setValue(0.88);
+      menuFadeAnim.setValue(0);
+    }
+  }, [contextMenu.visible]);
+
+  const refreshConversations = useCallback(() => {
+    try {
+      const data = convRepo.listAll();
+      setConversations(data);
+    } catch {}
+  }, []);
+
+  useFocusEffect(useCallback(() => {
+    if (visible) refreshConversations();
+  }, [visible, refreshConversations]));
 
   React.useEffect(() => {
-    if (visible) {
-      try {
-        const data = convRepo.listAll();
-        setConversations(data);
-      } catch (err) {}
-    }
+    if (visible) refreshConversations();
   }, [visible]);
 
+  // ─── Navigation helpers ───────────────────────────────────────────────────
   const handleNewChat = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onClose();
@@ -104,6 +120,94 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
     setTimeout(() => router.push("/settings"), 250);
   };
 
+  // ─── Context menu ────────────────────────────────────────────────────────
+  const openContextMenu = (conv: Conversation) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setContextMenu({ visible: true, conversation: conv });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu({ visible: false, conversation: null });
+  };
+
+  // ─── Pin ──────────────────────────────────────────────────────────────────
+  const handlePin = () => {
+    if (!contextMenu.conversation) return;
+    const id = contextMenu.conversation.id;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setPinnedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+    closeContextMenu();
+  };
+
+  // ─── Rename ───────────────────────────────────────────────────────────────
+  const handleRenameStart = () => {
+    if (!contextMenu.conversation) return;
+    const conv = contextMenu.conversation;
+    closeContextMenu();
+    // Small delay so modal closes before rename activates
+    setTimeout(() => {
+      setRename({ active: true, conversationId: conv.id, value: conv.title });
+      setTimeout(() => renameRefs.current[conv.id]?.focus(), 120);
+    }, 300);
+  };
+
+  const handleRenameConfirm = (id: string) => {
+    const trimmed = rename.value.trim().slice(0, 60);
+    if (trimmed) {
+      try {
+        convRepo.update(id, { title: trimmed });
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch {}
+    }
+    setRename({ active: false, conversationId: null, value: "" });
+    refreshConversations();
+  };
+
+  const handleRenameCancel = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setRename({ active: false, conversationId: null, value: "" });
+  };
+
+  // ─── Delete ───────────────────────────────────────────────────────────────
+  const handleDelete = () => {
+    if (!contextMenu.conversation) return;
+    const conv = contextMenu.conversation;
+    closeContextMenu();
+    setTimeout(() => {
+      Alert.alert(
+        "Delete Chat",
+        `"${conv.title}" will be permanently deleted.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => {
+              try {
+                msgRepo.deleteByConversation(conv.id);
+                convRepo.delete(conv.id);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+              } catch {}
+              refreshConversations();
+            },
+          },
+        ]
+      );
+    }, 300);
+  };
+
+  // Sort: pinned first, then by updatedAt desc
+  const sorted = [...conversations].sort((a, b) => {
+    const aPinned = pinnedIds.has(a.id) ? 1 : 0;
+    const bPinned = pinnedIds.has(b.id) ? 1 : 0;
+    if (bPinned !== aPinned) return bPinned - aPinned;
+    return b.updatedAt - a.updatedAt;
+  });
+
   return (
     <Modal
       visible={visible}
@@ -118,9 +222,8 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
       </TouchableWithoutFeedback>
 
       {/* Drawer panel */}
-      <Animated.View
-        style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}
-      >
+      <Animated.View style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}>
+
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoRow}>
@@ -157,33 +260,57 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
           style={styles.list}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 24 }}
+          keyboardShouldPersistTaps="handled"
         >
-          {conversations.length === 0 ? (
+          {sorted.length === 0 ? (
             <Text style={styles.emptyText}>No recent chats yet.</Text>
           ) : (
-            conversations.map((conv) => {
-              const isActive = conv.id === conversationId;
+            sorted.map((conv) => {
+              const isPinned = pinnedIds.has(conv.id);
+              const isRenaming = rename.active && rename.conversationId === conv.id;
+
               return (
                 <Pressable
                   key={conv.id}
-                  onPress={() => handleOpenChat(conv.id)}
+                  onPress={() => !isRenaming && handleOpenChat(conv.id)}
+                  onLongPress={() => !isRenaming && openContextMenu(conv)}
+                  delayLongPress={400}
                   style={({ pressed }) => [
                     styles.convItem,
-                    isActive && styles.convItemActive,
-                    pressed && !isActive && styles.convItemPressed,
+                    isPinned && styles.convItemPinned,
+                    pressed && !isRenaming && styles.convItemPressed,
                   ]}
                 >
-                  <MessageSquare
-                    size={15}
-                    color={isActive ? "#a5b4fc" : TEXT_SECONDARY}
-                    style={{ marginRight: 10, flexShrink: 0 }}
-                  />
-                  <Text
-                    style={[styles.convTitle, isActive && styles.convTitleActive]}
-                    numberOfLines={1}
-                  >
-                    {conv.title}
-                  </Text>
+                  {isPinned ? (
+                    <Pin size={14} color="#a5b4fc" style={{ marginRight: 10, flexShrink: 0 }} />
+                  ) : (
+                    <MessageSquare size={14} color={TEXT_SECONDARY} style={{ marginRight: 10, flexShrink: 0 }} />
+                  )}
+
+                  {isRenaming ? (
+                    <View style={styles.renameRow}>
+                      <TextInput
+                        ref={ref => { renameRefs.current[conv.id] = ref; }}
+                        value={rename.value}
+                        onChangeText={val => setRename(r => ({ ...r, value: val }))}
+                        style={styles.renameInput}
+                        maxLength={60}
+                        returnKeyType="done"
+                        onSubmitEditing={() => handleRenameConfirm(conv.id)}
+                        autoFocus
+                      />
+                      <Pressable onPress={() => handleRenameConfirm(conv.id)} hitSlop={8} style={styles.renameConfirmBtn}>
+                        <Text style={styles.renameConfirmText}>✓</Text>
+                      </Pressable>
+                      <Pressable onPress={handleRenameCancel} hitSlop={8} style={{ paddingLeft: 6 }}>
+                        <X size={14} color={TEXT_SECONDARY} />
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <Text style={[styles.convTitle, isPinned && styles.convTitlePinned]} numberOfLines={1}>
+                      {conv.title}
+                    </Text>
+                  )}
                 </Pressable>
               );
             })
@@ -208,6 +335,72 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
           </View>
         </Pressable>
       </Animated.View>
+
+      {/* ─── Context Menu ─── */}
+      <Modal
+        visible={contextMenu.visible}
+        transparent
+        animationType="none"
+        onRequestClose={closeContextMenu}
+        statusBarTranslucent
+      >
+        <TouchableWithoutFeedback onPress={closeContextMenu}>
+          <View style={styles.menuBackdrop} />
+        </TouchableWithoutFeedback>
+
+        <Animated.View
+          style={[
+            styles.menuCard,
+            { opacity: menuFadeAnim, transform: [{ scale: menuScaleAnim }] },
+          ]}
+          pointerEvents="box-none"
+        >
+          {/* Title chip */}
+          <View style={styles.menuHeader}>
+            <MessageSquare size={14} color="#818cf8" style={{ marginRight: 8 }} />
+            <Text style={styles.menuTitle} numberOfLines={1}>
+              {contextMenu.conversation?.title}
+            </Text>
+          </View>
+
+          <View style={styles.menuDivider} />
+
+          {/* Pin */}
+          <Pressable
+            onPress={handlePin}
+            style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
+          >
+            <Pin size={18} color={TEXT_PRIMARY} style={{ marginRight: 14 }} />
+            <Text style={styles.menuItemText}>
+              {contextMenu.conversation && pinnedIds.has(contextMenu.conversation.id)
+                ? "Unpin"
+                : "Pin"}
+            </Text>
+          </Pressable>
+
+          <View style={styles.menuDivider} />
+
+          {/* Rename */}
+          <Pressable
+            onPress={handleRenameStart}
+            style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
+          >
+            <Pencil size={18} color={TEXT_PRIMARY} style={{ marginRight: 14 }} />
+            <Text style={styles.menuItemText}>Rename</Text>
+          </Pressable>
+
+          <View style={styles.menuDivider} />
+
+          {/* Delete */}
+          <Pressable
+            onPress={handleDelete}
+            style={({ pressed }) => [styles.menuItem, styles.menuItemDanger, pressed && styles.menuItemPressed]}
+          >
+            <Trash2 size={18} color={RED} style={{ marginRight: 14 }} />
+            <Text style={[styles.menuItemText, { color: RED }]}>Delete</Text>
+          </Pressable>
+        </Animated.View>
+      </Modal>
     </Modal>
   );
 }
@@ -281,14 +474,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
-  newChatIcon: {
-    marginRight: 10,
-  },
   newChatText: {
     color: "#fff",
     fontSize: 15,
     fontWeight: "600",
     letterSpacing: 0.2,
+    marginLeft: 10,
   },
   sectionLabel: {
     fontSize: 11,
@@ -311,8 +502,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 2,
   },
-  convItemActive: {
-    backgroundColor: "rgba(99,102,241,0.15)",
+  convItemPinned: {
+    backgroundColor: "rgba(99,102,241,0.08)",
   },
   convItemPressed: {
     backgroundColor: "rgba(255,255,255,0.05)",
@@ -322,9 +513,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     flex: 1,
   },
-  convTitleActive: {
-    color: "#e0e7ff",
-    fontWeight: "600",
+  convTitlePinned: {
+    color: "#c7d2fe",
+    fontWeight: "500",
+  },
+  renameRow: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  renameInput: {
+    flex: 1,
+    color: TEXT_PRIMARY,
+    fontSize: 14,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "rgba(99,102,241,0.4)",
+  },
+  renameConfirmBtn: {
+    paddingLeft: 8,
+  },
+  renameConfirmText: {
+    color: "#a5b4fc",
+    fontSize: 16,
+    fontWeight: "700",
   },
   emptyText: {
     color: "rgba(148,163,184,0.35)",
@@ -349,5 +564,61 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
     fontSize: 12,
     marginTop: 2,
+  },
+
+  // ─── Context Menu ──────────────────────────────────────────────────────────
+  menuBackdrop: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  menuCard: {
+    position: "absolute",
+    left: DRAWER_WIDTH + 12,
+    top: "35%",
+    width: 220,
+    backgroundColor: SURFACE_2,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 24,
+    elevation: 16,
+  },
+  menuHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  menuTitle: {
+    color: TEXT_SECONDARY,
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.2,
+    flex: 1,
+  },
+  menuDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: BORDER,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+  },
+  menuItemDanger: {
+    // highlight handled by text/icon color
+  },
+  menuItemPressed: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  menuItemText: {
+    color: TEXT_PRIMARY,
+    fontSize: 15,
+    fontWeight: "500",
   },
 });
