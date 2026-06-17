@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { View, FlatList, Text, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
 import { Message } from "@omnia/shared-types";
@@ -7,9 +7,15 @@ import { ChatInput } from "../../components/chat/ChatInput";
 import { useProviderStore } from "../../store/provider-store";
 import { OpenAIProvider } from "@omnia/providers";
 import { OpenAICompatibleProvider } from "@omnia/providers";
+import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
+import { logger } from "@omnia/logger";
 
 const BG = "#0a0918";
 const TEXT_SECONDARY = "#9d9bcc";
+
+const db = openDatabase();
+const msgRepo = createMessageRepo(db);
+const convRepo = createConversationRepo(db);
 
 function generateId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -21,6 +27,21 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+  const [convTitle, setConvTitle] = useState("Chat");
+
+  // Load messages from SQLite on mount
+  useEffect(() => {
+    if (!conversationId) return;
+    try {
+      const conv = convRepo.getById(conversationId);
+      if (conv) setConvTitle(conv.title);
+
+      const history = msgRepo.listByConversation(conversationId);
+      setMessages(history);
+    } catch (err) {
+      logger.error("SQLite", "Failed to load chat history", err);
+    }
+  }, [conversationId]);
 
   const getProvider = useCallback(() => {
     if (store.activeProviderId === "openai") {
@@ -42,10 +63,11 @@ export default function ChatScreen() {
   const handleSend = useCallback(async (text: string) => {
     const providerCtx = getProvider();
     if (!providerCtx) return;
+    if (!conversationId) return;
 
     const userMessage: Message = {
       id: generateId(),
-      conversationId: conversationId ?? "ephemeral",
+      conversationId: conversationId,
       role: "user",
       content: text,
       timestamp: Date.now(),
@@ -54,7 +76,7 @@ export default function ChatScreen() {
     const assistantId = generateId();
     const assistantMessage: Message = {
       id: assistantId,
-      conversationId: conversationId ?? "ephemeral",
+      conversationId: conversationId,
       role: "assistant",
       content: "",
       providerId: store.activeProviderId ?? undefined,
@@ -62,8 +84,18 @@ export default function ChatScreen() {
       timestamp: Date.now(),
     };
 
+    // Update UI and SQLite for user message immediately
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
     setIsStreaming(true);
+
+    try {
+      msgRepo.create(userMessage);
+      msgRepo.create(assistantMessage);
+      convRepo.update(conversationId, { title: messages.length === 0 ? text.slice(0, 40) : undefined });
+      if (messages.length === 0) setConvTitle(text.slice(0, 40));
+    } catch (err) {
+      logger.error("SQLite", "Failed to save user message", err);
+    }
 
     const chatHistory = [...messages, userMessage].map((m) => ({
       role: m.role,
@@ -88,14 +120,26 @@ export default function ChatScreen() {
         );
         flatListRef.current?.scrollToEnd({ animated: false });
       }
+
+      // Finalize the assistant message in SQLite
+      try {
+        msgRepo.updateContent(assistantId, fullContent);
+      } catch (err) {
+        logger.error("SQLite", "Failed to update assistant message content", err);
+      }
+
     } catch (e: any) {
+      const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === assistantId
-            ? { ...m, content: `Error: ${e?.message ?? "Something went wrong."}` }
-            : m
+          m.id === assistantId ? { ...m, content: errorMsg } : m
         )
       );
+      try {
+        msgRepo.updateContent(assistantId, errorMsg);
+      } catch (err) {
+        logger.error("SQLite", "Failed to log assistant stream error", err);
+      }
     } finally {
       setIsStreaming(false);
     }
@@ -109,7 +153,7 @@ export default function ChatScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={90}
     >
-      <Stack.Screen options={{ title: "Chat" }} />
+      <Stack.Screen options={{ title: convTitle }} />
 
       {noProvider && (
         <View style={{ padding: 16, backgroundColor: "rgba(99,102,241,0.1)", borderBottomWidth: 1, borderBottomColor: "rgba(99,102,241,0.2)" }}>
