@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { 
   View, Text, SectionList, Pressable, StyleSheet, TextInput, Modal, 
-  Platform, KeyboardAvoidingView 
+  Platform, KeyboardAvoidingView, Animated
 } from "react-native";
 import { MessageSquare, Pin, Pencil, Trash2, Search, X } from "lucide-react-native";
 import { useTheme, ThemePalette } from "../../lib/theme";
@@ -186,47 +186,61 @@ export default function HistoryScreen() {
           const conv = item as Conversation;
           const isPinned = pinnedIds.has(conv.id);
           
-          const renderLeftActions = () => (
-            <View style={{ justifyContent: "center", width: 80 }}>
-              <Pressable
-                style={{ flex: 1, backgroundColor: isPinned ? "#64748b" : "#f59e0b", justifyContent: "center", alignItems: "center" }}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  togglePin(conv.id);
-                }}
-              >
-                <View style={{ transform: isPinned ? [{ rotate: "45deg" }] : undefined }}>
-                  <Pin size={20} color="#fff" />
-                </View>
-              </Pressable>
-            </View>
-          );
+          const renderLeftActions = (progress: any, dragX: any) => {
+            const trans = dragX.interpolate({
+              inputRange: [0, 80],
+              outputRange: [-80, 0],
+              extrapolate: 'clamp',
+            });
+            return (
+              <Animated.View style={{ justifyContent: "center", width: 80, transform: [{ translateX: trans }] }}>
+                <Pressable
+                  style={{ flex: 1, backgroundColor: isPinned ? "#64748b" : "#f59e0b", justifyContent: "center", alignItems: "center" }}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    togglePin(conv.id);
+                  }}
+                >
+                  <View style={{ transform: isPinned ? [{ rotate: "45deg" }] : undefined }}>
+                    <Pin size={20} color="#fff" />
+                  </View>
+                </Pressable>
+              </Animated.View>
+            );
+          };
 
-          const renderRightActions = () => (
-            <View style={{ flexDirection: "row", width: 140, justifyContent: "flex-end" }}>
-              <Pressable
-                style={{ flex: 1, backgroundColor: "#3b82f6", justifyContent: "center", alignItems: "center" }}
-                onPress={() => { 
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  rowRefs.current.get(conv.id)?.close(); 
-                  setRenameTitle(conv.title); 
-                  setRenameConv(conv); 
-                }}
-              >
-                <Pencil size={20} color="#fff" />
-              </Pressable>
-              <Pressable
-                style={{ flex: 1, backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center" }}
-                onPress={() => { 
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  rowRefs.current.get(conv.id)?.close(); 
-                  setDeleteConv(conv); 
-                }}
-              >
-                <Trash2 size={20} color="#fff" />
-              </Pressable>
-            </View>
-          );
+          const renderRightActions = (progress: any, dragX: any) => {
+            const trans = dragX.interpolate({
+              inputRange: [-140, 0],
+              outputRange: [0, 140],
+              extrapolate: 'clamp',
+            });
+            return (
+              <Animated.View style={{ flexDirection: "row", width: 140, justifyContent: "flex-end", transform: [{ translateX: trans }] }}>
+                <Pressable
+                  style={{ flex: 1, backgroundColor: "#3b82f6", justifyContent: "center", alignItems: "center" }}
+                  onPress={() => { 
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    rowRefs.current.get(conv.id)?.close(); 
+                    setRenameTitle(conv.title); 
+                    setRenameConv(conv); 
+                  }}
+                >
+                  <Pencil size={20} color="#fff" />
+                </Pressable>
+                <Pressable
+                  style={{ flex: 1, backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center" }}
+                  onPress={() => { 
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    rowRefs.current.get(conv.id)?.close(); 
+                    setDeleteConv(conv); 
+                  }}
+                >
+                  <Trash2 size={20} color="#fff" />
+                </Pressable>
+              </Animated.View>
+            );
+          };
           
           return (
             <Swipeable
@@ -258,7 +272,8 @@ export default function HistoryScreen() {
                   rowRefs.current.get(conv.id)?.openRight();
                 }}
                 delayLongPress={200}
-                style={({ pressed }) => [styles.convItem, pressed && styles.convItemPressed]}
+                style={styles.convItem}
+                android_ripple={{ color: theme.activeBg }}
               >
                 {isPinned ? (
                   <Pin size={16} color={theme.indigo} style={{ marginRight: 12 }} />
