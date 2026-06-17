@@ -1,4 +1,5 @@
-import { useColorScheme } from "react-native";
+import { useColorScheme, Appearance } from "react-native";
+import { useState, useEffect } from "react";
 import { useSettingsStore } from "../store/settings-store";
 
 export interface ThemePalette {
@@ -45,7 +46,22 @@ export const LightPalette: ThemePalette = {
 
 export function useTheme(): ThemePalette {
   const storeTheme = useSettingsStore((s) => s.theme);
-  const systemTheme = useColorScheme();
+  const hookTheme = useColorScheme();
+  const [activeSystemTheme, setActiveSystemTheme] = useState(hookTheme || Appearance.getColorScheme() || "light");
+
+  useEffect(() => {
+    // Actively listen to system theme changes (fixes Expo Go freezing the scheme)
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      setActiveSystemTheme(colorScheme || "light");
+    });
+    // Sync initially just in case it changed before mount
+    const current = Appearance.getColorScheme();
+    if (current) setActiveSystemTheme(current);
+    
+    return () => subscription.remove();
+  }, []);
+
+  const systemTheme = hookTheme || activeSystemTheme;
 
   const isDark = 
     storeTheme === "dark" || 
