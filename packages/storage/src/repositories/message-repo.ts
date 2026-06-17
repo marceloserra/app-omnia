@@ -10,15 +10,17 @@ export function createMessageRepo(db: SQLite.SQLiteDatabase) {
       db.runSync(
         `INSERT INTO messages (id, conversation_id, role, content, provider_id, model_id, prompt_tokens, completion_tokens, timestamp)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-        message.id,
-        message.conversationId,
-        message.role,
-        message.content,
-        message.providerId ?? null,
-        message.modelId ?? null,
-        message.metadata?.promptTokens ?? null,
-        message.metadata?.completionTokens ?? null,
-        message.timestamp
+        [
+          message.id,
+          message.conversationId,
+          message.role,
+          message.content,
+          message.providerId ?? null,
+          message.modelId ?? null,
+          message.metadata?.promptTokens ?? null,
+          message.metadata?.completionTokens ?? null,
+          message.timestamp
+        ]
       );
     },
 
@@ -38,7 +40,7 @@ export function createMessageRepo(db: SQLite.SQLiteDatabase) {
         timestamp: number;
       }>(
         "SELECT * FROM messages WHERE conversation_id = ? ORDER BY timestamp ASC;",
-        conversationId
+        [conversationId]
       );
 
       return rows.map((r) => ({
@@ -65,21 +67,21 @@ export function createMessageRepo(db: SQLite.SQLiteDatabase) {
      * Update message content (e.g. after streaming completes).
      */
     updateContent(id: string, content: string): void {
-      db.runSync("UPDATE messages SET content = ? WHERE id = ?;", content, id);
+      db.runSync("UPDATE messages SET content = ? WHERE id = ?;", [content, id]);
     },
 
     /**
      * Delete a single message.
      */
     delete(id: string): void {
-      db.runSync("DELETE FROM messages WHERE id = ?;", id);
+      db.runSync("DELETE FROM messages WHERE id = ?;", [id]);
     },
 
     /**
      * Delete all messages for a specific conversation.
      */
     deleteByConversation(conversationId: string): void {
-      db.runSync("DELETE FROM messages WHERE conversation_id = ?;", conversationId);
+      db.runSync("DELETE FROM messages WHERE conversation_id = ?;", [conversationId]);
     },
 
     /**

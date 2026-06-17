@@ -10,11 +10,13 @@ export function createConversationRepo(db: SQLite.SQLiteDatabase) {
       db.runSync(
         `INSERT INTO conversations (id, title, system_prompt, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?);`,
-        conversation.id,
-        conversation.title,
-        conversation.systemPrompt ?? null,
-        conversation.createdAt,
-        conversation.updatedAt
+        [
+          conversation.id,
+          conversation.title,
+          conversation.systemPrompt ?? null,
+          conversation.createdAt,
+          conversation.updatedAt
+        ]
       );
     },
 
@@ -49,7 +51,7 @@ export function createConversationRepo(db: SQLite.SQLiteDatabase) {
         system_prompt: string | null;
         created_at: number;
         updated_at: number;
-      }>("SELECT * FROM conversations WHERE id = ?;", id);
+      }>("SELECT * FROM conversations WHERE id = ?;", [id]);
 
       if (!row) return null;
 
@@ -70,17 +72,13 @@ export function createConversationRepo(db: SQLite.SQLiteDatabase) {
       if (patch.title !== undefined) {
         db.runSync(
           "UPDATE conversations SET title = ?, updated_at = ? WHERE id = ?;",
-          patch.title,
-          now,
-          id
+          [patch.title, now, id]
         );
       }
       if (patch.systemPrompt !== undefined) {
         db.runSync(
           "UPDATE conversations SET system_prompt = ?, updated_at = ? WHERE id = ?;",
-          patch.systemPrompt,
-          now,
-          id
+          [patch.systemPrompt, now, id]
         );
       }
     },
@@ -89,7 +87,7 @@ export function createConversationRepo(db: SQLite.SQLiteDatabase) {
      * Delete a conversation and all its messages (CASCADE).
      */
     delete(id: string): void {
-      db.runSync("DELETE FROM conversations WHERE id = ?;", id);
+      db.runSync("DELETE FROM conversations WHERE id = ?;", [id]);
     },
 
     /**
