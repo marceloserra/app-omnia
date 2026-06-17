@@ -10,6 +10,7 @@ import { OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
+import * as Haptics from "expo-haptics";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
@@ -87,6 +88,7 @@ export default function ChatScreen() {
     };
 
     // Update UI and SQLite for user message immediately
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
     setIsStreaming(true);
 
@@ -126,11 +128,13 @@ export default function ChatScreen() {
       // Finalize the assistant message in SQLite
       try {
         msgRepo.updateContent(assistantId, fullContent);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } catch (err) {
         logger.error("SQLite", "Failed to update assistant message content", err);
       }
 
     } catch (e: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
       setMessages((prev) =>
         prev.map((m) =>
