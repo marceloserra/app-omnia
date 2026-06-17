@@ -21,7 +21,38 @@ const CODE_BORDER = "rgba(99,102,241,0.2)";
 
 interface MessageBubbleProps {
   message: Message;
+  isStreaming?: boolean;
 }
+
+// ─── Typing indicator (three animated dots) ───────────────────────────────────────
+function TypingIndicator() {
+  return (
+    <View style={typingStyles.row}>
+      <View style={[typingStyles.dot, typingStyles.dot1]} />
+      <View style={[typingStyles.dot, typingStyles.dot2]} />
+      <View style={[typingStyles.dot, typingStyles.dot3]} />
+    </View>
+  );
+}
+
+const typingStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    gap: 5,
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#818cf8",
+    opacity: 0.5,
+  },
+  dot1: { opacity: 0.9 },
+  dot2: { opacity: 0.6 },
+  dot3: { opacity: 0.3 },
+});
 
 // ─── Native code block (no external lib, zero crash risk) ───────────────────
 function CodeBlock({ content, language }: { content: string; language?: string }) {
@@ -127,7 +158,82 @@ const renderRules = {
       {String(node.content || "")}
     </Text>
   ),
+  // ─── Table support ────────────────────────────────────────────────────────
+  table: (node: ASTNode, children: any) => (
+    <ScrollView key={node.key} horizontal showsHorizontalScrollIndicator={false} style={tableStyles.tableScroll}>
+      <View style={tableStyles.table}>{children}</View>
+    </ScrollView>
+  ),
+  thead: (node: ASTNode, children: any) => (
+    <View key={node.key} style={tableStyles.thead}>{children}</View>
+  ),
+  tbody: (node: ASTNode, children: any) => (
+    <View key={node.key}>{children}</View>
+  ),
+  tr: (node: ASTNode, children: any, parent: any) => {
+    const isHeader = parent && parent[0]?.type === "thead";
+    return (
+      <View key={node.key} style={[tableStyles.tr, isHeader && tableStyles.trHeader]}>
+        {children}
+      </View>
+    );
+  },
+  th: (node: ASTNode, children: any) => (
+    <View key={node.key} style={[tableStyles.cell, tableStyles.th]}>
+      <Text style={tableStyles.thText}>{children}</Text>
+    </View>
+  ),
+  td: (node: ASTNode, children: any) => (
+    <View key={node.key} style={tableStyles.cell}>
+      <Text style={tableStyles.tdText}>{children}</Text>
+    </View>
+  ),
 };
+
+// ─── Table styles ─────────────────────────────────────────────────────────────
+const tableStyles = StyleSheet.create({
+  tableScroll: {
+    marginVertical: 10,
+  },
+  table: {
+    borderWidth: 1,
+    borderColor: "rgba(99,102,241,0.25)",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  thead: {
+    backgroundColor: "rgba(99,102,241,0.12)",
+  },
+  tr: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.06)",
+  },
+  trHeader: {
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(99,102,241,0.3)",
+  },
+  cell: {
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    minWidth: 80,
+    justifyContent: "center",
+  },
+  th: {
+    // header cell
+  },
+  thText: {
+    color: "#c7d2fe",
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+  },
+  tdText: {
+    color: "#e2e8f0",
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
 
 // ─── Markdown styles ─────────────────────────────────────────────────────────
 const markdownStyles = StyleSheet.create({
@@ -203,11 +309,12 @@ const markdownStyles = StyleSheet.create({
   },
 });
 
-// ─── MessageBubble ───────────────────────────────────────────────────────────
-export function MessageBubble({ message }: MessageBubbleProps) {
+// ─── MessageBubble ────────────────────────────────────────────────────────────────
+export function MessageBubble({ message, isStreaming = false }: MessageBubbleProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
   const isSystem = message.role === "system";
+  const isEmpty = !message.content && !isUser;
 
   const handleCopy = async () => {
     await Clipboard.setStringAsync(message.content);
@@ -261,18 +368,24 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       delayLongPress={300}
     >
       <BlurView intensity={20} tint="dark" style={[styles.bubble, styles.assistantBubble]}>
-        <Markdown style={markdownStyles} rules={renderRules}>
-          {message.content}
-        </Markdown>
+        {isEmpty ? (
+          <TypingIndicator />
+        ) : (
+          <Markdown style={markdownStyles} rules={renderRules}>
+            {message.content}
+          </Markdown>
+        )}
 
-        <View style={[styles.metaRow, { justifyContent: "flex-start" }]}>
-          {copied && <CheckCircle2 size={12} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />}
-          <Text style={styles.metaText}>
-            {copied
-              ? "Copied"
-              : `${timeString}${message.modelId ? ` · ${message.modelId}` : ""}`}
-          </Text>
-        </View>
+        {!isEmpty && (
+          <View style={[styles.metaRow, { justifyContent: "flex-start" }]}>
+            {copied && <CheckCircle2 size={12} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />}
+            <Text style={styles.metaText}>
+              {copied
+                ? "Copied"
+                : `${timeString}${message.modelId ? ` · ${message.modelId}` : ""}`}
+            </Text>
+          </View>
+        )}
       </BlurView>
     </Pressable>
   );

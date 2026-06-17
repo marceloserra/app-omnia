@@ -68,18 +68,31 @@ export default function HomeScreen() {
     return null;
   }, [store]);
 
-  const handleSend = useCallback(async (text: string) => {
+  const handleSend = useCallback((text: string) => {
     const providerCtx = getProvider();
     if (!providerCtx) return;
 
     const newConvId = generateId();
+    const now = Date.now();
+
+    // Pre-save conversation and user message to SQLite BEFORE navigating.
+    // This way the chat screen loads with existing content and never shows empty.
     convRepo.create({
       id: newConvId,
       title: text.slice(0, 40),
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: now,
+      updatedAt: now,
+    });
+    const userMsgId = generateId();
+    msgRepo.create({
+      id: userMsgId,
+      conversationId: newConvId,
+      role: "user",
+      content: text,
+      timestamp: now,
     });
 
+    // Navigate with no animation — the chat screen will load pre-populated.
     router.replace({
       pathname: `/chat/[conversationId]`,
       params: { conversationId: newConvId, initialPrompt: text }
