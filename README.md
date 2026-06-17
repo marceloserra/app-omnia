@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <strong>The ultimate, FAANG-tier native client for your Self-Hosted and Cloud AI models.</strong>
+  <strong>A fast, offline-capable native client for your Self-Hosted and Cloud AI models.</strong>
 </p>
 
 <p align="center">
@@ -38,11 +38,11 @@
 </p>
 <br>
 
-## 🚀 The Pitch: Why Omnia?
+## 🚀 Why Omnia?
 
-We didn't just build another web wrapper. We engineered a **true native mobile experience** that treats your self-hosted local models with the exact same respect, speed, and premium UI as trillion-dollar cloud APIs. 
+We didn't just build another web wrapper. We engineered a native mobile experience that treats your self-hosted local models with the exact same respect, speed, and UI polish as commercial cloud APIs. 
 
-Omnia is built for power users, developers, and AI enthusiasts who demand buttery 60 FPS rendering, bulletproof offline resilience, and a stunning Apple-tier dark mode aesthetic. Whether you are hitting OpenAI's servers or your own local rig in the basement, Omnia connects instantly, streams flawlessly, and never drops a prompt.
+Omnia is built for power users, developers, and AI enthusiasts who demand 60 FPS rendering, solid offline resilience, and a clean dark mode aesthetic. Whether you are hitting OpenAI's servers or your own local rig, Omnia connects instantly, streams smoothly, and preserves your context.
 
 ---
 
@@ -58,13 +58,13 @@ While I absolutely loved incredible projects like **Open WebUI** and **llama.cpp
 
 | Capability | What it means for you |
 | --- | --- |
-| **Buttery Real-Time Streaming** | Tokens render smoothly at 60 FPS, completely optimized for mobile hardware without causing React RAM leaks. |
-| **"Dynamic Island" Provider Chips** | Know exactly which model you are talking to. A sleek, borderless floating header houses your active AI provider and model configuration. |
-| **Live Model Switching** | Change your mind mid-conversation? Tap the header to open a FAANG-grade bottom sheet and switch from ChatGPT to your Local Llama seamlessly. |
+| **Real-Time Streaming** | Tokens render smoothly at 60 FPS, optimized for mobile hardware without causing React RAM leaks. |
+| **Provider Chips** | Know exactly which model you are talking to. A borderless floating header houses your active AI provider and model configuration. |
+| **Live Model Switching** | Change your mind mid-conversation? Tap the header to open a modal and switch from ChatGPT to your Local Llama on the fly. |
 | **Developer-First Markdown** | Native rendering for complex Markdown, tables, and nested formatting. Code blocks feature full syntax highlighting and a 1-click copy button. |
-| **Auto-Fallback & Circuit Breakers** | If the cloud rate-limits you or your 5G drops, Omnia's network layer automatically intercepts the error and routes the prompt to your fallback local models. |
-| **Swipe-to-Pin & Delete** | Complete local SQLite persistence. Swipe left to permanently delete chats, or swipe right to Pin your most important architecture discussions to the top. |
-| **Haptic Engine Integration** | Feel your AI typing. Deep integration with device haptics provides tactile feedback on stream completions, physical interactions, and system errors. |
+| **Auto-Fallback** | If the cloud rate-limits you or your network drops, Omnia automatically intercepts the error and routes the prompt to your fallback local models. |
+| **Swipe-to-Pin & Delete** | Complete local SQLite persistence. Swipe left to delete chats, or swipe right to Pin your most important architecture discussions to the top. |
+| **Haptic Engine** | Deep integration with device haptics provides tactile feedback on stream completions, physical interactions, and system errors. |
 
 ---
 
@@ -100,8 +100,8 @@ pnpm --filter mobile dev
 - Shoutout to **LM Studio** for proving that managing local models can be a gorgeous experience.
 
 **Developed by:**
-This project was aggressively engineered and pair-programmed by an ensemble of frontier AI models:
-1. **Claude 3.5 Sonnet**, **Gemini 1.5 Pro**, **GPT-4o**, and **Qwen 2.5 Coder 32B** (provided by my own [ai-self-hosted-lab](https://github.com/marceloserra/ai-self-hosted-lab)).
+This project was built through heavy pair-programming with local and cloud models:
+1. **Claude 3.5 Sonnet**, **Gemini 1.5 Pro**, **GPT-4o**, and **Qwen 2.5 Coder 32B** (provided by [ai-self-hosted-lab](https://github.com/marceloserra/ai-self-hosted-lab)).
 
 <p align="center">
   <i>"One app. Every model. Your pocket."</i>
