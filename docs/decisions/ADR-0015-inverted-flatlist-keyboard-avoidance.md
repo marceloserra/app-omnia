@@ -10,7 +10,8 @@ In a mobile chat application, the message list must naturally push upwards when 
 We decided to adopt the "inverted FlatList" architecture (`inverted={true}` or scaling via `transform: [{ scaleY: -1 }]`).
 - The `messages` array is reversed before rendering: `[...messages].reverse()`.
 - The `FlatList` is rendered inverted, placing the origin (`offset: 0`) visually at the bottom of the screen.
-- When the container height shrinks or expands due to keyboard animations, items anchored to the bottom naturally stay pinned without requiring any manual scroll events or JS-based delay calculations.
+- **Android Configuration:** We set `"softwareKeyboardLayoutMode": "resize"` in `app.json`. This tells the Android OS to natively shrink the `flex: 1` window, pushing the inverted list upwards flawlessly without JS intervention. `KeyboardAvoidingView` must have `behavior={undefined}` on Android to prevent double-adjustments.
+- **iOS Configuration:** We rely on `<KeyboardAvoidingView behavior="padding">`, which adds padding to the bottom of the container, shrinking the `flex: 1` space identically to Android's native behavior.
 
 ## Consequences
 - **Positive:** Butter-smooth keyboard transitions on Android and iOS. No layout bouncing or artificial gaps when opening/closing the keyboard.

@@ -107,8 +107,8 @@ export default function HomeScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: BG }}
-      behavior="padding"
-      keyboardVerticalOffset={headerHeight}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
     >
       {/* ─── Custom Header ─── */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
