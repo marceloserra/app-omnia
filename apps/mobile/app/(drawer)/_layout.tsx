@@ -1,6 +1,6 @@
 import { Drawer } from "expo-router/drawer";
 import { CustomDrawer } from "../../components/navigation/CustomDrawer";
-import { DrawerToggleButton } from "@react-navigation/drawer";
+import { DrawerToggleButton } from "expo-router/drawer";
 import { BlurView } from "expo-blur";
 import { Platform, View, StyleSheet } from "react-native";
 

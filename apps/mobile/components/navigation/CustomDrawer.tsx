@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
-import { DrawerContentScrollView, DrawerContentComponentProps } from "@react-navigation/drawer";
+import { DrawerContentScrollView, DrawerContentComponentProps } from "expo-router/drawer";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { MessageSquare, Plus, Settings, Sparkles } from "lucide-react-native";
 import { openDatabase, createConversationRepo } from "@omnia/storage";
