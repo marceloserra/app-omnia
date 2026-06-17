@@ -1,26 +1,137 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+} from "react-native";
 import { Message } from "@omnia/shared-types";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import Markdown, { ASTNode } from "react-native-markdown-display";
-import { CheckCircle2 } from "lucide-react-native";
-// @ts-ignore
-import SyntaxHighlighter from "react-native-syntax-highlighter";
-// @ts-ignore
-import { atomOneDark } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { CheckCircle2, Copy } from "lucide-react-native";
 
 const INDIGO = "#6366f1";
 const TEXT_PRIMARY = "#f8fafc";
 const TEXT_SECONDARY = "#94a3b8";
+const CODE_BG = "#0d0c1d";
+const CODE_BORDER = "rgba(99,102,241,0.2)";
 
 interface MessageBubbleProps {
   message: Message;
 }
 
-// Markdown theme to match the FAANG dark aesthetic
+// ─── Native code block (no external lib, zero crash risk) ───────────────────
+function CodeBlock({ content, language }: { content: string; language?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await Clipboard.setStringAsync(content);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <View style={codeStyles.wrapper}>
+      {/* Header bar */}
+      <View style={codeStyles.header}>
+        <Text style={codeStyles.lang}>{language || "code"}</Text>
+        <Pressable
+          onPress={handleCopy}
+          style={({ pressed }) => [codeStyles.copyBtn, pressed && { opacity: 0.7 }]}
+          hitSlop={8}
+        >
+          {copied ? (
+            <CheckCircle2 size={14} color="#a5b4fc" />
+          ) : (
+            <Copy size={14} color={TEXT_SECONDARY} />
+          )}
+          <Text style={[codeStyles.copyLabel, copied && { color: "#a5b4fc" }]}>
+            {copied ? " Copied" : " Copy"}
+          </Text>
+        </Pressable>
+      </View>
+      {/* Code content */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={codeStyles.scrollContent}
+      >
+        <Text style={codeStyles.code} selectable>
+          {content.trimEnd()}
+        </Text>
+      </ScrollView>
+    </View>
+  );
+}
+
+const codeStyles = StyleSheet.create({
+  wrapper: {
+    marginVertical: 8,
+    borderRadius: 12,
+    backgroundColor: CODE_BG,
+    borderWidth: 1,
+    borderColor: CODE_BORDER,
+    overflow: "hidden",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: CODE_BORDER,
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  lang: {
+    color: "#818cf8",
+    fontSize: 11,
+    fontWeight: "600",
+    textTransform: "lowercase",
+    letterSpacing: 0.8,
+    fontFamily: "Courier",
+  },
+  copyBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  copyLabel: {
+    color: TEXT_SECONDARY,
+    fontSize: 12,
+  },
+  scrollContent: {
+    padding: 14,
+  },
+  code: {
+    color: "#e2e8f0",
+    fontFamily: "Courier",
+    fontSize: 13,
+    lineHeight: 20,
+  },
+});
+
+// ─── Markdown render rules ───────────────────────────────────────────────────
+const renderRules = {
+  fence: (node: ASTNode) => (
+    <CodeBlock
+      key={node.key}
+      content={String(node.content || "")}
+      language={String((node as any).sourceInfo || "")}
+    />
+  ),
+  code_inline: (node: ASTNode, _children: any, _parent: any, styles: any) => (
+    <Text key={node.key} style={styles.code_inline}>
+      {String(node.content || "")}
+    </Text>
+  ),
+};
+
+// ─── Markdown styles ─────────────────────────────────────────────────────────
 const markdownStyles = StyleSheet.create({
   body: {
     color: TEXT_PRIMARY,
@@ -32,22 +143,17 @@ const markdownStyles = StyleSheet.create({
     marginBottom: 8,
   },
   code_inline: {
-    backgroundColor: "rgba(0,0,0,0.3)",
-    color: "#c084fc", // violet highlight for inline code
+    backgroundColor: "rgba(99,102,241,0.15)",
+    color: "#c084fc",
     fontFamily: "Courier",
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
     borderRadius: 4,
+    fontSize: 14,
   },
   fence: {
-    backgroundColor: "rgba(0,0,0,0.4)",
-    color: "#a78bfa", // softer purple for large code blocks
-    fontFamily: "Courier",
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
-    marginVertical: 8,
-    overflow: "hidden",
+    // Handled by renderRules above
+    margin: 0,
+    padding: 0,
   },
   link: {
     color: "#818cf8",
@@ -67,39 +173,39 @@ const markdownStyles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 6,
   },
+  heading3: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#e2e8f0",
+    marginTop: 8,
+    marginBottom: 4,
+  },
   list_item: {
     marginBottom: 4,
   },
   bullet_list: {
     marginBottom: 8,
   },
+  ordered_list: {
+    marginBottom: 8,
+  },
+  blockquote: {
+    borderLeftWidth: 3,
+    borderLeftColor: "#6366f1",
+    paddingLeft: 12,
+    marginVertical: 8,
+    opacity: 0.85,
+  },
+  strong: {
+    fontWeight: "700",
+    color: "#fff",
+  },
+  em: {
+    fontStyle: "italic",
+  },
 });
 
-const renderRules = {
-  fence: (node: ASTNode, children: any, parent: any, styles: any) => {
-    return (
-      <View key={node.key} style={{ marginVertical: 8, borderRadius: 8, overflow: 'hidden' }}>
-        <SyntaxHighlighter
-          // @ts-ignore
-          language={node.sourceInfo || 'text'}
-          style={atomOneDark}
-          customStyle={{ padding: 12, margin: 0, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 8 }}
-          textStyle={{ fontFamily: 'Courier', fontSize: 13 }}
-        >
-          {node.content}
-        </SyntaxHighlighter>
-      </View>
-    );
-  },
-  code_inline: (node: ASTNode, children: any, parent: any, styles: any) => {
-    return (
-      <Text key={node.key} style={styles.code_inline}>
-        {node.content}
-      </Text>
-    );
-  }
-};
-
+// ─── MessageBubble ───────────────────────────────────────────────────────────
 export function MessageBubble({ message }: MessageBubbleProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
@@ -115,18 +221,19 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   if (isSystem) {
     return (
       <View style={styles.systemContainer}>
-        <Text style={styles.systemText}>
-          {message.content}
-        </Text>
+        <Text style={styles.systemText}>{message.content}</Text>
       </View>
     );
   }
 
-  const timeString = new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const timeString = new Date(message.timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   if (isUser) {
     return (
-      <Pressable 
+      <Pressable
         style={[styles.container, styles.userContainer]}
         onLongPress={handleCopy}
         delayLongPress={300}
@@ -151,14 +258,12 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   // Assistant bubble
   return (
-    <Pressable 
+    <Pressable
       style={[styles.container, styles.assistantContainer]}
       onLongPress={handleCopy}
       delayLongPress={300}
     >
       <BlurView intensity={20} tint="dark" style={[styles.bubble, styles.assistantBubble]}>
-        
-        {/* Render Rich Markdown for AI responses */}
         <Markdown style={markdownStyles} rules={renderRules}>
           {message.content}
         </Markdown>
@@ -166,7 +271,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         <View style={[styles.metaRow, { justifyContent: "flex-start" }]}>
           {copied && <CheckCircle2 size={12} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />}
           <Text style={styles.metaText}>
-            {copied ? "Copied" : `${timeString} ${message.modelId ? ` · ${message.modelId}` : ""}`}
+            {copied
+              ? "Copied"
+              : `${timeString}${message.modelId ? ` · ${message.modelId}` : ""}`}
           </Text>
         </View>
       </BlurView>

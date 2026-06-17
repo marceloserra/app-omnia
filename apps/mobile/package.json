@@ -30,7 +30,6 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.25.2",
     "react-native-svg": "15.15.4",
-    "react-native-syntax-highlighter": "^2.1.0",
     "react-native-vector-icons": "^10.3.0",
     "react-syntax-highlighter": "^13.5.3",
     "storybook": "^10.4.6",

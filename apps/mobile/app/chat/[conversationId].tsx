@@ -218,8 +218,6 @@ export default function ChatScreen() {
       </View>
       <View style={styles.headerDivider} />
 
-      {/* Ambient Glow */}
-      <View style={styles.ambientGlow} />
 
       {noProvider && messages.length > 0 && (
         <View style={styles.noProviderInline}>
@@ -339,18 +337,7 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: BORDER,
   },
-  ambientGlow: {
-    position: "absolute",
-    top: -100,
-    right: -50,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: INDIGO,
-    opacity: 0.1,
-    filter: "blur(100px)",
-    zIndex: -1,
-  },
+
   noProviderInline: {
     flexDirection: "row",
     alignItems: "center",

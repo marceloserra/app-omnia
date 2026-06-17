@@ -196,9 +196,6 @@ export default function HomeScreen() {
       {/* ─── Divider ─── */}
       <View style={styles.divider} />
 
-      {/* ─── Ambient glow ─── */}
-      <View style={styles.ambientGlow} pointerEvents="none" />
-
       {/* ─── Message list ─── */}
       <FlatList
         ref={flatListRef}
@@ -295,16 +292,7 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: BORDER,
   },
-  ambientGlow: {
-    position: "absolute",
-    top: -120,
-    right: -60,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: INDIGO,
-    opacity: 0.07,
-  },
+
   emptyContainer: {
     flex: 1,
     alignItems: "center",
