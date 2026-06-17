@@ -162,3 +162,24 @@ This document serves as a centralized knowledge base for critical errors encount
     }}
     ```
   - Also set `headerLargeTitle: true` on the index screen for the native iOS large title effect.
+
+### Issue 10: `expo-router/drawer` Fatal Crash in Expo Go (SDK 56) — Phase 7 Regression
+- **Date:** 2026-06-17
+- **Phase/Context:** Phase 07 (UX Polish — Hamburger Drawer Navigation)
+- **Status:** ✅ RESOLVED (Permanent Architectural Workaround)
+- **Error/Symptom:**
+  ```text
+  ERROR  [TypeError: undefined is not a function]
+  WARN   Route "./(drawer)/_layout.tsx" is missing the required default export.
+  ERROR  [AppCrash] Unhandled JS Exception at _layout.tsx:1
+  ```
+- **Root Cause:**
+  - Repeat of Issue 5. `expo-router/drawer` depends on `react-native-reanimated`, whose native bindings fail to initialize in Expo Go SDK 56.
+  - Adding `react-native-reanimated/plugin` manually to `babel.config.js` corrupts the Babel AST (repeat of Issue 6).
+- **Solution (Mandatory Rule for Agents):**
+  - Removed `react-native-reanimated` from `package.json` entirely.
+  - Deleted `app/(drawer)/` route group, restored flat route structure.
+  - Implemented custom `Sidebar` component using `Modal` + `Animated` from `react-native` (not Reanimated).
+  - Created `AppHeader` component replacing `Stack.Screen` headers, with hamburger + new-chat icons.
+- **Permanent Rule:** DO NOT use `expo-router/drawer` or `react-native-reanimated` on Expo Go. Use Dev Client for native Drawer.
+- **Validated by:** `pnpm typecheck` → 0 errors ✅
