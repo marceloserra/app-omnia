@@ -34,7 +34,7 @@ export const LightPalette: ThemePalette = {
   surface: "#FFFFFF",
   surface2: "#FFFFFF",
   border: "rgba(60, 60, 67, 0.12)",
-  indigo: "#007AFF", // iOS Blue
+  indigo: "#4f46e5", // Omnia Brand Indigo (not iOS blue)
   textPrimary: "#000000",
   textSecondary: "#8E8E93", // iOS Gray
   textMuted: "#C7C7CC",

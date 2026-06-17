@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/Button';
 
 describe('Button Component', () => {
   it('renders button with children correctly', async () => {
-    const { getByText } = await render(<Button>Test Button</Button>);
+    const { getByText } = await render(<Button><Text>Test Button</Text></Button>);
     expect(getByText('Test Button')).toBeTruthy();
   });
 
   it('applies correct variant classes', async () => {
-    const { debug } = await render(<Button variant="default">Primary</Button>);
+    const { debug } = await render(<Button variant="default"><Text>Primary</Text></Button>);
     // In a real test, we would check the className prop
     expect(true).toBe(true); // Placeholder assertion
   });
@@ -17,7 +17,7 @@ describe('Button Component', () => {
   it('handles onPress correctly', async () => {
     const onPressMock = jest.fn();
     const { getByText } = await render(
-      <Button onPress={onPressMock}>Click Me</Button>
+      <Button onPress={onPressMock}><Text>Click Me</Text></Button>
     );
     
     fireEvent.press(getByText('Click Me'));
@@ -26,7 +26,7 @@ describe('Button Component', () => {
 
   it('shows loading state when loading prop is true', async () => {
     const { getByText } = await render(
-      <Button loading={true}>Loading</Button>
+      <Button loading={true}><Text>Loading</Text></Button>
     );
     
     // ActivityIndicator should be present
@@ -36,7 +36,7 @@ describe('Button Component', () => {
   it('disables button when loading is true', async () => {
     const onPressMock = jest.fn();
     const { getByTestId } = await render(
-      <Button loading={true} onPress={onPressMock} testID="loading-button">Disabled</Button>
+      <Button loading={true} onPress={onPressMock} testID="loading-button"><Text>Disabled</Text></Button>
     );
     
     fireEvent.press(getByTestId('loading-button'));
