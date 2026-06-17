@@ -219,6 +219,7 @@ const styles = StyleSheet.create({
   glassCard: {
     borderRadius: 24,
     padding: 24,
+    marginBottom: 32,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
     alignItems: "center",
@@ -250,6 +251,7 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
     textTransform: "uppercase",
     letterSpacing: 1.2,
+    marginTop: 16,
     marginBottom: 16,
     marginLeft: 4,
   },

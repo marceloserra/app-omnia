@@ -100,7 +100,7 @@ CREATE TABLE messages (
 
 ---
 
-## Step 4 — AI Dev Telemetry (Highest Priority)
+## Step 4 — AI Dev Telemetry ✅ DONE (2026-06-16)
 
 **Goal:** An abstract, reusable logging system that catches errors on the device (simulator/physical) and streams them to a local JSONL file on the host machine. This allows the AI agent to read `omnia-telemetry.jsonl` and proactively fix bugs without the user needing to copy-paste logs.
 
@@ -108,4 +108,19 @@ CREATE TABLE messages (
 - `packages/logger`: A universal logger. In production, it can map to Sentry/Crashlytics. In `__DEV__`, it sends POST requests to the host machine.
 - `Telemetry Server`: A lightweight Node server running on port 8082, appending logs to `omnia-telemetry.jsonl`.
 - `Global Error Boundary`: Wraps the Expo root layout to catch unhandled JS exceptions and send them to the telemetry server.
+
+---
+
+## Step 5 — SQLite & Stream Wiring ✅ DONE (2026-06-16)
+- Connected `index.tsx` to read real DB conversations.
+- Connected `chat/[conversationId].tsx` to save history and stream live completions.
+- Both screens use `@omnia/logger` for exception capture.
+
+---
+
+## Step 6 — FAANG UI Polish ✅ DONE (2026-06-16)
+- Refactored `settings.tsx`, `index.tsx`, and `chat/[conversationId].tsx` to use `expo-blur` (glassmorphism) and `expo-linear-gradient` (vibrant actions).
+- Adjusted margins, visual hierarchy, and UX flows.
+
+> All foundation work is officially complete. Ready to proceed to next core feature sets!
 
