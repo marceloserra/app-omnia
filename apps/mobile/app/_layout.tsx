@@ -24,6 +24,7 @@ export function ErrorBoundary(props: { error: Error; retry: () => void }) {
 import { ThemeProvider, DarkTheme, DefaultTheme } from "@react-navigation/native";
 import * as SystemUI from "expo-system-ui";
 import { useTheme } from "../lib/theme";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
   const theme = useTheme();
@@ -46,33 +47,35 @@ export default function RootLayout() {
   };
 
   return (
-    <ThemeProvider value={customNavTheme}>
-      {/* @ts-expect-error expo-status-bar backgroundColor is valid on android but types might complain */}
-      <StatusBar style={theme.bg === "#05050f" ? "light" : "dark"} backgroundColor={theme.bg} />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: theme.bg },
-          headerTintColor: theme.textPrimary,
-          headerShadowVisible: false,
-          contentStyle: { backgroundColor: theme.bg },
-        }}
-      >
-        {/* Tab Navigator (Home, History, Settings) */}
-        <Stack.Screen
-          name="(tabs)"
-          options={{ headerShown: false }}
-        />
-        {/* New chat screen */}
-        <Stack.Screen
-          name="chat/new"
-          options={{ headerShown: false, animation: "slide_from_right" }}
-        />
-        {/* Existing conversation view */}
-        <Stack.Screen
-          name="chat/[conversationId]"
-          options={{ headerShown: false, animation: "none" }}
-        />
-      </Stack>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={customNavTheme}>
+        {/* @ts-expect-error expo-status-bar backgroundColor is valid on android but types might complain */}
+        <StatusBar style={theme.bg === "#05050f" ? "light" : "dark"} backgroundColor={theme.bg} />
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: theme.bg },
+            headerTintColor: theme.textPrimary,
+            headerShadowVisible: false,
+            contentStyle: { backgroundColor: theme.bg },
+          }}
+        >
+          {/* Tab Navigator (Home, History, Settings) */}
+          <Stack.Screen
+            name="(tabs)"
+            options={{ headerShown: false }}
+          />
+          {/* New chat screen */}
+          <Stack.Screen
+            name="chat/new"
+            options={{ headerShown: false, animation: "slide_from_right" }}
+          />
+          {/* Existing conversation view */}
+          <Stack.Screen
+            name="chat/[conversationId]"
+            options={{ headerShown: false, animation: "none" }}
+          />
+        </Stack>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

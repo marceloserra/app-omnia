@@ -210,6 +210,11 @@ export default function HistoryScreen() {
             >
               <Pressable
                 onPress={() => router.push(`/chat/${conv.id}`)}
+                onLongPress={() => {
+                  // Vibrate or just open right to teach the user they can swipe!
+                  rowRefs.current.get(conv.id)?.openRight();
+                }}
+                delayLongPress={200}
                 style={({ pressed }) => [styles.convItem, pressed && styles.convItemPressed]}
               >
                 {isPinned ? (
