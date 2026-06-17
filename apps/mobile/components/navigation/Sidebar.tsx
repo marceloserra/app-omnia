@@ -315,14 +315,10 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
     ].filter(g => g.data.length > 0);
   }, [filtered, pinnedIds]);
 
+  if (!modalVisible) return null;
+
   return (
-    <Modal
-      visible={modalVisible}
-      transparent
-      animationType="none"
-      onRequestClose={onClose}
-      statusBarTranslucent
-    >
+    <View style={[StyleSheet.absoluteFill, { zIndex: 9999, elevation: 9999 }]}>
       {/* Backdrop */}
       <TouchableWithoutFeedback onPress={onClose}>
         <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
@@ -412,7 +408,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
           style={styles.list}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 24 }}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
         >
           {groupedConvs.length === 0 ? (
             <Text style={styles.emptyText}>No recent chats yet.</Text>
@@ -573,7 +569,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
         onCancel={() => setDeleteConfirmTarget(null)}
         onConfirm={confirmDelete}
       />
-    </Modal>
+    </View>
   );
 }
 
