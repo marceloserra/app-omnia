@@ -59,7 +59,7 @@ export default function HistoryScreen() {
   const handleRename = () => {
     if (renameConv && renameTitle.trim()) {
       try {
-        convRepo.update(renameConv.id, { title: renameTitle.trim(), updatedAt: Date.now() });
+        convRepo.update(renameConv.id, { title: renameTitle.trim() });
         loadConvs();
       } catch (e) {}
     }
@@ -70,7 +70,7 @@ export default function HistoryScreen() {
     if (deleteConv) {
       try {
         msgRepo.deleteByConversation(deleteConv.id);
-        convRepo.deleteById(deleteConv.id);
+        convRepo.delete(deleteConv.id);
         setPinnedIds(prev => {
           if (prev.has(deleteConv.id)) {
             const next = new Set(prev);
