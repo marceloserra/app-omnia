@@ -120,13 +120,13 @@ export default function HomeScreen() {
             style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
           >
             <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingBtnInner}>
-              <AlignLeft size={22} color={theme.textPrimary} strokeWidth={2} />
+              <AlignLeft size={18} color={theme.textPrimary} strokeWidth={2} />
             </BlurView>
           </Pressable>
 
           <View style={styles.floatingChipContainer}>
             <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingChipInner}>
-              <Sparkles size={16} color={theme.indigo} strokeWidth={2} />
+              <Sparkles size={14} color={theme.indigo} strokeWidth={2} />
               <Text style={styles.dynamicIslandText} numberOfLines={1}>Omnia</Text>
             </BlurView>
           </View>
@@ -137,7 +137,7 @@ export default function HomeScreen() {
             style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
           >
             <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingBtnInner}>
-              <Settings size={22} color={theme.textPrimary} strokeWidth={2} />
+              <Settings size={18} color={theme.textPrimary} strokeWidth={2} />
             </BlurView>
           </Pressable>
         </View>
@@ -226,19 +226,19 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     paddingHorizontal: 16,
   },
   floatingBtnContainer: {
-    borderRadius: 22,
+    borderRadius: 18,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.05)",
   },
   floatingBtnInner: {
-    width: 44,
-    height: 44,
+    width: 36,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
   floatingChipContainer: {
-    borderRadius: 22,
+    borderRadius: 18,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.05)",
@@ -247,13 +247,13 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
   floatingChipInner: {
     flexDirection: "row",
     alignItems: "center",
-    height: 44,
-    paddingHorizontal: 16,
-    gap: 8,
+    height: 36,
+    paddingHorizontal: 12,
+    gap: 6,
   },
   dynamicIslandText: {
     color: theme.textPrimary,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "700",
     letterSpacing: 0.3,
     flexShrink: 1,
