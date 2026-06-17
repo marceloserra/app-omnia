@@ -154,7 +154,7 @@ export default function HomeScreen() {
                   {getModelIcon(store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId, 16)}
                 </View>
                 <Text style={[styles.dynamicIslandText, { maxWidth: 140 }]} numberOfLines={1}>
-                  {(store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId) || (store.activeProviderId === "openai" ? "OpenAI" : "Local")}
+                  {store.activeProviderId === "openai" ? "OpenAI" : "Local"} · {store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
                 </Text>
                 <ChevronDown size={14} color={theme.textSecondary} />
               </View>

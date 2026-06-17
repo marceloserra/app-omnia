@@ -268,7 +268,7 @@ export default function ChatScreen() {
                   {getModelIcon(activeModelId || "", 16)}
                 </View>
                 <Text style={[styles.dynamicIslandText, { maxWidth: 140 }]} numberOfLines={1}>
-                  {activeModelId || (store.activeProviderId === "openai" ? "OpenAI" : "Local")}
+                  {store.activeProviderId === "openai" ? "OpenAI" : "Local"} · {activeModelId}
                 </Text>
                 <ChevronDown size={14} color={theme.textSecondary} />
               </View>
