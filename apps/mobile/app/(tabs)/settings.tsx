@@ -14,18 +14,18 @@ import {
   FlatList,
 } from "react-native";
 import { router } from "expo-router";
-import { Input } from "../components/ui/Input";
+import { Input } from "../../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
 import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X } from "lucide-react-native";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
-import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { useProviderStore } from "../store/provider-store";
+import { useProviderStore } from "../../store/provider-store";
 
-import { useTheme, ThemePalette } from "../lib/theme";
-import { useTranslation } from "../lib/i18n";
-import { useSettingsStore } from "../store/settings-store";
+import { useTheme, ThemePalette } from "../../lib/theme";
+import { useTranslation } from "../../lib/i18n";
+import { useSettingsStore } from "../../store/settings-store";
 
 const SUCCESS = "#10b981";
 const ERROR = "#ef4444";

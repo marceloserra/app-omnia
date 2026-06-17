@@ -4,14 +4,13 @@ import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
 import { ChatInput } from "../../components/chat/ChatInput";
-import { Sidebar } from "../../components/navigation/Sidebar";
 import { useProviderStore } from "../../store/provider-store";
 import { OpenAIProvider } from "@omnia/providers";
 import { OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
-import { ArrowDown, AlignLeft, Settings, ChevronDown, Search, X, Check } from "lucide-react-native";
+import { ArrowDown, ChevronLeft, Settings, ChevronDown, Search, X, Check } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
@@ -208,7 +207,6 @@ export default function ChatScreen() {
       return "Chat";
     }
   });
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [modelPickerVisible, setModelPickerVisible] = useState(false);
   const isDark = theme.bg === "#05050f";
 
@@ -376,8 +374,8 @@ export default function ChatScreen() {
         {/* Floating Header (Dynamic Island vibe) */}
         <View style={[styles.headerFloating, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
           <Pressable
-            onPress={() => setSidebarOpen(true)}
-            accessibilityLabel="Open menu"
+            onPress={() => router.back()}
+            accessibilityLabel="Back"
             style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
           >
             <BlurView 
@@ -385,7 +383,7 @@ export default function ChatScreen() {
               tint={isDark ? "dark" : "light"} 
               style={[styles.floatingBtnInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
             >
-              <AlignLeft size={18} color={theme.textPrimary} strokeWidth={2} />
+              <ChevronLeft size={20} color={theme.textPrimary} strokeWidth={2.5} />
             </BlurView>
           </Pressable>
 
@@ -500,8 +498,6 @@ export default function ChatScreen() {
           onPressDisabled={() => { if (noProvider) router.push("/settings"); }}
         />
       </View>
-
-      <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <Modal
         visible={modelPickerVisible}
