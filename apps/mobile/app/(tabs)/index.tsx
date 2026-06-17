@@ -111,7 +111,6 @@ export default function HomeDashboard() {
                 flexDirection: "row",
                 alignItems: "center",
                 shadowColor: theme.indigo,
-                shadowOffset: { width: 0, height: 4 },
                 shadowRadius: 12,
                 shadowOffset: { width: 0, height: 6 },
                 elevation: 6,
