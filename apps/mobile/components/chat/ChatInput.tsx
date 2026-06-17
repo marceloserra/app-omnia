@@ -88,7 +88,7 @@ export function ChatInput({
               style={({ pressed }) => [styles.sendBtn, styles.stopBtn, pressed && { opacity: 0.75 }]}
               accessibilityLabel="Stop generating"
             >
-              <Square size={16} color="#05050f" fill="#05050f" />
+              <Square size={18} color="#f8fafc" fill="#f8fafc" />
             </Pressable>
           ) : (
             // Send button — lights up when there's text
@@ -104,8 +104,8 @@ export function ChatInput({
             >
               <ArrowUp
                 size={22}
-                color={text.trim().length > 0 ? "#05050f" : "rgba(255,255,255,0.25)"}
-                strokeWidth={2.5}
+                color={text.trim().length > 0 ? "#ffffff" : "rgba(255,255,255,0.3)"}
+                strokeWidth={3}
               />
             </Pressable>
           )}
@@ -149,32 +149,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    marginTop: 6,
-    marginBottom: 2,
+    marginTop: 8,
+    marginBottom: 4,
   },
   sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
   },
   sendBtnActive: {
-    backgroundColor: "#a5b4fc", // Light purple as requested
-    shadowColor: "#a5b4fc",
-    shadowOffset: { width: 0, height: 2 },
+    backgroundColor: INDIGO, // #6366f1
+    shadowColor: INDIGO,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowRadius: 8,
+    elevation: 6,
   },
   sendBtnIdle: {
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
   stopBtn: {
-    backgroundColor: "#fca5a5", // Light red to match the aesthetic
-    shadowColor: "#fca5a5",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
+    backgroundColor: "#1e1e2e",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
   },
