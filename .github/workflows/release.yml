@@ -72,8 +72,8 @@ jobs:
 
       - name: Generate Checksums
         run: |
-          sha256sum ${{ env.APK_FILE }} > checksums.txt
-          cat checksums.txt
+          sha256sum ${{ env.APK_FILE }} > checksums.sha256
+          cat checksums.sha256
 
       - name: Extract Release Notes
         run: |
@@ -86,6 +86,6 @@ jobs:
           body_path: RELEASE_NOTES.md
           files: |
             ${{ env.APK_FILE }}
-            checksums.txt
+            checksums.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -20,7 +20,8 @@
       },
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize",
-      "backgroundColor": "#05050f"
+      "backgroundColor": "#05050f",
+      "usesCleartextTraffic": true
     },
     "androidStatusBar": {
       "translucent": false
