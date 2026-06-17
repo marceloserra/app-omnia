@@ -227,7 +227,7 @@ export default function ChatScreen() {
     setIsScrolledUp(false);
   };
 
-  const noProvider = !store.activeProviderId;
+  const noProvider = !store.activeProviderId || !store.isConnected;
   const activeModelId = store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId;
 
   return (

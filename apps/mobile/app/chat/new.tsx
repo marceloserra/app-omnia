@@ -57,7 +57,7 @@ export default function HomeScreen() {
   const isAbortedRef = useRef(false);
   const flatListRef = useRef<FlatList>(null);
 
-  const noProvider = !store.activeProviderId;
+  const noProvider = !store.activeProviderId || !store.isConnected;
   const isDark = theme.bg === "#05050f";
 
   // No manual keyboard scroll listeners needed when using inverted FlatList
@@ -178,23 +178,28 @@ export default function HomeScreen() {
           {messages.length === 0 && (
             <View style={styles.emptyOverlay} pointerEvents="box-none">
               <View style={styles.emptyIconWrapper}>
-                {getModelIcon(store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId, 48)}
+                {noProvider
+                  ? <Sparkles size={28} color={theme.indigo} />
+                  : getModelIcon(store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId, 48)
+                }
               </View>
-              <Text style={styles.emptyTitle}>Omnia · {store.activeProviderId === "openai" ? "OpenAI" : "Local"}</Text>
-              <Text style={styles.emptySubtitle}>{t("chat.empty.connected").replace("{model}", store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId)}</Text>
+              <Text style={styles.emptyTitle}>
+                {noProvider ? "Omnia" : `Omnia · ${store.activeProviderId === "openai" ? "OpenAI" : "Local"}`}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {noProvider
+                  ? t("chat.empty.noprovider")
+                  : t("chat.empty.connected").replace("{model}", store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId)
+                }
+              </Text>
 
               {noProvider && (
-                <View style={{ alignItems: "center", marginTop: 24 }}>
-                  <Text style={[styles.emptySubtitle, { maxWidth: "80%" }]}>
-                    {t("chat.empty.noprovider")}
-                  </Text>
-                  <Pressable
-                    onPress={() => router.push("/settings")}
-                    style={({ pressed }) => [styles.providerConfigBtn, pressed && { opacity: 0.8 }, { maxWidth: "90%" }]}
-                  >
-                    <Text style={[styles.providerConfigText, { textAlign: "center" }]} numberOfLines={2}>{t("chat.empty.cta")}</Text>
-                  </Pressable>
-                </View>
+                <Pressable
+                  onPress={() => router.push("/settings")}
+                  style={({ pressed }) => [styles.providerConfigBtn, pressed && { opacity: 0.8 }, { maxWidth: "90%" }]}
+                >
+                  <Text style={[styles.providerConfigText, { textAlign: "center" }]} numberOfLines={2}>{t("chat.empty.cta")}</Text>
+                </Pressable>
               )}
             </View>
           )}

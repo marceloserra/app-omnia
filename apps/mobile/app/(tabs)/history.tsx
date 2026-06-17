@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { 
   View, Text, SectionList, Pressable, StyleSheet, TextInput, Modal, 
   Platform, KeyboardAvoidingView 
@@ -7,7 +7,7 @@ import { MessageSquare, Pin, Pencil, Trash2, Search, X } from "lucide-react-nati
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { Conversation } from "@omnia/shared-types";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -32,8 +32,13 @@ export default function HistoryScreen() {
   
   const rowRefs = useRef<Map<string, Swipeable>>(new Map());
   
+  useFocusEffect(
+    useCallback(() => {
+      loadConvs();
+    }, [])
+  );
+
   useEffect(() => {
-    loadConvs();
     AsyncStorage.getItem('pinnedIds').then(val => {
       if (val) setPinnedIds(new Set(JSON.parse(val)));
     });
@@ -46,7 +51,8 @@ export default function HistoryScreen() {
   };
 
   const togglePin = (id: string) => {
-    rowRefs.current.get(id)?.close();
+    // Do not call close() here because the item changes sections and unmounts,
+    // which causes react-native-gesture-handler to crash if animating.
     setPinnedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
