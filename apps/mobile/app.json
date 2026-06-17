@@ -13,15 +13,16 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#05050f",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "usesCleartextTraffic": true,
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize",
       "backgroundColor": "#05050f",
-      "usesCleartextTraffic": true
+      "package": "com.marceloserra.omnia"
     },
     "androidStatusBar": {
       "translucent": false
@@ -31,6 +32,7 @@
     },
     "plugins": [
       "expo-sqlite",
+      "./plugins/with-android-cleartext-traffic",
       "@config-plugins/detox"
     ]
   }

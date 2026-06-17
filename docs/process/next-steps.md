@@ -2,16 +2,18 @@
 
 ## Overview
 
-The Foundation Phases (1 through 9) are **officially complete**. We have successfully built the core application, ensuring extreme stability and FAANG-level UX:
+The Foundation Phases (1 through 8) are complete. Phase 9 remains active for release management, production APK stabilization, Git Flow adoption, and final MVP polish.
+
+The core application is built:
 - **UI/UX Finalized:** Glassmorphism, Dark/Light reactive themes, native Android keyboard physics, and Sidebar Modal navigation.
 - **Data Layer:** SQLite persistence with array-bound varargs for native crash prevention.
 - **Release Engineering:** GitHub Actions pipeline generating automated APKs and SHA256 checksums.
 
-We are currently cutting the **v1.0.0 Stable** release. The current codebase requires NO further UI or architectural refactoring.
+`v1.0.0` and `v1.0.1` have been cut. Current work should focus on critical final APK defects and the next patch release.
 
 ---
 
-## 🚫 UI/UX Code Freeze
+## UI/UX Code Freeze
 **IMPORTANT:** The user has explicitly mandated a freeze on UI/UX refactoring.
 *"Nosso foco e somente finalizar a UI e lancar a stable agr"*
 
@@ -19,9 +21,9 @@ Do not suggest, build, or implement any further visual design changes unless spe
 
 ---
 
-## Future Scope (Post v1.0.0 Stable)
+## Future Scope (Post Stable APK Verification)
 
-Once `v1.0.0` is published and verified on physical devices, the project will transition from a traditional chat application into an **Agentic AI Assistant**.
+Once the stable APK is published and verified on physical devices, the project may transition from a traditional chat application into an **Agentic AI Assistant**.
 
 ### Phase 10: Retrieval-Augmented Generation (RAG)
 - **Goal:** Allow users to upload PDFs, text files, and images.

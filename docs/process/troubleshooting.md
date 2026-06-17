@@ -230,3 +230,24 @@ This document serves as a centralized knowledge base for critical errors encount
 - **Solution (Mandatory Rule for Agents):**
   - **Android:** `"softwareKeyboardLayoutMode"` must be set to `"resize"` in `app.json`. This tells Android to natively shrink the `flex: 1` window.
   - **React Native:** `KeyboardAvoidingView` must have `behavior={Platform.OS === "ios" ? "padding" : undefined}`. Android natively resizes, so it doesn't need (and cannot have) `behavior="padding"`. iOS still requires `behavior="padding"`.
+
+### Issue 13: Final Android APK Blocks HTTP Local Provider URLs
+- **Date:** 2026-06-17
+- **Phase/Context:** Phase 09 (Release APK Stabilization)
+- **Status:** RESOLVED by config plugin, pending physical APK verification
+- **Error/Symptom:** Local provider URLs such as `http://192.168.x.x:1234/v1` work during development but fail in the installed release APK.
+- **Root Cause:**
+  - Android 9+ blocks cleartext HTTP by default in production APKs.
+  - Expo Go/dev flows can hide this because local HTTP is needed for development tooling.
+  - `android.usesCleartextTraffic: true` existed in `app.json`, but the final APK also needed a generated native `android:networkSecurityConfig` reference to guarantee the release manifest behavior.
+- **Solution:**
+  - Added `apps/mobile/network_security_config.xml`.
+  - Added `apps/mobile/plugins/with-android-cleartext-traffic.js`.
+  - Registered the plugin before `@config-plugins/detox` in `apps/mobile/app.json`; this ordering makes the final generated XML match Omnia's broad local-provider config instead of Detox's emulator-only config.
+  - The plugin copies the XML into `android/app/src/main/res/xml/network_security_config.xml` during `expo prebuild` and injects:
+    ```xml
+    android:usesCleartextTraffic="true"
+    android:networkSecurityConfig="@xml/network_security_config"
+    ```
+- **Important User Note:** On a physical Android device, `localhost` points to the phone itself. To reach LM Studio, Ollama, or another server running on a computer, use the computer's LAN IP, for example `http://192.168.1.100:1234/v1`, and make sure the server binds to a reachable interface.
+- **Validation:** Run `expo prebuild --platform android --clean --no-install`, then inspect `apps/mobile/android/app/src/main/AndroidManifest.xml` and `apps/mobile/android/app/src/main/res/xml/network_security_config.xml`.

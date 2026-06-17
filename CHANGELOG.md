@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-changelog](https://github.com/bcoe/standard-changelog) for changelog format recommendations.
 
+## [Unreleased]
+
+### Fixed
+
+- Harden Android release APK support for HTTP local AI providers by injecting a native network security config during Expo prebuild.
+- Restore the Android adaptive launcher icon asset so release APK installs show the Omnia icon instead of the default Android Studio icon.
+
 ## [1.0.1] - The Omnia Design Update
 
 **Omnia v1.0.1** establishes our official **Omnia Design System (ODS)**, bringing extreme FAANG-tier polish, native gesture ergonomics, and offline resilience to the UI.

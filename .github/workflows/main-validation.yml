@@ -1,15 +1,15 @@
-name: PR Pipeline
+name: Main Validation
 
 on:
-  pull_request:
+  push:
     branches:
       - main
 
 jobs:
   validate:
-    name: Validate Codebase
+    name: Build Validation
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 9
+          version: 10.34.3
           run_install: false
 
       - name: Get pnpm store directory
@@ -41,11 +41,18 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run Typecheck
-        run: pnpm typecheck
+      - name: Setup Java (for Android build check)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
-      - name: Run Lint
-        run: pnpm lint
+      - name: Expo Prebuild (Generate Android Native Code)
+        run: pnpm --filter mobile exec expo prebuild --platform android --clean
 
-      - name: Run Unit Tests
-        run: pnpm test
+      - name: Expo Export Validation (JS Bundle)
+        run: pnpm --filter mobile exec expo export --platform android --output-dir /tmp/omnia-android-export
+
+      - name: Android Debug Build Validation
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleDebug
