@@ -8,12 +8,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useProviderStore } from "../store/provider-store";
 import { Input } from "../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
-import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network } from "lucide-react-native";
+import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2 } from "lucide-react-native";
+import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
@@ -41,6 +43,31 @@ export default function SettingsScreen() {
 
   const [isValidating, setIsValidating] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg?: string; models: string[] } | null>(null);
+
+  const handleClearAll = () => {
+    Alert.alert(
+      "Clear All History",
+      "Are you sure you want to permanently delete all conversations and messages? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete All", 
+          style: "destructive", 
+          onPress: () => {
+            try {
+              const db = openDatabase();
+              createMessageRepo(db).deleteAll();
+              createConversationRepo(db).deleteAll();
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+              router.replace("/");
+            } catch (err) {
+              Alert.alert("Error", "Could not delete history.");
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const handleTestConnection = async () => {
     setIsValidating(true);
@@ -268,6 +295,25 @@ export default function SettingsScreen() {
               )}
             </BlurView>
           )}
+
+          {/* Danger Zone */}
+          <View style={styles.dangerZone}>
+            <Text style={styles.dangerTitle}>Danger Zone</Text>
+            <View style={styles.dangerCard}>
+              <View style={{ flex: 1, paddingRight: 16 }}>
+                <Text style={styles.dangerItemTitle}>Clear All History</Text>
+                <Text style={styles.dangerItemSub}>Permanently delete all conversations and messages. This action cannot be undone.</Text>
+              </View>
+              <Pressable
+                onPress={handleClearAll}
+                style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
+              >
+                <Trash2 size={16} color={ERROR} style={{ marginRight: 6 }} />
+                <Text style={styles.dangerButtonText}>Clear All</Text>
+              </Pressable>
+            </View>
+          </View>
+
         </ScrollView>
 
         {/* Floating Save Button - Premium Gradient */}
@@ -421,5 +467,55 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 16,
     letterSpacing: 0.5,
+  },
+  dangerZone: {
+    marginTop: 40,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(239, 68, 68, 0.2)",
+    paddingTop: 24,
+  },
+  dangerTitle: {
+    color: ERROR,
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
+    marginBottom: 12,
+  },
+  dangerCard: {
+    backgroundColor: "rgba(239, 68, 68, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.15)",
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  dangerItemTitle: {
+    color: TEXT_PRIMARY,
+    fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  dangerItemSub: {
+    color: TEXT_SECONDARY,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  dangerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.2)",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  dangerButtonText: {
+    color: ERROR,
+    fontSize: 13,
+    fontWeight: "600",
   },
 });

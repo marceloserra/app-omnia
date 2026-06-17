@@ -81,5 +81,12 @@ export function createMessageRepo(db: SQLite.SQLiteDatabase) {
     deleteByConversation(conversationId: string): void {
       db.runSync("DELETE FROM messages WHERE conversation_id = ?;", conversationId);
     },
+
+    /**
+     * Delete all messages.
+     */
+    deleteAll(): void {
+      db.runSync("DELETE FROM messages;");
+    },
   };
 }

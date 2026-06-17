@@ -7,7 +7,7 @@ import {
 import { router, useFocusEffect } from "expo-router";
 import {
   MessageSquare, Plus, Settings, Sparkles, X,
-  Pin, Pencil, Trash2,
+  Pin, Pencil, Trash2, Search
 } from "lucide-react-native";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { Conversation } from "@omnia/shared-types";
@@ -51,6 +51,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({ visible: false, conversation: null });
   const [rename, setRename] = useState<RenameState>({ active: false, conversationId: null, value: "" });
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
 
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -200,8 +201,13 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
     }, 300);
   };
 
+  // Filter by search query
+  const filtered = conversations.filter(c => 
+    c.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // Sort: pinned first, then by updatedAt desc
-  const sorted = [...conversations].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     const aPinned = pinnedIds.has(a.id) ? 1 : 0;
     const bPinned = pinnedIds.has(b.id) ? 1 : 0;
     if (bPinned !== aPinned) return bPinned - aPinned;
@@ -253,8 +259,27 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
           </LinearGradient>
         </Pressable>
 
-        {/* Recent chats */}
-        <Text style={styles.sectionLabel}>Recent</Text>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Search size={16} color={TEXT_SECONDARY} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search chats..."
+            placeholderTextColor="rgba(148,163,184,0.5)"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && (
+            <Pressable onPress={() => setSearchQuery("")} hitSlop={8} style={styles.clearSearchBtn}>
+              <X size={14} color={TEXT_SECONDARY} />
+            </Pressable>
+          )}
+        </View>
+
+        <Text style={styles.sectionLabel}>
+          {searchQuery ? "Search Results" : "Recent"}
+        </Text>
 
         <ScrollView
           style={styles.list}
@@ -489,6 +514,30 @@ const styles = StyleSheet.create({
     letterSpacing: 1.4,
     marginBottom: 8,
     paddingHorizontal: 20,
+    marginTop: 8,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    color: TEXT_PRIMARY,
+    fontSize: 14,
+  },
+  clearSearchBtn: {
+    padding: 4,
   },
   list: {
     flex: 1,
