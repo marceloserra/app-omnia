@@ -183,3 +183,25 @@ This document serves as a centralized knowledge base for critical errors encount
   - Created `AppHeader` component replacing `Stack.Screen` headers, with hamburger + new-chat icons.
 - **Permanent Rule:** DO NOT use `expo-router/drawer` or `react-native-reanimated` on Expo Go. Use Dev Client for native Drawer.
 - **Validated by:** `pnpm typecheck` → 0 errors ✅
+
+### Issue 11: `@react-navigation/elements` Blocked in SDK 56
+- **Date:** 2026-06-16
+- **Phase/Context:** Phase 07 (UX Polish — Keyboard Layout)
+- **Status:** ✅ RESOLVED
+- **Error/Symptom:**
+  ```text
+  ERROR  As of SDK 56, expo-router is no longer compatible with react-navigation.
+  ```
+- **Root Cause:**
+  - Expo SDK 56 strictly enforces its own routing paradigm and blocks direct imports from `@react-navigation/*` at the bundler level (unless explicitly bypassed via env vars).
+  - We attempted to import `useHeaderHeight` from `@react-navigation/elements` to dynamically set the `KeyboardAvoidingView` offset.
+- **Solution (Mandatory Rule for Agents):**
+  - **DO NOT import anything from `@react-navigation/*` directly in SDK 56.**
+  - To calculate dynamic header heights for `KeyboardAvoidingView`, use `useSafeAreaInsets` from `react-native-safe-area-context` and add standard native header constants (e.g. `insets.top + 44`).
+
+### UI/UX Architecture Rule: FAANG-Level Chat Input
+- **Rule:** The `ChatInput` component must maintain a strict "Pill" geometry with inline actions.
+- **Implementation Detail:** 
+  - The input container MUST be a `flex-row` with `alignItems: "flex-end"`.
+  - The `TextInput` must have a `minHeight` perfectly matching the action button `height` (e.g. 34px) so that when single-line, the button and text are perfectly centered vertically.
+  - DO NOT stack the text and the button vertically. Doing so breaks the Apple/ChatGPT standard of chat inputs.
