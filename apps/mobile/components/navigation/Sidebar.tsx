@@ -243,7 +243,6 @@ const styles = StyleSheet.create({
   logoRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
   },
   logoCircle: {
     width: 34,
@@ -254,6 +253,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(99,102,241,0.25)",
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 10,
   },
   logoText: {
     color: TEXT_PRIMARY,
@@ -278,9 +278,11 @@ const styles = StyleSheet.create({
   newChatGradient: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
     paddingVertical: 14,
     paddingHorizontal: 16,
+  },
+  newChatIcon: {
+    marginRight: 10,
   },
   newChatText: {
     color: "#fff",

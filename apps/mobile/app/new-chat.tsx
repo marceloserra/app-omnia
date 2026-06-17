@@ -175,7 +175,7 @@ export default function NewChatScreen() {
             </View>
             <Text style={styles.emptyTitle}>New Chat</Text>
             {noProvider ? (
-              <View style={{ alignItems: "center", gap: 16 }}>
+              <View style={{ alignItems: "center" }}>
                 <Text style={styles.emptySubtitle}>
                   You need an AI provider to start chatting.
                 </Text>
@@ -232,7 +232,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingBottom: 60,
-    gap: 12,
   },
   emptyGlyph: {
     width: 68,
@@ -241,19 +240,21 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(99,102,241,0.1)",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 4,
+    marginBottom: 12,
   },
   emptyTitle: {
     color: "#f0efff",
     fontSize: 22,
     fontWeight: "700",
     letterSpacing: 0.3,
+    marginBottom: 8,
   },
   emptySubtitle: {
     color: "rgba(148,163,184,0.6)",
     fontSize: 15,
     textAlign: "center",
     lineHeight: 22,
+    marginBottom: 20,
   },
   providerBtn: {
     backgroundColor: "rgba(99,102,241,0.15)",
@@ -273,7 +274,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
     paddingVertical: 8,
+    paddingHorizontal: 16,
   },
 });

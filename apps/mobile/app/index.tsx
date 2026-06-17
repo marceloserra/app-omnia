@@ -14,7 +14,10 @@ import * as Haptics from "expo-haptics";
 import { ConversationListItem } from "../components/chat/ConversationListItem";
 
 const BG = "#05050f";
+const SURFACE = "#0e0e1f";
 const INDIGO = "#6366f1";
+const TEXT_PRIMARY = "#f0efff";
+const TEXT_MUTED = "rgba(148,163,184,0.55)";
 
 const db = openDatabase();
 const convRepo = createConversationRepo(db);
@@ -29,12 +32,10 @@ export default function IndexScreen() {
   const insets = useSafeAreaInsets();
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
-  // Reload list whenever this screen regains focus (e.g. coming back from a chat)
   useFocusEffect(
     useCallback(() => {
       try {
         const all = convRepo.listAll();
-        // Sort newest first
         const sorted = [...all].sort((a, b) => b.updatedAt - a.updatedAt);
         setConversations(sorted);
       } catch {
@@ -55,52 +56,57 @@ export default function IndexScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
+
+      {/* ─── Custom Header ─── */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Omnia</Text>
         <View style={styles.headerActions}>
           <Pressable
             onPress={() => router.push("/settings")}
-            style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.6 }]}
+            style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.5 }]}
             accessibilityLabel="Settings"
           >
-            <Settings size={22} color="rgba(240,239,255,0.8)" strokeWidth={1.8} />
+            <Settings size={22} color={TEXT_PRIMARY} strokeWidth={1.8} />
           </Pressable>
           <Pressable
             onPress={handleNewChat}
-            style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.6 }]}
+            style={({ pressed }) => [styles.iconBtn, styles.iconBtnLast, pressed && { opacity: 0.5 }]}
             accessibilityLabel="New chat"
           >
-            <MessageSquarePlus size={22} color="rgba(240,239,255,0.8)" strokeWidth={1.8} />
+            <MessageSquarePlus size={22} color={TEXT_PRIMARY} strokeWidth={1.8} />
           </Pressable>
         </View>
       </View>
 
-      {/* Ambient glow */}
-      <View style={styles.ambientGlow} />
+      {/* ─── Separator ─── */}
+      <View style={styles.separator} />
 
-      {/* Conversation list */}
+      {/* ─── List ─── */}
       <FlatList
         data={conversations}
         keyExtractor={(c) => c.id}
         renderItem={({ item }) => (
           <ConversationListItem item={item} onPress={handleOpenChat} />
         )}
-        contentContainerStyle={conversations.length === 0 ? { flex: 1 } : { paddingBottom: 100 }}
+        contentContainerStyle={
+          conversations.length === 0
+            ? styles.listEmptyContent
+            : styles.listContent
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <View style={styles.emptyGlyph}>
-              <Text style={{ fontSize: 36, color: "#818cf8" }}>✦</Text>
+              <Text style={styles.emptyGlyphText}>✦</Text>
             </View>
             <Text style={styles.emptyTitle}>Omnia</Text>
             <Text style={styles.emptySubtitle}>
-              Your conversations will appear here.{"\n"}Tap the button below to start.
+              Your conversations will appear here.{"\n"}Tap below to start.
             </Text>
           </View>
         }
       />
 
-      {/* Floating "New Chat" button */}
+      {/* ─── FAB ─── */}
       <Pressable
         onPress={handleNewChat}
         style={({ pressed }) => [
@@ -110,7 +116,7 @@ export default function IndexScreen() {
         ]}
         accessibilityLabel="Start new chat"
       >
-        <Plus size={22} color="#fff" strokeWidth={2.5} />
+        <Plus size={20} color="#fff" strokeWidth={2.5} />
         <Text style={styles.fabLabel}>New Chat</Text>
       </Pressable>
     </View>
@@ -122,73 +128,98 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BG,
   },
+
+  // ── Header
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
   headerTitle: {
-    color: "#f0efff",
-    fontSize: 22,
+    color: TEXT_PRIMARY,
+    fontSize: 24,
     fontWeight: "700",
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   headerActions: {
     flexDirection: "row",
-    gap: 4,
+    alignItems: "center",
   },
   iconBtn: {
-    padding: 10,
+    width: 40,
+    height: 40,
     borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 4,
   },
-  ambientGlow: {
-    position: "absolute",
-    top: -80,
-    right: -60,
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    backgroundColor: INDIGO,
-    opacity: 0.08,
+  iconBtnLast: {
+    marginLeft: 2,
   },
+
+  // ── Separator
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    marginHorizontal: 0,
+  },
+
+  // ── List
+  listContent: {
+    paddingTop: 8,
+    paddingBottom: 120,
+  },
+  listEmptyContent: {
+    flexGrow: 1,
+  },
+
+  // ── Empty state
   emptyContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingBottom: 80,
-    gap: 12,
+    paddingBottom: 100,
+    paddingHorizontal: 32,
   },
   emptyGlyph: {
     width: 72,
     height: 72,
     borderRadius: 24,
-    backgroundColor: "rgba(99,102,241,0.1)",
+    backgroundColor: "rgba(99,102,241,0.12)",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 4,
+    marginBottom: 16,
+  },
+  emptyGlyphText: {
+    fontSize: 34,
+    color: "#818cf8",
   },
   emptyTitle: {
-    color: "#f0efff",
+    color: TEXT_PRIMARY,
     fontSize: 22,
     fontWeight: "700",
     letterSpacing: 0.3,
+    marginBottom: 8,
   },
   emptySubtitle: {
-    color: "rgba(148,163,184,0.6)",
+    color: TEXT_MUTED,
     fontSize: 14,
     textAlign: "center",
     lineHeight: 22,
   },
+
+  // ── FAB
   fab: {
     position: "absolute",
     right: 20,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
     backgroundColor: INDIGO,
-    paddingHorizontal: 20,
+    paddingLeft: 16,
+    paddingRight: 20,
     paddingVertical: 14,
     borderRadius: 28,
     shadowColor: INDIGO,
@@ -202,5 +233,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     letterSpacing: 0.2,
+    marginLeft: 8,
   },
 });

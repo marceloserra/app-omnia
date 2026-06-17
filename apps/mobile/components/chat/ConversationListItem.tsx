@@ -50,28 +50,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    gap: 14,
   },
   rowPressed: {
     backgroundColor: "rgba(255,255,255,0.04)",
   },
   iconBox: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 12,
     backgroundColor: "rgba(99,102,241,0.12)",
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 14,
+    flexShrink: 0,
   },
   content: {
     flex: 1,
-    gap: 3,
   },
   title: {
     color: "#f0efff",
     fontSize: 15,
     fontWeight: "500",
     letterSpacing: 0.1,
+    marginBottom: 3,
   },
   time: {
     color: "rgba(148,163,184,0.6)",

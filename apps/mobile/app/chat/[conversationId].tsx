@@ -351,7 +351,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 24,
     paddingVertical: 8,
-    gap: 10,
     backgroundColor: "transparent",
   },
   fabContainer: {
