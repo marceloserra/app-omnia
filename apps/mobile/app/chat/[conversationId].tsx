@@ -65,21 +65,13 @@ export default function ChatScreen() {
     return null;
   }, [store]);
 
-  const handleSend = useCallback(async (text: string) => {
+  const handleSend = useCallback(async (text: string, isInitialPrompt: boolean = false) => {
     const providerCtx = getProvider();
     if (!providerCtx) return;
     if (!conversationId) return;
 
     isAbortedRef.current = false;
     setIsScrolledUp(false);
-
-    const userMessage: Message = {
-      id: generateId(),
-      conversationId: conversationId,
-      role: "user",
-      content: text,
-      timestamp: Date.now(),
-    };
 
     const assistantId = generateId();
     const assistantMessage: Message = {
@@ -94,8 +86,19 @@ export default function ChatScreen() {
 
     // Use functional update — no dependency on `messages` state
     setMessages((prev) => {
+      // If it's the initial prompt from index.tsx, the user message was already
+      // saved to SQLite and loaded into `prev`. We don't want to duplicate it.
+      const userMessage: Message | null = isInitialPrompt ? null : {
+        id: generateId(),
+        conversationId: conversationId,
+        role: "user",
+        content: text,
+        timestamp: Date.now(),
+      };
+
       // Build chat history for the API from the current snapshot
-      const chatHistory = [...prev, userMessage].map((m) => ({
+      const snapshotForApi = isInitialPrompt ? [...prev] : [...prev, userMessage!];
+      const chatHistory = snapshotForApi.map((m) => ({
         role: m.role,
         content: m.content,
       }));
@@ -103,14 +106,14 @@ export default function ChatScreen() {
       // Fire and forget the stream after we have the snapshot
       (async () => {
         try {
-          msgRepo.create(userMessage);
+          if (userMessage) msgRepo.create(userMessage);
           msgRepo.create(assistantMessage);
-          if (prev.length === 0) {
+          if (prev.length === 0 && userMessage) {
             convRepo.update(conversationId, { title: text.slice(0, 40) });
             setConvTitle(text.slice(0, 40));
           }
         } catch (err) {
-          logger.error("SQLite", "Failed to save user message", err);
+          logger.error("SQLite", "Failed to save message", err);
         }
 
         try {
@@ -156,7 +159,7 @@ export default function ChatScreen() {
         }
       })();
 
-      return [...prev, userMessage, assistantMessage];
+      return isInitialPrompt ? [...prev, assistantMessage] : [...prev, userMessage!, assistantMessage];
     });
 
     setIsStreaming(true);
@@ -177,7 +180,7 @@ export default function ChatScreen() {
         hasTriggeredPrompt.current = true;
         // Delay to let the screen fully mount before firing the first message
         setTimeout(() => {
-          handleSend(initialPrompt);
+          handleSend(initialPrompt, true);
         }, 300);
       }
     } catch (err) {
