@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Modal, Pressable, Animated } from "react-native";
 import { AlertTriangle } from "lucide-react-native";
+import { useTheme, ThemePalette } from "../../lib/theme";
 
 interface ConfirmDialogProps {
   visible: boolean;
@@ -22,6 +23,8 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const [show, setShow] = React.useState(visible);
+  const theme = useTheme();
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -80,29 +83,29 @@ export function ConfirmDialog({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemePalette) => StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFill as any,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
     zIndex: 9999,
   },
   backdrop: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0,0,0,0.7)",
+    ...StyleSheet.absoluteFill as any,
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   dialog: {
     width: "100%",
     maxWidth: 340,
-    backgroundColor: "#13122a",
+    backgroundColor: theme.surface2,
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: theme.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.2,
     shadowRadius: 30,
     elevation: 24,
     alignItems: "center",
@@ -117,14 +120,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    color: "#f8fafc",
+    color: theme.textPrimary,
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 8,
     textAlign: "center",
   },
   message: {
-    color: "#94a3b8",
+    color: theme.textSecondary,
     fontSize: 14,
     textAlign: "center",
     lineHeight: 20,
@@ -139,11 +142,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: theme.activeBg,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   btnCancelText: {
-    color: "#f8fafc",
+    color: theme.textPrimary,
     fontSize: 15,
     fontWeight: "600",
   },
