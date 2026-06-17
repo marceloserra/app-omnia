@@ -380,7 +380,11 @@ export default function ChatScreen() {
             accessibilityLabel="Open menu"
             style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
           >
-            <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingBtnInner}>
+            <BlurView 
+              intensity={isDark ? 60 : 100} 
+              tint={isDark ? "dark" : "light"} 
+              style={[styles.floatingBtnInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
+            >
               <AlignLeft size={18} color={theme.textPrimary} strokeWidth={2} />
             </BlurView>
           </Pressable>
@@ -391,7 +395,11 @@ export default function ChatScreen() {
               accessibilityLabel="Change model"
               style={({ pressed }) => [styles.floatingChipContainer, pressed && { opacity: 0.7 }]}
             >
-              <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingChipInner}>
+              <BlurView 
+                intensity={isDark ? 60 : 100} 
+                tint={isDark ? "dark" : "light"} 
+                style={[styles.floatingChipInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
+              >
                 <View style={styles.modelChipDot} />
                 <Text style={styles.dynamicIslandText} numberOfLines={1}>
                   {store.activeProviderId === "openai" ? "OpenAI" : "Local"} · {activeModelId}
@@ -407,7 +415,11 @@ export default function ChatScreen() {
             accessibilityLabel="Settings"
             style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
           >
-            <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingBtnInner}>
+            <BlurView 
+              intensity={isDark ? 60 : 100} 
+              tint={isDark ? "dark" : "light"} 
+              style={[styles.floatingBtnInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
+            >
               <Settings size={18} color={theme.textPrimary} strokeWidth={2} />
             </BlurView>
           </Pressable>
