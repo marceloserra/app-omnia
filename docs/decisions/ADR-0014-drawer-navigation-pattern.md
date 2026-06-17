@@ -1,7 +1,7 @@
 # ADR-0014: Drawer Navigation Pattern (FAANG Chat UX)
 
 ## Status
-Accepted — Phase 07
+Superseded (by ADR-0020) — Phase 09
 
 ## Context
 The original app architecture used a dedicated `index.tsx` as a conversation list screen with a Floating Action Button (FAB) to start new chats. This created an extra navigation step: user opens app → sees list → taps FAB → navigates to chat.

@@ -63,6 +63,15 @@ Agents must not implement work from a later phase unless the user explicitly adv
 - Sidebar search/filter by conversation title
 - Conversation date grouping: Today / Yesterday / Last 7 days / Older
 
+## Phase 9 (Release Management & Premium UI Pivot — ACTIVE)
+
+- Pivot architecture to Home-based Tab Navigation (replacing legacy Drawer)
+- Floating Glassmorphism Tab Bar (visionOS/Apple HIG aesthetic)
+- Dynamic icons in Model Picker (OpenAI, Meta, Mistral, Google, etc.)
+- SectionList bucketing for Chat History ("Today", "Yesterday", etc.)
+- Full UI/UX refactoring for Theme and Language injection
+- Release Engineering Strategy and Pipelines (PR, Main, Release APK/SHA256)
+
 ## Non Goals
 
 Do not implement MCP, agents, RAG, tool calling, function calling, voice, sync, authentication, cloud backend, workflows, plugins, or multi-device synchronization for MVP.
