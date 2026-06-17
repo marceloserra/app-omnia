@@ -14,9 +14,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Swipeable } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
 
-const db = openDatabase();
-const convRepo = createConversationRepo(db);
-const msgRepo = createMessageRepo(db);
+let _db: any;
+let _convRepo: any;
+let _msgRepo: any;
+
+function getDb() {
+  if (!_db) {
+    _db = openDatabase();
+    _convRepo = createConversationRepo(_db);
+    _msgRepo = createMessageRepo(_db);
+  }
+  return { convRepo: _convRepo, msgRepo: _msgRepo };
+}
 
 export default function HistoryScreen() {
   const theme = useTheme();
@@ -47,7 +56,7 @@ export default function HistoryScreen() {
 
   const loadConvs = () => {
     try {
-      setConversations(convRepo.listAll());
+      setConversations(getDb().convRepo.listAll());
     } catch (e) {}
   };
 
@@ -66,7 +75,7 @@ export default function HistoryScreen() {
   const handleRename = () => {
     if (renameConv && renameTitle.trim()) {
       try {
-        convRepo.update(renameConv.id, { title: renameTitle.trim() });
+        getDb().convRepo.update(renameConv.id, { title: renameTitle.trim() });
         loadConvs();
       } catch (e) {}
     }
@@ -76,6 +85,7 @@ export default function HistoryScreen() {
   const handleDelete = () => {
     if (deleteConv) {
       try {
+        const { msgRepo, convRepo } = getDb();
         msgRepo.deleteByConversation(deleteConv.id);
         convRepo.delete(deleteConv.id);
         setPinnedIds(prev => {
