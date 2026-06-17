@@ -207,7 +207,6 @@ export default function ChatScreen() {
       keyboardVerticalOffset={0}
     >
       <View style={{ flex: 1 }}>
-        <BlurView style={StyleSheet.absoluteFill as any} intensity={80} tint={theme.bg === "#05050f" ? "dark" : "light"} />
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <Pressable
             onPress={() => setSidebarOpen(true)}
@@ -227,7 +226,6 @@ export default function ChatScreen() {
             <Settings size={24} color={theme.textPrimary} strokeWidth={1.8} />
           </Pressable>
         </View>
-        <View style={styles.headerDivider} />
 
         {noProvider && messages.length > 0 && (
           <View style={styles.noProviderInline}>
@@ -309,9 +307,6 @@ export default function ChatScreen() {
 }
 
 const createStyles = (theme: ThemePalette) => StyleSheet.create({
-  blurHeader: {
-    ...StyleSheet.absoluteFill as any,
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -337,10 +332,6 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     flex: 1,
     textAlign: "center",
     marginHorizontal: 8,
-  },
-  headerDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: theme.border,
   },
 
   noProviderInline: {
