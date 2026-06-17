@@ -101,8 +101,8 @@ export function ChatInput({
               accessibilityLabel="Send message"
             >
               <ArrowUp
-                size={18}
-                color={text.trim().length > 0 ? "#ffffff" : "rgba(255,255,255,0.3)"}
+                size={20}
+                color={text.trim().length > 0 ? "#ffffff" : "rgba(255,255,255,0.4)"}
                 strokeWidth={3}
               />
             </Pressable>
@@ -129,12 +129,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     backgroundColor: INPUT_BG,
-    borderRadius: 24,
+    borderRadius: 26,
     paddingTop: 8,
-    paddingLeft: 16,
-    paddingRight: 8,
-    paddingBottom: 8,
-    minHeight: 50,
+    paddingLeft: 18,
+    paddingRight: 6,
+    paddingBottom: 6,
+    minHeight: 52,
   },
   textInput: {
     flex: 1,
@@ -142,10 +142,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     maxHeight: 140,
-    minHeight: 34, // Matches button height perfectly
-    paddingTop: 6,
-    paddingBottom: 6,
-    marginRight: 10,
+    minHeight: 40, // Matches button height perfectly
+    paddingTop: 9,
+    paddingBottom: 9,
+    marginRight: 12,
     textAlignVertical: "top",
   },
   actionCol: {
@@ -153,9 +153,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   sendBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   sendBtnIdle: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(255,255,255,0.12)", // Now it has a visible, solid grey background even when empty
   },
   stopBtn: {
     backgroundColor: "#1e1e2e",
