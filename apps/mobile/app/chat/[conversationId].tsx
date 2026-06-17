@@ -261,6 +261,9 @@ export default function ChatScreen() {
         onContentSizeChange={() => {
           if (!isScrolledUp) flatListRef.current?.scrollToEnd({ animated: true });
         }}
+        onLayout={() => {
+          if (!isScrolledUp) flatListRef.current?.scrollToEnd({ animated: false });
+        }}
         onScroll={(e) => {
           const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
           scrollOffsetRef.current = contentOffset.y; // always track position

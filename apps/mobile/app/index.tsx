@@ -208,7 +208,12 @@ export default function HomeScreen() {
         keyExtractor={(m) => m.id}
         renderItem={({ item }) => <MessageBubble message={item} />}
         contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onContentSizeChange={() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }}
+        onLayout={() => {
+          flatListRef.current?.scrollToEnd({ animated: false });
+        }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <View style={styles.emptyGlyph}>
