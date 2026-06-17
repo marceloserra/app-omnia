@@ -6,6 +6,7 @@ import { MessageBubble } from "../../components/chat/MessageBubble";
 import { ChatInput } from "../../components/chat/ChatInput";
 import { Sidebar } from "../../components/navigation/Sidebar";
 import { useProviderStore } from "../../store/provider-store";
+import { useChatCacheStore } from "../../store/chat-cache-store";
 import { OpenAIProvider } from "@omnia/providers";
 import { OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
@@ -36,11 +37,10 @@ export default function ChatScreen() {
   const headerHeight = insets.top + 44;
   const [messages, setMessages] = useState<Message[]>(() => {
     if (!conversationId) return [];
-    try {
-      return msgRepo.listByConversation(conversationId);
-    } catch {
-      return [];
-    }
+    // Read-through RAM cache to guarantee instant mounting (SPA-like fluidity)
+    const cached = useChatCacheStore.getState().getMessages(conversationId);
+    if (cached && cached.length > 0) return cached;
+    return []; // Fall back to empty array; useEffect will load from SQLite asynchronously
   });
   const [isStreaming, setIsStreaming] = useState(false);
   const [convTitle, setConvTitle] = useState(() => {
@@ -142,11 +142,11 @@ export default function ChatScreen() {
             if (isAbortedRef.current) break;
             if (chunk.done) break;
             fullContent += chunk.content;
-            setMessages((cur) =>
-              cur.map((m) =>
-                m.id === assistantId ? { ...m, content: fullContent } : m
-              )
-            );
+            setMessages((cur) => {
+              const next = cur.map((m) => m.id === assistantId ? { ...m, content: fullContent } : m);
+              useChatCacheStore.getState().setMessages(conversationId, next);
+              return next;
+            });
           }
 
           try {
@@ -157,11 +157,11 @@ export default function ChatScreen() {
         } catch (e: any) {
           if (isAbortedRef.current) return;
           const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
-          setMessages((cur) =>
-            cur.map((m) =>
-              m.id === assistantId ? { ...m, content: errorMsg } : m
-            )
-          );
+          setMessages((cur) => {
+            const next = cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m);
+            useChatCacheStore.getState().setMessages(conversationId, next);
+            return next;
+          });
           try {
             msgRepo.updateContent(assistantId, errorMsg);
           } catch (err) {
@@ -173,7 +173,9 @@ export default function ChatScreen() {
         }
       })();
 
-      return isInitialPrompt ? [...prev, assistantMessage] : [...prev, userMessage!, assistantMessage];
+      const nextMessages = isInitialPrompt ? [...prev, assistantMessage] : [...prev, userMessage!, assistantMessage];
+      useChatCacheStore.getState().setMessages(conversationId, nextMessages);
+      return nextMessages;
     });
 
     setIsStreaming(true);
@@ -184,16 +186,25 @@ export default function ChatScreen() {
   useEffect(() => {
     if (!conversationId) return;
 
-    // Instantly clear old messages so the UI updates and feels snappy
-    setMessages([]);
+    const cached = useChatCacheStore.getState().getMessages(conversationId);
+    const hasCache = cached && cached.length > 0;
+
+    if (!hasCache) {
+      setMessages([]);
+    } else if (messages !== cached) {
+      setMessages(cached);
+    }
 
     const loadHistory = () => {
       try {
         const conv = convRepo.getById(conversationId);
         if (conv) setConvTitle(conv.title);
 
-        const history = msgRepo.listByConversation(conversationId);
-        setMessages(history);
+        if (!hasCache) {
+          const history = msgRepo.listByConversation(conversationId);
+          setMessages(history);
+          useChatCacheStore.getState().setMessages(conversationId, history);
+        }
 
         if (initialPrompt && !hasTriggeredPrompt.current) {
           hasTriggeredPrompt.current = true;
@@ -207,14 +218,13 @@ export default function ChatScreen() {
       }
     };
 
-    // Defer the heavy SQLite read and AST parsing until after the Drawer animation (220ms) finishes
-    const timeoutId = setTimeout(() => {
+    if (hasCache) {
       loadHistory();
-    }, 250);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
+    } else {
+      // Defer the heavy SQLite read and AST parsing until after the Drawer animation finishes
+      const timeoutId = setTimeout(() => loadHistory(), 250);
+      return () => clearTimeout(timeoutId);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, initialPrompt]); // handleSend intentionally omitted — guarded by hasTriggeredPrompt ref
 
