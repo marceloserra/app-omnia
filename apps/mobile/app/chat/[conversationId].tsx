@@ -34,9 +34,24 @@ export default function ChatScreen() {
   const styles = React.useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const headerHeight = insets.top + 44;
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (!conversationId) return [];
+    try {
+      return msgRepo.listByConversation(conversationId);
+    } catch {
+      return [];
+    }
+  });
   const [isStreaming, setIsStreaming] = useState(false);
-  const [convTitle, setConvTitle] = useState("Chat");
+  const [convTitle, setConvTitle] = useState(() => {
+    if (!conversationId) return "Chat";
+    try {
+      const conv = convRepo.getById(conversationId);
+      return conv?.title || "Chat";
+    } catch {
+      return "Chat";
+    }
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // UX States
