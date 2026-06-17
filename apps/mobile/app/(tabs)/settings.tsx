@@ -34,11 +34,6 @@ const ERROR = "#ef4444";
 
 type Tab = "openai" | "openai-compatible";
 
-      )}
-    </View>
-  );
-}
-
 // ─── Settings Screen ──────────────────────────────────────────────────────────
 
 export default function SettingsScreen() {
