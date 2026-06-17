@@ -15,11 +15,14 @@
     "telemetry": "pnpm --filter @omnia/logger telemetry"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "eslint": "^9.36.0",
     "@types/eslint": "^9.0.0",
+    "@types/jest": "29.5.14",
+    "eslint": "^9.36.0",
+    "jest": "^30.4.2",
+    "standard-changelog": "^7.0.1",
+    "ts-jest": "^29.4.11",
     "turbo": "^2.4.0",
-    "standard-changelog": "^7.0.1"
+    "typescript": "^5.7.2"
   },
   "packageManager": "pnpm@10.34.3",
   "dependencies": {
