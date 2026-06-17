@@ -41,7 +41,8 @@ export default function SettingsScreen() {
   const theme = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const styles = React.useMemo(() => createStyles(theme), [theme]);
+  const isDark = theme.bg === "#05050f";
+  const styles = React.useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const settingsStore = useSettingsStore();
 
   const [activeTab, setActiveTab] = useState<Tab>((store.activeProviderId as Tab) ?? "openai");
@@ -154,7 +155,6 @@ export default function SettingsScreen() {
 
   const isFormValid = activeTab === "openai" ? !!localOpenaiKey.trim() : !!localCompatibleUrl.trim();
 
-  const isDark = theme.bg === "#05050f";
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -201,71 +201,69 @@ export default function SettingsScreen() {
             })}
           </BlurView>
 
-          {/* Credentials Card */}
           <Text style={[styles.sectionTitle, { marginTop: 4 }]}>Credentials</Text>
-          <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={styles.glassCard}>
+          <View style={styles.iosGroup}>
             {activeTab === "openai" ? (
-              <>
-                <View style={styles.inputHeader}>
-                  <KeySquare size={16} color={theme.indigo} style={styles.inputHeaderIcon} />
-                  <Text style={styles.inputLabel}>OpenAI API Key</Text>
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: theme.indigo }]}>
+                  <KeySquare size={16} color="#fff" />
                 </View>
-                <Input
+                <Text style={styles.iosRowLabel}>API Key</Text>
+                <TextInput
                   placeholder="sk-proj-..."
+                  placeholderTextColor={theme.textSecondary}
                   value={localOpenaiKey}
                   onChangeText={(txt) => { setLocalOpenaiKey(txt); setTestResult(null); }}
                   secureTextEntry
-                  containerStyle={{ marginBottom: 24 }}
+                  style={{ flex: 1.5, fontSize: 17, color: theme.textSecondary, textAlign: "right" }}
                 />
-              </>
+              </View>
             ) : (
               <>
-                <View style={styles.inputHeader}>
-                  <Network size={16} color={theme.indigo} style={styles.inputHeaderIcon} />
-                  <Text style={styles.inputLabel}>Server Base URL</Text>
+                <View style={[styles.iosRow, styles.iosRowBorder]}>
+                  <View style={[styles.iosIconContainer, { backgroundColor: "#3b82f6" }]}>
+                    <Network size={16} color="#fff" />
+                  </View>
+                  <Text style={styles.iosRowLabel}>Base URL</Text>
+                  <TextInput
+                    placeholder="http://192.168.1.X:1234/v1"
+                    placeholderTextColor={theme.textSecondary}
+                    value={localCompatibleUrl}
+                    onChangeText={(txt) => { setLocalCompatibleUrl(txt); setTestResult(null); }}
+                    style={{ flex: 1.5, fontSize: 17, color: theme.textSecondary, textAlign: "right" }}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
                 </View>
-                <Input
-                  placeholder="http://192.168.1.X:1234/v1"
-                  value={localCompatibleUrl}
-                  onChangeText={(txt) => { setLocalCompatibleUrl(txt); setTestResult(null); }}
-                  containerStyle={{ marginBottom: 20 }}
-                />
-                <View style={styles.inputHeader}>
-                  <KeySquare size={16} color={theme.indigo} style={styles.inputHeaderIcon} />
-                  <Text style={styles.inputLabel}>API Key (Optional)</Text>
+                <View style={styles.iosRow}>
+                  <View style={[styles.iosIconContainer, { backgroundColor: theme.indigo }]}>
+                    <KeySquare size={16} color="#fff" />
+                  </View>
+                  <Text style={styles.iosRowLabel}>API Key (Opt)</Text>
+                  <TextInput
+                    placeholder="sk-..."
+                    placeholderTextColor={theme.textSecondary}
+                    value={localCompatibleKey}
+                    onChangeText={(txt) => { setLocalCompatibleKey(txt); setTestResult(null); }}
+                    secureTextEntry
+                    style={{ flex: 1, fontSize: 17, color: theme.textSecondary, textAlign: "right" }}
+                  />
                 </View>
-                <Input
-                  placeholder="sk-..."
-                  value={localCompatibleKey}
-                  onChangeText={(txt) => { setLocalCompatibleKey(txt); setTestResult(null); }}
-                  secureTextEntry
-                  containerStyle={{ marginBottom: 24 }}
-                />
               </>
             )}
-
-            {/* Test Connection Button */}
+            
+            <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: theme.border, marginLeft: 16 }} />
+            
             <Pressable
               onPress={handleTestConnection}
               disabled={isValidating || !isFormValid}
-              style={({ pressed }) => [
-                styles.testButton,
-                !isFormValid && styles.testButtonDisabled,
-                pressed && { opacity: 0.8 }
-              ]}
+              style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
             >
-              {isValidating ? (
-                <ActivityIndicator color={theme.indigo} size="small" />
-              ) : (
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Server size={18} color={!isFormValid ? theme.textSecondary : theme.indigo} style={{ marginRight: 8 }} />
-                  <Text style={[styles.testButtonText, !isFormValid && { color: theme.textSecondary }]}>
-                    Test Connection
-                  </Text>
-                </View>
-              )}
+              <Text style={{ flex: 1, textAlign: "center", fontSize: 17, fontWeight: "600", color: !isFormValid ? theme.textSecondary : theme.indigo }}>
+                {isValidating ? "Validating..." : "Test Connection"}
+              </Text>
             </Pressable>
-          </BlurView>
+          </View>
 
           {/* ── Provider Status Card – always visible when connected or tested ── */}
           {(() => {
@@ -282,48 +280,43 @@ export default function SettingsScreen() {
               <View style={{ marginTop: 20 }}>
                 <Text style={styles.sectionTitle}>Provider Status</Text>
 
-                {/* Wrapped Provider Status and Model Select in a Glass Card */}
-                <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={styles.glassCard}>
+                <View style={styles.iosGroup}>
                   {/* Status banner */}
-                  <View style={styles.statusRow}>
-                    <View style={[styles.statusDotLarge, { backgroundColor: isConnected ? "#10b981" : "#f59e0b" }]} />
-                    <Text style={[styles.statusBannerText, { color: isConnected ? "#10b981" : "#f59e0b" }]}>
-                      {isConnected ? "Connected & Active" : "Tested — tap Set Active to activate"}
+                  <View style={[styles.iosRow, styles.iosRowBorder]}>
+                    <View style={[styles.iosIconContainer, { backgroundColor: isConnected ? "#10b981" : "#f59e0b" }]}>
+                      <Server size={16} color="#fff" />
+                    </View>
+                    <Text style={[styles.iosRowLabel, { color: isConnected ? "#10b981" : "#f59e0b" }]}>
+                      {isConnected ? "Connected & Active" : "Tested — Tap to activate"}
                     </Text>
                   </View>
-
-                  {/* Divider */}
-                  <View style={styles.divider} />
 
                   {/* Model Selection */}
                   <Pressable
                     onPress={() => setModelPickerVisible(true)}
-                    style={({ pressed }) => [styles.modelSelectRow, pressed && { opacity: 0.7 }]}
+                    style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
                   >
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.modelSelectLabel} numberOfLines={1}>{localModel || "No model selected"}</Text>
-                      <Text style={styles.modelSelectSub}>{models.length} models available</Text>
+                    <View style={[styles.iosIconContainer, { backgroundColor: "#8b5cf6" }]}>
+                      <CheckCircle2 size={16} color="#fff" />
                     </View>
-                    <ChevronRight size={18} color={theme.textSecondary} />
+                    <Text style={styles.iosRowLabel}>Select Model</Text>
+                    <Text style={styles.iosRowValue}>{localModel || "None"}</Text>
+                    <ChevronRight size={18} color={theme.textSecondary} style={{ marginLeft: 6 }} />
                   </Pressable>
-                </BlurView>
+                  
+                  <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: theme.border, marginLeft: 16 }} />
 
-                {/* Action Buttons */}
-                <View style={{ marginTop: 24, gap: 10 }}>
+                  {/* Action Buttons */}
                   <Pressable
                     onPress={handleSave}
-                    style={({ pressed }) => [styles.actionBtnPrimary, pressed && { opacity: 0.8 }]}
+                    style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.8 }]}
                   >
-                    <CheckCircle2 size={18} color="#10b981" style={{ marginRight: 8 }} />
-                    <Text style={styles.actionBtnPrimaryText}>
+                    <Text style={{ flex: 1, textAlign: "center", fontSize: 17, fontWeight: "600", color: "#10b981" }}>
                       {isConnected ? "Update Active Provider" : "Set as Active Provider"}
                     </Text>
                   </Pressable>
 
                   {isConnected && (
-                    <Pressable
-                      onPress={handleDisconnect}
-                      style={({ pressed }) => [styles.deleteActionBtn, pressed && { opacity: 0.7 }]}
                     >
                       <AlertCircle size={16} color={theme.red} style={{ marginRight: 8 }} />
                       <Text style={styles.deleteActionBtnText}>Disconnect Provider</Text>
@@ -354,70 +347,76 @@ export default function SettingsScreen() {
           {/* Appearance Section */}
           <View style={{ marginTop: 24 }}>
             <Text style={styles.sectionTitle}>{t("settings.appearance.title")}</Text>
-            <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={[styles.glassCard, { padding: 16 }]}>
-              <View style={styles.segmentedControl}>
-                {(["system", "dark", "light"] as const).map((tOpt) => {
-                  const isActive = settingsStore.theme === tOpt;
-                  return (
-                    <Pressable
-                      key={tOpt}
-                      onPress={() => settingsStore.setTheme(tOpt)}
-                      style={[styles.segmentButton, isActive && styles.segmentButtonActive, { paddingVertical: 10 }]}
-                    >
-                      <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
-                        {tOpt === "system" ? "System" :
-                         tOpt === "dark" ? "Dark" : "Light"}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </BlurView>
+            <View style={styles.iosGroup}>
+              {(["system", "dark", "light"] as const).map((tOpt, idx) => {
+                const isActive = settingsStore.theme === tOpt;
+                return (
+                  <Pressable
+                    key={tOpt}
+                    onPress={() => settingsStore.setTheme(tOpt)}
+                    style={({ pressed }) => [
+                      styles.iosRow, 
+                      idx < 2 && styles.iosRowBorder,
+                      pressed && { opacity: 0.7 }
+                    ]}
+                  >
+                    <View style={[styles.iosIconContainer, { backgroundColor: tOpt === "dark" ? "#000" : tOpt === "light" ? "#fff" : "#8e8e93", borderWidth: tOpt === "light" ? 1 : 0, borderColor: "#ccc" }]}>
+                      <CheckCircle2 size={16} color={tOpt === "light" ? "#000" : "#fff"} />
+                    </View>
+                    <Text style={styles.iosRowLabel}>
+                      {tOpt === "system" ? "System" : tOpt === "dark" ? "Dark" : "Light"}
+                    </Text>
+                    {isActive && <Check size={18} color={theme.indigo} />}
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
 
           {/* Language Section */}
-          <View style={{ marginTop: 24, marginBottom: 12 }}>
+          <View style={{ marginTop: 24 }}>
             <Text style={styles.sectionTitle}>{t("settings.appearance.language")}</Text>
-            <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={[styles.glassCard, { padding: 16 }]}>
-              <View style={[styles.segmentedControl, { marginBottom: 0 }]}>
-                {(["system", "en", "pt", "es"] as const).map((lOpt) => {
-                  const isActive = settingsStore.language === lOpt;
-                  return (
-                    <Pressable
-                      key={lOpt}
-                      onPress={() => settingsStore.setLanguage(lOpt)}
-                      style={[styles.segmentButton, isActive && styles.segmentButtonActive, { paddingVertical: 10 }]}
-                    >
-                      <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
-                        {lOpt === "system" ? "OS" : lOpt.toUpperCase()}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </BlurView>
+            <View style={styles.iosGroup}>
+              {(["system", "en", "pt", "es"] as const).map((lOpt, idx) => {
+                const isActive = settingsStore.language === lOpt;
+                return (
+                  <Pressable
+                    key={lOpt}
+                    onPress={() => settingsStore.setLanguage(lOpt)}
+                    style={({ pressed }) => [
+                      styles.iosRow, 
+                      idx < 3 && styles.iosRowBorder,
+                      pressed && { opacity: 0.7 }
+                    ]}
+                  >
+                    <View style={[styles.iosIconContainer, { backgroundColor: "#34d399" }]}>
+                      <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>{lOpt === "system" ? "OS" : lOpt.toUpperCase()}</Text>
+                    </View>
+                    <Text style={styles.iosRowLabel}>
+                      {lOpt === "system" ? "System Default" : lOpt === "en" ? "English" : lOpt === "pt" ? "Português" : "Español"}
+                    </Text>
+                    {isActive && <Check size={18} color={theme.indigo} />}
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
 
           {/* Data Management */}
-          <View style={{ marginTop: 40 }}>
+          <View style={{ marginTop: 32, marginBottom: 20 }}>
             <Text style={styles.sectionTitle}>Data Management</Text>
-            <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={styles.glassCard}>
-              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
-                <View style={[styles.iconCircle, { backgroundColor: "rgba(239,68,68,0.15)" }]}>
-                  <Trash2 size={20} color="#ef4444" />
-                </View>
-                <View style={{ flex: 1, marginLeft: 16 }}>
-                  <Text style={[styles.modelSelectLabel, { color: "#ef4444" }]}>Delete All History</Text>
-                  <Text style={styles.modelSelectSub}>Permanently erase all conversations</Text>
-                </View>
-              </View>
+            <View style={styles.iosGroup}>
               <Pressable
                 onPress={handleClearAll}
-                style={({ pressed }) => [styles.deleteActionBtn, pressed && { opacity: 0.8 }]}
+                style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
               >
-                <Text style={styles.deleteActionBtnText}>Delete All Data</Text>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#ef4444" }]}>
+                  <Trash2 size={16} color="#fff" />
+                </View>
+                <Text style={styles.iosRowLabel}>Delete All History</Text>
+                <ChevronRight size={18} color={theme.textSecondary} />
               </Pressable>
-            </BlurView>
+            </View>
           </View>
 
         </ScrollView>
@@ -460,7 +459,7 @@ export default function SettingsScreen() {
   );
 }
 
-const createStyles = (theme: ThemePalette) => StyleSheet.create({
+const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create({
   largeTitle: {
     fontSize: 34,
     fontWeight: "800",
@@ -646,5 +645,38 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     fontWeight: "700",
     fontSize: 16,
   },
-
+  iosGroup: {
+    borderRadius: 12,
+    backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF",
+    overflow: "hidden",
+  },
+  iosRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF",
+  },
+  iosRowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.border,
+    marginLeft: 58, // icon (28) + margin (14) + padding (16)
+  },
+  iosIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+  iosRowLabel: {
+    flex: 1,
+    fontSize: 17,
+    color: theme.textPrimary,
+  },
+  iosRowValue: {
+    fontSize: 17,
+    color: theme.textSecondary,
+  },
 });
