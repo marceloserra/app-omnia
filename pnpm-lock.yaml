@@ -117,6 +117,9 @@ importers:
       react-native-svg:
         specifier: 15.15.4
         version: 15.15.4(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
+      react-native-syntax-highlighter:
+        specifier: ^2.1.0
+        version: 2.1.0(react-syntax-highlighter@13.5.3(react@19.2.3))
       react-native-vector-icons:
         specifier: ^10.3.0
         version: 10.3.0
@@ -4922,6 +4925,11 @@ packages:
     peerDependencies:
       react: '*'
       react-native: '*'
+
+  react-native-syntax-highlighter@2.1.0:
+    resolution: {integrity: sha512-upu8gpKT2ZeslXn2d763KwtzzhM9OUHGgJjIKKIUw1JnFAzVwQmKCaFGoI6PkQa7T1LVggBW5k5VoaLFhZDb+g==}
+    peerDependencies:
+      react-syntax-highlighter: ^6.0.4
 
   react-native-url-polyfill@3.0.0:
     resolution: {integrity: sha512-aA5CiuUCUb/lbrliVCJ6lZ17/RpNJzvTO/C7gC/YmDQhTUoRD5q5HlJfwLWcxz4VgAhHwXKzhxH+wUN24tAdqg==}
@@ -11636,6 +11644,10 @@ snapshots:
       react: 19.2.3
       react-native: 0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3)
       warn-once: 0.1.1
+
+  react-native-syntax-highlighter@2.1.0(react-syntax-highlighter@13.5.3(react@19.2.3)):
+    dependencies:
+      react-syntax-highlighter: 13.5.3(react@19.2.3)
 
   react-native-url-polyfill@3.0.0(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3)):
     dependencies:

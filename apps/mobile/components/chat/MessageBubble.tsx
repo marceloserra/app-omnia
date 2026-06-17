@@ -13,6 +13,10 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Clipboard from "expo-clipboard";
 import Markdown, { ASTNode } from "react-native-markdown-display";
+// @ts-expect-error - no types available
+import SyntaxHighlighter from "react-native-syntax-highlighter";
+// @ts-expect-error - metro handles this resolution
+import { vscDarkPlus } from "react-syntax-highlighter/styles/prism";
 import { CheckCircle2, Copy } from "lucide-react-native";
 import { TypingIndicator } from "../ui/TypingIndicator";
 import { useTheme, ThemePalette } from "../../lib/theme";
@@ -51,16 +55,15 @@ function CodeBlock({ content, language, theme }: { content: string; language?: s
           </Text>
         </Pressable>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={codeStyles.scroll}
-        contentContainerStyle={{ padding: 16 }}
+      <SyntaxHighlighter
+        language={language || "javascript"}
+        style={vscDarkPlus}
+        customStyle={{ margin: 0, padding: 16, backgroundColor: theme.surface2 }}
+        fontSize={13}
+        fontFamily={Platform.OS === "ios" ? "Courier" : "monospace"}
       >
-        <Text style={codeStyles.content} selectable>
-          {content.trimEnd()}
-        </Text>
-      </ScrollView>
+        {content.trimEnd()}
+      </SyntaxHighlighter>
     </View>
   );
 }
@@ -127,7 +130,7 @@ const renderRules = (theme: ThemePalette, tableStyles: any) => ({
     </Text>
   ),
   table: (node: ASTNode, children: any) => (
-    <ScrollView key={node.key} horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true} style={tableStyles.tableScroll}>
+    <ScrollView key={node.key} horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true} style={tableStyles.tableScroll} contentContainerStyle={{ flexGrow: 1, minWidth: "100%", paddingBottom: 8 }}>
       <View style={tableStyles.table}>{children}</View>
     </ScrollView>
   ),
