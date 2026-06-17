@@ -422,7 +422,7 @@ export default function ChatScreen() {
           </View>
         )}
 
-        <View style={{ flex: 1, zIndex: -1 }}>
+        <View style={{ flex: 1 }}>
           <FlatList
             ref={flatListRef}
             data={[...messages].reverse()}
