@@ -140,8 +140,6 @@ function ModelPickerSheet({ models, selected, onSelect, onClose, theme, isDark }
                   paddingHorizontal: 16,
                   marginVertical: 3,
                   borderRadius: 14,
-                  borderLeftWidth: isSelected ? 4 : 0,
-                  borderLeftColor: isSelected ? "#6366f1" : "transparent",
                   backgroundColor: isSelected
                     ? (isDark ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.07)")
                     : "transparent",

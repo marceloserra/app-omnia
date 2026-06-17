@@ -50,7 +50,7 @@ function ChatModelPicker({ models, selectedModel, activeProviderId, onSelect, th
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Drag handle */}
       <View style={{ alignItems: "center", paddingTop: 12, paddingBottom: 4 }}>
         <View style={{
@@ -145,8 +145,6 @@ function ChatModelPicker({ models, selectedModel, activeProviderId, onSelect, th
                   paddingHorizontal: 16,
                   marginVertical: 3,
                   borderRadius: 14,
-                  borderLeftWidth: isSelected ? 4 : 0,
-                  borderLeftColor: isSelected ? "#6366f1" : "transparent",
                   backgroundColor: isSelected
                     ? (isDark ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.07)")
                     : "transparent",
