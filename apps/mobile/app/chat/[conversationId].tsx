@@ -12,7 +12,7 @@ import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { ArrowDown } from "lucide-react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
@@ -29,7 +29,8 @@ function generateId() {
 export default function ChatScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
   const store = useProviderStore();
-  const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
+  const headerHeight = insets.top + 44;
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [convTitle, setConvTitle] = useState("Chat");

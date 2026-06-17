@@ -11,7 +11,7 @@ import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/
 import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
@@ -27,7 +27,8 @@ function generateId() {
 
 export default function IndexChatScreen() {
   const store = useProviderStore();
-  const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
+  const headerHeight = insets.top + 44; // Standard iOS header height
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const isAbortedRef = useRef(false);
