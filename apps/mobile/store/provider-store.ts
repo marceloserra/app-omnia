@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type ProviderId = "openai" | "openai-compatible";
 
@@ -15,7 +17,7 @@ interface ProviderState {
   compatibleApiKey: string;
   compatibleModelId: string;
 
-  // Connection status
+  // Connection status (not persisted)
   isValidating: boolean;
   isConnected: boolean;
   connectionError: string | null;
@@ -46,27 +48,44 @@ const DEFAULT_STATE = {
   availableModels: [] as string[],
 };
 
-export const useProviderStore = create<ProviderState>((set) => ({
-  ...DEFAULT_STATE,
+export const useProviderStore = create<ProviderState>()(
+  persist(
+    (set) => ({
+      ...DEFAULT_STATE,
 
-  setActiveProvider: (id) =>
-    set({ activeProviderId: id, isConnected: false, connectionError: null, availableModels: [] }),
+      setActiveProvider: (id) =>
+        set({ activeProviderId: id, isConnected: false, connectionError: null, availableModels: [] }),
 
-  setOpenaiApiKey: (key) => set({ openaiApiKey: key }),
-  setOpenaiModelId: (modelId) => set({ openaiModelId: modelId }),
-  setCompatibleBaseUrl: (url) => set({ compatibleBaseUrl: url }),
-  setCompatibleApiKey: (key) => set({ compatibleApiKey: key }),
-  setCompatibleModelId: (modelId) => set({ compatibleModelId: modelId }),
+      setOpenaiApiKey: (key) => set({ openaiApiKey: key }),
+      setOpenaiModelId: (modelId) => set({ openaiModelId: modelId }),
+      setCompatibleBaseUrl: (url) => set({ compatibleBaseUrl: url }),
+      setCompatibleApiKey: (key) => set({ compatibleApiKey: key }),
+      setCompatibleModelId: (modelId) => set({ compatibleModelId: modelId }),
 
-  setValidating: (v) => set({ isValidating: v }),
+      setValidating: (v) => set({ isValidating: v }),
 
-  setConnected: (connected, models = [], error) =>
-    set({
-      isConnected: connected,
-      availableModels: models,
-      connectionError: error ?? null,
-      isValidating: false,
+      setConnected: (connected, models = [], error) =>
+        set({
+          isConnected: connected,
+          availableModels: models,
+          connectionError: error ?? null,
+          isValidating: false,
+        }),
+
+      reset: () => set(DEFAULT_STATE),
     }),
-
-  reset: () => set(DEFAULT_STATE),
-}));
+    {
+      name: "omnia-provider-storage",
+      storage: createJSONStorage(() => AsyncStorage),
+      // Don't persist ephemeral connection states
+      partialize: (state) => ({
+        activeProviderId: state.activeProviderId,
+        openaiApiKey: state.openaiApiKey,
+        openaiModelId: state.openaiModelId,
+        compatibleBaseUrl: state.compatibleBaseUrl,
+        compatibleApiKey: state.compatibleApiKey,
+        compatibleModelId: state.compatibleModelId,
+      }),
+    }
+  )
+);
