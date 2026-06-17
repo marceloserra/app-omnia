@@ -61,6 +61,7 @@ Disallowed Phase 1 work:
 - Add ADRs for structural or technology decisions.
 - Update documentation in the same change as behavior or workflow changes.
 - Prefer small, phase-bounded changes over broad scaffolding.
+- **AI Telemetry:** If the user reports a crash or bug during development, ALWAYS check `omnia-telemetry.jsonl` at the root of the project to read the structured stack trace before asking the user for logs. (See `docs/architecture/ai-telemetry.md`).
 
 ## Verification
 
