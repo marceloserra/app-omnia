@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, screen } from '@testing-library/react-native';
 import { ConfirmDialog } from '../ConfirmDialog';
 
 // Mock Lucide icons
@@ -20,7 +20,7 @@ jest.mock('../../../lib/theme', () => ({
 
 describe('ConfirmDialog', () => {
   it('renders correctly when visible', () => {
-    const { getByText } = render(
+    render(
       <ConfirmDialog
         visible={true}
         title="Delete Chat?"
@@ -30,15 +30,15 @@ describe('ConfirmDialog', () => {
       />
     );
 
-    expect(getByText('Delete Chat?')).toBeTruthy();
-    expect(getByText('This action cannot be undone.')).toBeTruthy();
-    expect(getByText('Cancel')).toBeTruthy();
-    expect(getByText('Delete')).toBeTruthy();
+    expect(screen.getByText('Delete Chat?')).toBeTruthy();
+    expect(screen.getByText('This action cannot be undone.')).toBeTruthy();
+    expect(screen.getByText('Cancel')).toBeTruthy();
+    expect(screen.getByText('Delete')).toBeTruthy();
   });
 
   it('calls onConfirm when confirm button is pressed', () => {
     const onConfirmMock = jest.fn();
-    const { getByText } = render(
+    render(
       <ConfirmDialog
         visible={true}
         title="Delete Chat?"
@@ -48,13 +48,13 @@ describe('ConfirmDialog', () => {
       />
     );
 
-    fireEvent.press(getByText('Delete'));
+    fireEvent.press(screen.getByText('Delete'));
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
   });
 
   it('calls onCancel when cancel button is pressed', () => {
     const onCancelMock = jest.fn();
-    const { getByText } = render(
+    render(
       <ConfirmDialog
         visible={true}
         title="Delete Chat?"
@@ -64,7 +64,7 @@ describe('ConfirmDialog', () => {
       />
     );
 
-    fireEvent.press(getByText('Cancel'));
+    fireEvent.press(screen.getByText('Cancel'));
     expect(onCancelMock).toHaveBeenCalledTimes(1);
   });
 });
