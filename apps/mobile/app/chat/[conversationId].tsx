@@ -302,12 +302,13 @@ export default function ChatScreen() {
             <View style={styles.emptyOverlay} pointerEvents="box-none">
               <View style={styles.emptyContainer}>
                 <View style={styles.emptyIconWrapper}>
-                  <Text style={{ fontSize: 32, color: theme.indigo }}>✦</Text>
+                  {getModelIcon(activeModelId, 48)}
                 </View>
-                <Text style={styles.emptyTitle}>{t("chat.empty.title")}</Text>
+                <Text style={styles.emptyTitle}>Omnia · {store.activeProviderId === "openai" ? "OpenAI" : "Local"}</Text>
+                <Text style={styles.emptySubtitle}>Connected to {activeModelId}. Start typing below.</Text>
 
-                {noProvider ? (
-                  <View style={{ alignItems: "center" }}>
+                {noProvider && (
+                  <View style={{ alignItems: "center", marginTop: 24 }}>
                     <Text style={styles.emptySubtitle}>
                       You need an AI provider to start chatting.
                     </Text>
@@ -315,13 +316,9 @@ export default function ChatScreen() {
                       onPress={() => router.push("/settings")}
                       style={({ pressed }) => [styles.providerConfigBtn, pressed && { opacity: 0.8 }]}
                     >
-                      <Text style={styles.providerConfigText}>{t("settings.connect")}</Text>
+                      <Text style={styles.providerConfigText}>Configure Provider</Text>
                     </Pressable>
                   </View>
-                ) : (
-                  <Text style={styles.emptySubtitle}>
-                    Ask me anything. I'll think through it with you.
-                  </Text>
                 )}
               </View>
             </View>
