@@ -38,7 +38,7 @@
 </p>
 <br>
 
-## 🚀 Why Omnia?
+## Why Omnia?
 
 We didn't just build another web wrapper. We engineered a native mobile experience that treats your self-hosted local models with the exact same respect, speed, and UI polish as commercial cloud APIs. 
 
@@ -46,7 +46,7 @@ Omnia is built for power users, developers, and AI enthusiasts who demand 60 FPS
 
 ---
 
-## 💡 The Motivation
+## The Motivation
 
 In my journey of building and experimenting with self-hosted AI projects, I desperately needed a native mobile app that was simple, beautiful, and effortless to connect to my Local Self-Hosted AI stack ([ai-self-hosted-lab](https://github.com/marceloserra/ai-self-hosted-lab)). 
 
@@ -54,7 +54,7 @@ While I absolutely loved incredible projects like **Open WebUI** and **llama.cpp
 
 ---
 
-## 🔥 Feature Snapshot
+## Feature Snapshot
 
 | Capability | What it means for you |
 | --- | --- |
@@ -68,7 +68,7 @@ While I absolutely loved incredible projects like **Open WebUI** and **llama.cpp
 
 ---
 
-## 🏗 Built for Mobile Reality
+## Built for Mobile Reality
 
 Most AI clients crash or lose your long prompt when you switch apps. Omnia is engineered for the chaotic reality of mobile networks:
 - **Idempotent by Default:** Injects unique `X-Request-ID` headers to prevent duplicated token generation if your connection blinks.
@@ -77,7 +77,7 @@ Most AI clients crash or lose your long prompt when you switch apps. Omnia is en
 
 ---
 
-## 🛠 Quickstart
+## Quickstart
 
 Omnia uses `pnpm` and `Turborepo` for monorepo orchestration.
 
@@ -93,7 +93,7 @@ pnpm --filter mobile dev
 
 ---
 
-## 🏆 Credits & Acknowledgements
+## Credits & Acknowledgements
 
 **Special Thanks & Inspiration:**
 - Massive thanks to the **llama.cpp** project for paving the way and inspiring the UI simplicity.
