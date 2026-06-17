@@ -217,3 +217,16 @@ This document serves as a centralized knowledge base for critical errors encount
   - All styling MUST be done using React Native's standard `StyleSheet.create`.
   - Do NOT use `className` anywhere in the `apps/mobile` directory.
   - Do NOT use flexbox `gap`. Use explicit `marginLeft`, `marginRight`, `marginTop`, `marginBottom`, and `padding` to separate elements.
+
+### Issue 12: Android Double Keyboard Shift (Inverted FlatList Jump)
+- **Date:** 2026-06-17
+- **Phase/Context:** Phase 08 (Conversation Management & Keyboard UX)
+- **Status:** ✅ RESOLVED
+- **Error/Symptom:** When the keyboard opens on Android, the chat list pushes up correctly. However, when the keyboard closes, the layout breaks and the chat is visually disjointed or "doesn't return to its original position."
+- **Root Cause:** 
+  - `app.json` was set to `"softwareKeyboardLayoutMode": "pan"`, which instructs the Android OS to physically push the entire window up.
+  - At the same time, we were using `<KeyboardAvoidingView behavior="padding">`. 
+  - This resulted in a **Double Shift**: The OS pushed the app up, AND React Native added padding to the bottom. When closing, the inverted FlatList lost track of its zero offset because the container height changed unexpectedly.
+- **Solution (Mandatory Rule for Agents):**
+  - **Android:** `"softwareKeyboardLayoutMode"` must be set to `"resize"` in `app.json`. This tells Android to natively shrink the `flex: 1` window.
+  - **React Native:** `KeyboardAvoidingView` must have `behavior={Platform.OS === "ios" ? "padding" : undefined}`. Android natively resizes, so it doesn't need (and cannot have) `behavior="padding"`. iOS still requires `behavior="padding"`.
