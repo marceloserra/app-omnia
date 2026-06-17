@@ -404,13 +404,23 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
           <Settings size={19} color={TEXT_SECONDARY} style={{ marginRight: 12 }} />
           <View style={{ flex: 1 }}>
             <Text style={styles.footerTitle}>Settings</Text>
-            <Text style={styles.footerSub} numberOfLines={1}>
-              {store.activeProviderId === "openai"
-                ? "OpenAI connected"
-                : store.activeProviderId === "openai-compatible"
-                ? "Local AI connected"
-                : "No provider"}
-            </Text>
+            <View style={styles.footerStatusRow}>
+              <View
+                style={[
+                  styles.statusDot,
+                  store.activeProviderId
+                    ? styles.statusDotConnected
+                    : styles.statusDotDisconnected,
+                ]}
+              />
+              <Text style={styles.footerSub} numberOfLines={1}>
+                {store.activeProviderId === "openai"
+                  ? "OpenAI connected"
+                  : store.activeProviderId === "openai-compatible"
+                  ? "Local AI connected"
+                  : "No provider"}
+              </Text>
+            </View>
           </View>
         </Pressable>
       </Animated.View>
@@ -694,6 +704,28 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
     fontSize: 12,
     marginTop: 2,
+  },
+  footerStatusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 3,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  statusDotConnected: {
+    backgroundColor: "#22c55e", // green-500
+    shadowColor: "#22c55e",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  statusDotDisconnected: {
+    backgroundColor: "#ef4444", // red-500
   },
 
   // ─── Context Menu ──────────────────────────────────────────────────────────

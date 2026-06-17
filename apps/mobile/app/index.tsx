@@ -125,21 +125,21 @@ export default function HomeScreen() {
       {/* ─── Divider ─── */}
       <View style={styles.divider} />
 
-      {/* ─── Message list ─── */}
-      <FlatList
-        ref={flatListRef}
-        data={[...messages].reverse()}
-        inverted
-        keyExtractor={(m) => m.id}
-        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-        renderItem={({ item }) => <MessageBubble message={item} />}
-        contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
-      />
+      {/* ─── Message list + Empty State (scoped wrapper) ─── */}
+      <View style={{ flex: 1 }}>
+        <FlatList
+          ref={flatListRef}
+          data={[...messages].reverse()}
+          inverted
+          keyExtractor={(m) => m.id}
+          maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+          renderItem={({ item }) => <MessageBubble message={item} />}
+          contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
+        />
 
-      {/* ─── Empty State Overlay ─── */}
-      {messages.length === 0 && (
-        <View style={styles.emptyOverlay} pointerEvents="box-none">
-          <View style={styles.emptyContainer}>
+        {/* Empty State: absolute within the list area only, not the whole screen */}
+        {messages.length === 0 && (
+          <View style={styles.emptyOverlay} pointerEvents="box-none">
             <View style={styles.emptyGlyph}>
               <Text style={{ fontSize: 32, color: "#818cf8" }}>✦</Text>
             </View>
@@ -162,8 +162,8 @@ export default function HomeScreen() {
               </Text>
             )}
           </View>
-        </View>
-      )}
+        )}
+      </View>
 
       {/* ─── Streaming indicator ─── */}
       {isStreaming && (
@@ -227,22 +227,13 @@ const styles = StyleSheet.create({
     backgroundColor: BORDER,
   },
   emptyOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFill,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: -1,
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
     paddingBottom: 60,
     paddingHorizontal: 32,
   },
+
   emptyGlyph: {
     width: 72,
     height: 72,
