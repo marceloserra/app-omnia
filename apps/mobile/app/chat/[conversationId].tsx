@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { View, FlatList, Text, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Pressable, StyleSheet, InteractionManager } from "react-native";
+import { View, FlatList, Text, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Pressable, StyleSheet } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
@@ -207,13 +207,13 @@ export default function ChatScreen() {
       }
     };
 
-    // Defer the heavy SQLite read and AST parsing until after the Drawer animation (or any navigation) finishes
-    const interactionPromise = InteractionManager.runAfterInteractions(() => {
+    // Defer the heavy SQLite read and AST parsing until after the Drawer animation (220ms) finishes
+    const timeoutId = setTimeout(() => {
       loadHistory();
-    });
+    }, 250);
 
     return () => {
-      interactionPromise.cancel();
+      clearTimeout(timeoutId);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, initialPrompt]); // handleSend intentionally omitted — guarded by hasTriggeredPrompt ref
