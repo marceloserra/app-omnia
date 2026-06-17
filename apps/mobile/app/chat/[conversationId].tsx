@@ -470,9 +470,11 @@ export default function ChatScreen() {
           )}
 
           {isScrolledUp && (
-            <View style={styles.fabContainer}>
+            <View style={styles.fabContainer} pointerEvents="box-none">
               <Pressable onPress={scrollToBottom} style={({ pressed }) => [styles.fab, pressed && { opacity: 0.8 }]}>
-                <ArrowDown size={20} color="#ffffff" strokeWidth={2.5} />
+                <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.fabInner}>
+                  <ArrowDown size={18} color={theme.textPrimary} strokeWidth={2.5} />
+                </BlurView>
               </Pressable>
             </View>
           )}
@@ -638,21 +640,27 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
 
   fabContainer: {
     position: "absolute",
-    bottom: 16,
-    right: 20,
+    bottom: 24,
+    left: 0,
+    right: 0,
+    alignItems: "center",
     zIndex: 10,
   },
   fab: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.indigo,
+    borderRadius: 18,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  fabInner: {
+    width: 36,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
   },
 });
