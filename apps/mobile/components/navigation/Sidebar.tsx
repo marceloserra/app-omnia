@@ -354,25 +354,14 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
             <View style={styles.logoCircle}>
               <Sparkles size={18} color="#a5b4fc" />
             </View>
-            <View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <Text style={styles.logoText}>Omnia AI</Text>
-              <View style={styles.providerChip}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    store.activeProviderId
-                      ? styles.statusDotConnected
-                      : styles.statusDotDisconnected,
-                  ]}
-                />
-                <Text style={styles.providerChipText}>
-                  {store.activeProviderId === "openai"
-                    ? "OpenAI"
-                    : store.activeProviderId === "openai-compatible"
-                    ? "Local AI"
-                    : "No provider"}
-                </Text>
-              </View>
+              <View
+                style={[
+                  { width: 6, height: 6, borderRadius: 3, marginTop: 2 },
+                  store.activeProviderId ? { backgroundColor: "#10b981" } : { backgroundColor: "#ef4444" },
+                ]}
+              />
             </View>
           </View>
           <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
