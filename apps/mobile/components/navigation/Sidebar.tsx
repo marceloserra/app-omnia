@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import {
   View, Text, Pressable, StyleSheet, ScrollView,
   Animated, Modal, TouchableWithoutFeedback, Platform,
-  StatusBar, TextInput, Alert, PanResponder,
+  StatusBar, TextInput, Alert, PanResponder, BackHandler,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import {
@@ -142,6 +142,31 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
       ]).start(() => setModalVisible(false));
     }
   }, [visible, slideAnim, drawerScaleAnim, fadeAnim]);
+
+  // Handle Android Hardware Back Button
+  useEffect(() => {
+    if (visible) {
+      const backAction = () => {
+        if (contextMenu.visible) {
+          closeContextMenu();
+          return true;
+        }
+        if (rename.active) {
+          setRename({ active: false, conversationId: null, value: "" });
+          return true;
+        }
+        onClose();
+        return true; // prevent default behavior (exit app)
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction
+      );
+
+      return () => backHandler.remove();
+    }
+  }, [visible, contextMenu.visible, rename.active, onClose]);
 
   // Animate bottom sheet open
   React.useEffect(() => {
@@ -491,7 +516,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
             {/* Title chip */}
             <View style={styles.menuHeader}>
-              <MessageSquare size={16} color="#a5b4fc" style={{ marginRight: 10 }} />
+              <MessageSquare size={16} color={theme.indigo} style={{ marginRight: 10 }} />
               <Text style={styles.menuTitle} numberOfLines={1}>
                 {contextMenu.conversation?.title}
               </Text>
@@ -567,11 +592,11 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderTopRightRadius: 32,
     borderBottomRightRadius: 32,
     borderRightWidth: 1,
-    borderRightColor: "rgba(255,255,255,0.05)",
+    borderRightColor: theme.border,
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.03)",
+    borderTopColor: theme.border,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.03)",
+    borderBottomColor: theme.border,
     shadowColor: "#000",
     shadowOffset: { width: 10, height: 0 },
     shadowOpacity: 0.6,
@@ -648,13 +673,13 @@ const createStyles = (theme: any) => StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: theme.activeBg,
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 10,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
+    borderColor: theme.border,
   },
   searchIcon: {
     marginRight: 8,
@@ -700,16 +725,16 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.activeBg,
   },
   convTitle: {
-    color: "#94a3b8",
+    color: theme.textSecondary,
     fontSize: 14,
     flex: 1,
   },
   convTitlePinned: {
-    color: "#e2e8f0",
+    color: theme.textPrimary,
     fontWeight: "600",
   },
   timestamp: {
-    color: "rgba(255,255,255,0.3)",
+    color: theme.textMuted,
     fontSize: 11,
     marginLeft: 12,
     flexShrink: 0,
@@ -723,23 +748,23 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     color: theme.textPrimary,
     fontSize: 14,
-    backgroundColor: "rgba(255,255,255,0.07)",
+    backgroundColor: theme.activeBg,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.4)",
+    borderColor: theme.indigo,
   },
   renameConfirmBtn: {
     paddingLeft: 8,
   },
   renameConfirmText: {
-    color: "#a5b4fc",
+    color: theme.indigo,
     fontSize: 16,
     fontWeight: "700",
   },
   emptyText: {
-    color: "rgba(148,163,184,0.35)",
+    color: theme.textMuted,
     fontSize: 13,
     paddingHorizontal: 10,
     paddingTop: 8,
@@ -815,7 +840,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(255,255,255,0.15)",
+    backgroundColor: theme.textMuted,
   },
   menuHeader: {
     flexDirection: "row",
@@ -844,7 +869,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     // highlight handled by text/icon color
   },
   menuItemPressed: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: theme.activeBg,
   },
   menuItemText: {
     color: theme.textPrimary,
