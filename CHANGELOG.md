@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file. See [standard-changelog](https://github.com/bcoe/standard-changelog) for changelog format recommendations.
 
+## [1.0.1] - The Omnia Design Update
+
+**Omnia v1.0.1** establishes our official **Omnia Design System (ODS)**, bringing extreme FAANG-tier polish, native gesture ergonomics, and offline resilience to the UI.
+
+This release also makes the app **100% Local-LLM Ready**. You can now seamlessly connect to your local LM Studio, Ollama, or local network endpoints without Android blocking the connection.
+
+### Notes
+- To connect to a local provider (like LM Studio) on your computer, use your local network IP (e.g., `http://192.168.1.100:1234/v1`) in the Provider Settings.
+- Android's `usesCleartextTraffic` is now enabled specifically so you don't need HTTPS to test local endpoints.
+- If you don't know how to delete or rename a chat, simply **Swipe Left** or **Swipe Right** on the chat history list. 
+
+### CHANGELOG
+
+**Omnia Design System (ODS)**
+- **Glassmorphism & Depth**: The Chat Screen has been fully redesigned. Assistant bubbles now use a frosted glass effect (`BlurView`), and User bubbles feature a rich indigo gradient. 
+- **Offline Resilience**: Official logos for OpenAI, Meta, Mistral, Google, Anthropic, and Qwen are now natively bundled inside the app as ultra-lightweight PNGs. They load instantly and don't require an internet connection, preventing SVG crashes and UI glitches.
+- **Ergonomics**: Input boxes for API Keys and Base URLs are now properly sized and left-aligned so you can easily read long IP addresses. The Model Select menu has been upgraded to a native Bottom Sheet (metadinha).
+
+**Gesture & Navigation Fixes**
+- Fixed a fatal Android crash (`PanGestureHandler must be used as a descendant...`) by correctly wrapping the root layout.
+- Added bi-directional Swipe Actions to the History screen (Swipe to Pin, Swipe to Rename/Delete).
+- Eliminated RAM Cache bottlenecks. Navigation is now perfectly stateless and driven directly by synchronous SQLite reads.
+
+**Bug Fixes**
+- Fixed an issue where long community model names (e.g., `lmstudio-community/Meta-Llama-3-8B`) would break the layout in the Settings screen.
+- Fixed a deep `react-native-svg` crash when rendering `lucide-react-native` icons by cleansing invalid `fill` attributes.
+- Purged obsolete boilerplate unit tests to achieve a 100% clean Typecheck.
+
+### Thanks to ❤️
+- React Native Gesture Handler & SWMansion
+- Lucide Icons
+- The AI Engineering Playbook
+
 ## [0.1.0-alpha] (2026-06-15)
 
 ### Features
