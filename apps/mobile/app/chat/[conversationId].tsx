@@ -272,11 +272,13 @@ export default function ChatScreen() {
         </View>
 
         {noProvider && messages.length > 0 && (
-          <View style={[styles.noProviderInline, { marginTop: insets.top + 60 }]}>
-            <Text style={{ color: "#f8fafc", fontSize: 13, fontWeight: "500" }}>Provider Disconnected</Text>
-            <Pressable onPress={() => router.push("/settings")}>
-              <Text style={{ color: "#a5b4fc", fontSize: 13, fontWeight: "600" }}>Settings</Text>
-            </Pressable>
+          <View style={{ position: 'absolute', top: insets.top + 60, left: 0, right: 0, alignItems: 'center', zIndex: 5 }} pointerEvents="box-none">
+            <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: theme.red, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, shadowColor: theme.red, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
+              <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "600", marginRight: 12 }}>Provider Disconnected</Text>
+              <Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [{ backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }, pressed && { opacity: 0.7 }]}>
+                <Text style={{ color: "#ffffff", fontSize: 12, fontWeight: "700" }}>Reconnect</Text>
+              </Pressable>
+            </View>
           </View>
         )}
 
@@ -434,14 +436,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
   },
 
   noProviderInline: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(239, 68, 68, 0.2)",
+    // Removed
   },
   emptyOverlay: {
     position: "absolute",
