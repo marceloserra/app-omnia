@@ -73,6 +73,7 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, visible,
       visible={visible}
       animationType="fade"
       transparent={true}
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>

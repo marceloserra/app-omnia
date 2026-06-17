@@ -12,6 +12,7 @@ import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Swipeable } from "react-native-gesture-handler";
+import * as Haptics from "expo-haptics";
 
 const db = openDatabase();
 const convRepo = createConversationRepo(db);
@@ -176,10 +177,13 @@ export default function HistoryScreen() {
           const isPinned = pinnedIds.has(conv.id);
           
           const renderLeftActions = () => (
-            <View style={{ justifyContent: "center", width: 80, paddingLeft: 20 }}>
+            <View style={{ justifyContent: "center", width: 80 }}>
               <Pressable
-                style={{ flex: 1, backgroundColor: isPinned ? "#64748b" : "#f59e0b", justifyContent: "center", alignItems: "center", borderRadius: 16, marginBottom: 8 }}
-                onPress={() => togglePin(conv.id)}
+                style={{ flex: 1, backgroundColor: isPinned ? "#64748b" : "#f59e0b", justifyContent: "center", alignItems: "center" }}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  togglePin(conv.id);
+                }}
               >
                 <View style={{ transform: isPinned ? [{ rotate: "45deg" }] : undefined }}>
                   <Pin size={20} color="#fff" />
@@ -189,16 +193,25 @@ export default function HistoryScreen() {
           );
 
           const renderRightActions = () => (
-            <View style={{ flexDirection: "row", width: 140, paddingRight: 20, justifyContent: "flex-end", marginBottom: 8 }}>
+            <View style={{ flexDirection: "row", width: 140, justifyContent: "flex-end" }}>
               <Pressable
-                style={{ flex: 1, backgroundColor: "#3b82f6", justifyContent: "center", alignItems: "center", borderRadius: 16, marginLeft: 8 }}
-                onPress={() => { rowRefs.current.get(conv.id)?.close(); setRenameTitle(conv.title); setRenameConv(conv); }}
+                style={{ flex: 1, backgroundColor: "#3b82f6", justifyContent: "center", alignItems: "center" }}
+                onPress={() => { 
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  rowRefs.current.get(conv.id)?.close(); 
+                  setRenameTitle(conv.title); 
+                  setRenameConv(conv); 
+                }}
               >
                 <Pencil size={20} color="#fff" />
               </Pressable>
               <Pressable
-                style={{ flex: 1, backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center", borderRadius: 16, marginLeft: 8 }}
-                onPress={() => { rowRefs.current.get(conv.id)?.close(); setDeleteConv(conv); }}
+                style={{ flex: 1, backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center" }}
+                onPress={() => { 
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  rowRefs.current.get(conv.id)?.close(); 
+                  setDeleteConv(conv); 
+                }}
               >
                 <Trash2 size={20} color="#fff" />
               </Pressable>
@@ -215,11 +228,24 @@ export default function HistoryScreen() {
               renderRightActions={renderRightActions}
               overshootLeft={false}
               overshootRight={false}
+              friction={2}
+              leftThreshold={40}
+              rightThreshold={40}
+              onSwipeableWillOpen={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+              containerStyle={{
+                marginHorizontal: 20,
+                marginBottom: 8,
+                borderRadius: 16,
+                overflow: "hidden", // strictly contains actions inside the pill shape
+                backgroundColor: theme.surface,
+                borderWidth: 1,
+                borderColor: theme.border,
+              }}
             >
               <Pressable
                 onPress={() => router.push(`/chat/${conv.id}`)}
                 onLongPress={() => {
-                  // Vibrate or just open right to teach the user they can swipe!
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   rowRefs.current.get(conv.id)?.openRight();
                 }}
                 delayLongPress={200}
@@ -328,13 +354,8 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
   convItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: theme.surface,
+    backgroundColor: "transparent",
     padding: 16,
-    borderRadius: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: theme.border,
-    marginHorizontal: 20,
   },
   convItemPressed: {
     backgroundColor: theme.activeBg,
