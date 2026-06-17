@@ -206,14 +206,11 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
   const handleOpenChat = (id: string) => {
     onClose();
-    // Tiny deferral to guarantee React Navigation doesn't drop the action if it collides with the drawer animation start
-    setTimeout(() => {
-      if (pathname.startsWith("/chat/")) {
-        router.setParams({ conversationId: id });
-      } else {
-        router.replace(`/chat/${id}`);
-      }
-    }, 10);
+    if (pathname.startsWith("/chat/")) {
+      router.setParams({ conversationId: id });
+    } else {
+      router.replace(`/chat/${id}`);
+    }
   };
 
   const handleSettings = () => {
