@@ -14,12 +14,8 @@ import { BlurView } from "expo-blur";
 import { ArrowDown, AlignLeft, Settings } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const BG = "#05050f";
-const INDIGO = "#6366f1";
-const SURFACE = "#0e0e1f";
-const BORDER = "rgba(255,255,255,0.07)";
-const TEXT_PRIMARY = "#f0efff";
-const TEXT_SECONDARY = "#94a3b8";
+import { useTheme, ThemePalette } from "../../lib/theme";
+import { useTranslation } from "../../lib/i18n";
 
 const db = openDatabase();
 const msgRepo = createMessageRepo(db);
@@ -33,6 +29,9 @@ export default function ChatScreen() {
   const { conversationId, initialPrompt } = useLocalSearchParams<{ conversationId: string; initialPrompt?: string }>();
   const hasTriggeredPrompt = useRef(false);
   const store = useProviderStore();
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const headerHeight = insets.top + 44;
   const [messages, setMessages] = useState<Message[]>([]);
@@ -203,143 +202,135 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: BG }}
+      style={{ flex: 1, backgroundColor: theme.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
+      keyboardVerticalOffset={0}
     >
-      {/* Stack.Screen options moved to _layout.tsx to avoid inline object recreation on every render */}
-
-      {/* ─── Custom Header ─── */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <Pressable
-          onPress={() => setSidebarOpen(true)}
-          style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
-          accessibilityLabel="Open menu"
-        >
-          <AlignLeft size={24} color={TEXT_PRIMARY} strokeWidth={1.8} />
-        </Pressable>
-
-        <Text style={styles.headerTitle} numberOfLines={1}>{convTitle}</Text>
-
-        <Pressable
-          onPress={() => router.push("/settings")}
-          style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
-          accessibilityLabel="Settings"
-        >
-          <Settings size={24} color={TEXT_PRIMARY} strokeWidth={1.8} />
-        </Pressable>
-      </View>
-      <View style={styles.headerDivider} />
-
-
-      {noProvider && messages.length > 0 && (
-        <View style={styles.noProviderInline}>
-          <Text style={{ color: "#f8fafc", fontSize: 13, fontWeight: "500" }}>Provider Disconnected</Text>
-          <Pressable onPress={() => router.push("/settings")}>
-            <Text style={{ color: "#a5b4fc", fontSize: 13, fontWeight: "600" }}>Settings</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {/* ─── Scrollable List Area ─── */}
       <View style={{ flex: 1 }}>
-        <FlatList
-          ref={flatListRef}
-          data={[...messages].reverse()}
-          inverted
-          maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-          keyExtractor={(m) => m.id}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => <MessageBubble message={item} />}
-        contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
-        onScroll={(e) => {
-          const { contentOffset } = e.nativeEvent;
-          scrollOffsetRef.current = contentOffset.y; // track position
-          // Inverted list: 0 is the bottom. If y > 100, we are scrolled up.
-          setIsScrolledUp(contentOffset.y > 100);
-        }}
-        scrollEventThrottle={16}
-      />
+        <BlurView style={StyleSheet.absoluteFill as any} intensity={80} tint={theme.bg === "#05050f" ? "dark" : "light"} />
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+          <Pressable
+            onPress={() => setSidebarOpen(true)}
+            style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
+            accessibilityLabel="Open menu"
+          >
+            <AlignLeft size={24} color={theme.textPrimary} strokeWidth={1.8} />
+          </Pressable>
 
-      {messages.length === 0 && (
-        <View style={styles.emptyOverlay} pointerEvents="box-none">
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconWrapper}>
-              <Text style={{ fontSize: 28, color: "#818cf8" }}>✦</Text>
-            </View>
-            <Text style={styles.emptyTitle}>Omnia</Text>
-            
-            {noProvider ? (
-              <View style={{ alignItems: "center", marginTop: 8 }}>
-                <Text style={[styles.emptySubtitle, { marginBottom: 20 }]}>
-                  You need an AI provider to continue chatting.
-                </Text>
-                <Pressable
-                  onPress={() => router.push("/settings")}
-                  style={({ pressed }) => [
-                    styles.providerConfigBtn,
-                    pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
-                  ]}
-                >
-                  <Text style={styles.providerConfigText}>Configure Provider</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Text style={styles.emptySubtitle}>
-                Loading conversation...
-              </Text>
-            )}
-          </View>
-        </View>
-      )}
+          <Text style={styles.headerTitle} numberOfLines={1}>{convTitle}</Text>
 
-      {/* Scroll to bottom FAB */}
-      {isScrolledUp && (
-        <View style={styles.fabContainer}>
-          <Pressable onPress={scrollToBottom} style={({ pressed }) => [styles.fab, pressed && { opacity: 0.8 }]}>
-            <ArrowDown size={20} color="#fff" />
+          <Pressable
+            onPress={() => router.push("/settings")}
+            style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
+            accessibilityLabel="Settings"
+          >
+            <Settings size={24} color={theme.textPrimary} strokeWidth={1.8} />
           </Pressable>
         </View>
-      )}
+        <View style={styles.headerDivider} />
+
+        {noProvider && messages.length > 0 && (
+          <View style={styles.noProviderInline}>
+            <Text style={{ color: "#f8fafc", fontSize: 13, fontWeight: "500" }}>Provider Disconnected</Text>
+            <Pressable onPress={() => router.push("/settings")}>
+              <Text style={{ color: "#a5b4fc", fontSize: 13, fontWeight: "600" }}>Settings</Text>
+            </Pressable>
+          </View>
+        )}
+
+        <View style={{ flex: 1 }}>
+          <FlatList
+            ref={flatListRef}
+            data={[...messages].reverse()}
+            inverted
+            maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+            keyExtractor={(m) => m.id}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => <MessageBubble message={item} />}
+            contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
+            onScroll={(e) => {
+              const { contentOffset } = e.nativeEvent;
+              setIsScrolledUp(contentOffset.y > 100);
+            }}
+            scrollEventThrottle={16}
+          />
+
+          {messages.length === 0 && (
+            <View style={styles.emptyOverlay} pointerEvents="box-none">
+              <View style={styles.emptyContainer}>
+                <View style={styles.emptyIconWrapper}>
+                  <Text style={{ fontSize: 32, color: theme.indigo }}>✦</Text>
+                </View>
+                <Text style={styles.emptyTitle}>{t("chat.empty.title")}</Text>
+                
+                {noProvider ? (
+                  <View style={{ alignItems: "center" }}>
+                    <Text style={styles.emptySubtitle}>
+                      You need an AI provider to start chatting.
+                    </Text>
+                    <Pressable
+                      onPress={() => router.push("/settings")}
+                      style={({ pressed }) => [styles.providerConfigBtn, pressed && { opacity: 0.8 }]}
+                    >
+                      <Text style={styles.providerConfigText}>{t("settings.connect")}</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <Text style={styles.emptySubtitle}>
+                    Ask me anything. I'll think through it with you.
+                  </Text>
+                )}
+              </View>
+            </View>
+          )}
+
+          {isScrolledUp && (
+            <View style={styles.fabContainer}>
+              <Pressable onPress={scrollToBottom} style={({ pressed }) => [styles.fab, pressed && { opacity: 0.8 }]}>
+                <ArrowDown size={20} color={theme.textPrimary} strokeWidth={2.5} />
+              </Pressable>
+            </View>
+          )}
+        </View>
+
+        <ChatInput 
+          onSend={handleSend} 
+          onStop={handleStop}
+          isStreaming={isStreaming}
+          disabled={noProvider}
+          onPressDisabled={() => { if (noProvider) router.push("/settings"); }}
+        />
       </View>
 
-      <ChatInput 
-        onSend={handleSend} 
-        onStop={handleStop}
-        isStreaming={isStreaming}
-        disabled={noProvider}
-        onPressDisabled={() => router.push("/settings")}
-        onFocus={scrollToBottom}
-      />
-
-      {/* Drawer */}
       <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemePalette) => StyleSheet.create({
+  blurHeader: {
+    ...StyleSheet.absoluteFill as any,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingBottom: 10,
-    backgroundColor: BG,
   },
   headerBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: SURFACE,
+    backgroundColor: theme.surface,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: theme.border,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 15,
     fontWeight: "600",
     letterSpacing: 0.2,
@@ -349,14 +340,14 @@ const styles = StyleSheet.create({
   },
   headerDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: BORDER,
+    backgroundColor: theme.border,
   },
 
   noProviderInline: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
@@ -382,7 +373,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "rgba(99,102,241,0.15)",
+    backgroundColor: theme.activeBg,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
@@ -390,27 +381,27 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#f8fafc",
+    color: theme.textPrimary,
     marginBottom: 8,
     letterSpacing: 0.5,
   },
   emptySubtitle: {
     fontSize: 15,
-    color: TEXT_SECONDARY,
+    color: theme.textSecondary,
     textAlign: "center",
     paddingHorizontal: 40,
     lineHeight: 22,
   },
   providerConfigBtn: {
-    backgroundColor: "rgba(99,102,241,0.15)",
+    backgroundColor: theme.activeBg,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.3)",
+    borderColor: theme.border,
   },
   providerConfigText: {
-    color: "#a5b4fc",
+    color: theme.indigo,
     fontWeight: "600",
     fontSize: 15,
     letterSpacing: 0.3,
@@ -426,9 +417,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(30, 27, 75, 0.8)",
+    backgroundColor: theme.surface,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.3)",
+    borderColor: theme.border,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",

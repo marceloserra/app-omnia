@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   Animated,
+  Platform,
 } from "react-native";
 import { Message } from "@omnia/shared-types";
 import { BlurView } from "expo-blur";
@@ -14,22 +15,15 @@ import * as Clipboard from "expo-clipboard";
 import Markdown, { ASTNode } from "react-native-markdown-display";
 import { CheckCircle2, Copy } from "lucide-react-native";
 import { TypingIndicator } from "../ui/TypingIndicator";
-
-const INDIGO = "#6366f1";
-const TEXT_PRIMARY = "#f8fafc";
-const TEXT_SECONDARY = "#94a3b8";
-const CODE_BG = "#0d0c1d";
-const CODE_BORDER = "rgba(99,102,241,0.2)";
+import { useTheme, ThemePalette } from "../../lib/theme";
 
 interface MessageBubbleProps {
   message: Message;
   isStreaming?: boolean;
 }
 
-
-
-// ─── Native code block (no external lib, zero crash risk) ───────────────────
-function CodeBlock({ content, language }: { content: string; language?: string }) {
+function CodeBlock({ content, language, theme }: { content: string; language?: string; theme: ThemePalette }) {
+  const codeStyles = React.useMemo(() => createCodeStyles(theme), [theme]);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -40,7 +34,6 @@ function CodeBlock({ content, language }: { content: string; language?: string }
 
   return (
     <View style={codeStyles.wrapper}>
-      {/* Header bar */}
       <View style={codeStyles.header}>
         <Text style={codeStyles.lang}>{language || "code"}</Text>
         <Pressable
@@ -49,22 +42,22 @@ function CodeBlock({ content, language }: { content: string; language?: string }
           hitSlop={8}
         >
           {copied ? (
-            <CheckCircle2 size={14} color="#a5b4fc" />
+            <CheckCircle2 size={14} color={theme.indigo} />
           ) : (
-            <Copy size={14} color={TEXT_SECONDARY} />
+            <Copy size={14} color={theme.textSecondary} />
           )}
-          <Text style={[codeStyles.copyLabel, copied && { color: "#a5b4fc" }]}>
+          <Text style={[codeStyles.copyLabel, copied && { color: theme.indigo }]}>
             {copied ? " Copied" : " Copy"}
           </Text>
         </Pressable>
       </View>
-      {/* Code content */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={codeStyles.scrollContent}
+        style={codeStyles.scroll}
+        contentContainerStyle={{ padding: 16 }}
       >
-        <Text style={codeStyles.code} selectable>
+        <Text style={codeStyles.content} selectable>
           {content.trimEnd()}
         </Text>
       </ScrollView>
@@ -72,59 +65,60 @@ function CodeBlock({ content, language }: { content: string; language?: string }
   );
 }
 
-const codeStyles = StyleSheet.create({
+const createCodeStyles = (theme: ThemePalette) => StyleSheet.create({
   wrapper: {
-    marginVertical: 8,
+    marginVertical: 12,
     borderRadius: 12,
-    backgroundColor: CODE_BG,
-    borderWidth: 1,
-    borderColor: CODE_BORDER,
     overflow: "hidden",
+    backgroundColor: theme.surface2,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   header: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 14,
+    alignItems: "center",
+    backgroundColor: theme.activeBg,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: CODE_BORDER,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    borderBottomColor: theme.border,
   },
   lang: {
-    color: "#818cf8",
-    fontSize: 11,
-    fontWeight: "600",
-    textTransform: "lowercase",
-    letterSpacing: 0.8,
-    fontFamily: "Courier",
+    color: theme.textSecondary,
+    fontSize: 12,
+    fontWeight: "500",
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
   },
   copyBtn: {
     flexDirection: "row",
     alignItems: "center",
+    padding: 4,
   },
   copyLabel: {
-    color: TEXT_SECONDARY,
+    color: theme.textSecondary,
     fontSize: 12,
+    fontWeight: "500",
+    marginLeft: 6,
   },
-  scrollContent: {
-    padding: 14,
+  scroll: {
+    maxHeight: 400,
   },
-  code: {
-    color: "#e2e8f0",
-    fontFamily: "Courier",
+  content: {
+    color: theme.textPrimary,
     fontSize: 13,
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
     lineHeight: 20,
   },
 });
 
-// ─── Markdown render rules ───────────────────────────────────────────────────
-const renderRules = {
+const renderRules = (theme: ThemePalette, tableStyles: any) => ({
   fence: (node: ASTNode) => (
     <CodeBlock
       key={node.key}
       content={String(node.content || "")}
       language={String((node as any).sourceInfo || "")}
+      theme={theme}
     />
   ),
   code_inline: (node: ASTNode, _children: any, _parent: any, styles: any) => (
@@ -132,7 +126,6 @@ const renderRules = {
       {String(node.content || "")}
     </Text>
   ),
-  // ─── Table support ────────────────────────────────────────────────────────
   table: (node: ASTNode, children: any) => (
     <ScrollView key={node.key} horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true} style={tableStyles.tableScroll}>
       <View style={tableStyles.table}>{children}</View>
@@ -162,30 +155,29 @@ const renderRules = {
       <Text style={tableStyles.tdText}>{children}</Text>
     </View>
   ),
-};
+});
 
-// ─── Table styles ─────────────────────────────────────────────────────────────
-const tableStyles = StyleSheet.create({
+const createTableStyles = (theme: ThemePalette) => StyleSheet.create({
   tableScroll: {
     marginVertical: 10,
   },
   table: {
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.25)",
+    borderColor: theme.border,
     borderRadius: 10,
     overflow: "hidden",
   },
   thead: {
-    backgroundColor: "rgba(99,102,241,0.12)",
+    backgroundColor: theme.activeBg,
   },
   tr: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.06)",
+    borderBottomColor: theme.border,
   },
   trHeader: {
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(99,102,241,0.3)",
+    borderBottomColor: theme.border,
   },
   cell: {
     paddingVertical: 9,
@@ -193,99 +185,59 @@ const tableStyles = StyleSheet.create({
     minWidth: 80,
     justifyContent: "center",
   },
-  th: {
-    // header cell
-  },
+  th: {},
   thText: {
-    color: "#c7d2fe",
+    color: theme.textPrimary,
     fontSize: 12,
     fontWeight: "700",
-    letterSpacing: 0.4,
   },
   tdText: {
-    color: "#e2e8f0",
+    color: theme.textSecondary,
     fontSize: 13,
-    lineHeight: 18,
   },
 });
 
-// ─── Markdown styles ─────────────────────────────────────────────────────────
-const markdownStyles = StyleSheet.create({
+const createMarkdownStyles = (theme: ThemePalette) => StyleSheet.create({
   body: {
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 16,
     lineHeight: 24,
   },
-  paragraph: {
-    marginTop: 0,
-    marginBottom: 8,
-  },
+  paragraph: { marginTop: 0, marginBottom: 8 },
   code_inline: {
-    backgroundColor: "rgba(99,102,241,0.15)",
-    color: "#c084fc",
-    fontFamily: "Courier",
+    backgroundColor: theme.activeBg,
+    color: theme.indigo,
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
     paddingHorizontal: 6,
     borderRadius: 4,
     fontSize: 14,
   },
-  fence: {
-    // Handled by renderRules above
-    margin: 0,
-    padding: 0,
-  },
-  link: {
-    color: "#818cf8",
-    textDecorationLine: "underline",
-  },
-  heading1: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#fff",
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  heading2: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#fff",
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  heading3: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#e2e8f0",
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  list_item: {
-    marginBottom: 4,
-  },
-  bullet_list: {
-    marginBottom: 8,
-  },
-  ordered_list: {
-    marginBottom: 8,
-  },
+  fence: { margin: 0, padding: 0 },
+  link: { color: theme.indigo, textDecorationLine: "underline" },
+  heading1: { fontSize: 20, fontWeight: "700", color: theme.textPrimary, marginTop: 12, marginBottom: 8 },
+  heading2: { fontSize: 18, fontWeight: "600", color: theme.textPrimary, marginTop: 10, marginBottom: 6 },
+  heading3: { fontSize: 16, fontWeight: "600", color: theme.textPrimary, marginTop: 8, marginBottom: 4 },
+  list_item: { marginBottom: 4 },
+  bullet_list: { marginBottom: 8 },
+  ordered_list: { marginBottom: 8 },
   blockquote: {
     borderLeftWidth: 3,
-    borderLeftColor: "#6366f1",
+    borderLeftColor: theme.indigo,
     paddingLeft: 12,
     marginVertical: 8,
     opacity: 0.85,
   },
-  strong: {
-    fontWeight: "700",
-    color: "#fff",
-  },
-  em: {
-    fontStyle: "italic",
-  },
+  strong: { fontWeight: "700", color: theme.textPrimary },
+  em: { fontStyle: "italic" },
 });
 
-// ─── MessageBubble ────────────────────────────────────────────────────────────────
-export function MessageBubble({ message, isStreaming = false }: MessageBubbleProps) {
+export const MessageBubble = React.memo(({ message, isStreaming = false }: MessageBubbleProps) => {
+  const theme = useTheme();
   const [copied, setCopied] = useState(false);
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
+  const markdownStyles = React.useMemo(() => createMarkdownStyles(theme), [theme]);
+  const tableStyles = React.useMemo(() => createTableStyles(theme), [theme]);
+  
   const isUser = message.role === "user";
   const isSystem = message.role === "system";
   const isEmpty = !message.content && !isUser;
@@ -311,15 +263,9 @@ export function MessageBubble({ message, isStreaming = false }: MessageBubblePro
 
   if (isUser) {
     return (
-      <Pressable
-        style={[styles.container, styles.userContainer]}
-        onLongPress={handleCopy}
-        delayLongPress={300}
-      >
+      <Pressable style={[styles.container, styles.userContainer]} onLongPress={handleCopy} delayLongPress={300}>
         <LinearGradient
-          colors={["#4f46e5", "#6366f1"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+          colors={[theme.indigo, theme.indigo]}
           style={[styles.bubble, styles.userBubble]}
         >
           <Text style={styles.text}>{message.content}</Text>
@@ -334,38 +280,30 @@ export function MessageBubble({ message, isStreaming = false }: MessageBubblePro
     );
   }
 
-  // Assistant bubble
   return (
-    <Pressable
-      style={[styles.container, styles.assistantContainer]}
-      onLongPress={handleCopy}
-      delayLongPress={300}
-    >
+    <Pressable style={[styles.container, styles.assistantContainer]} onLongPress={handleCopy} delayLongPress={300}>
       <BlurView intensity={20} tint="dark" style={[styles.bubble, styles.assistantBubble]}>
         {isEmpty ? (
           <TypingIndicator />
         ) : (
-          <Markdown style={markdownStyles} rules={renderRules}>
+          <Markdown style={markdownStyles} rules={renderRules(theme, tableStyles)}>
             {message.content}
           </Markdown>
         )}
-
         {!isEmpty && (
           <View style={[styles.metaRow, { justifyContent: "flex-start" }]}>
-            {copied && <CheckCircle2 size={12} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />}
+            {copied && <CheckCircle2 size={12} color={theme.textSecondary} style={{ marginRight: 4 }} />}
             <Text style={styles.metaText}>
-              {copied
-                ? "Copied"
-                : `${timeString}${message.modelId ? ` · ${message.modelId}` : ""}`}
+              {copied ? "Copied" : `${timeString}${message.modelId ? ` · ${message.modelId}` : ""}`}
             </Text>
           </View>
         )}
       </BlurView>
     </Pressable>
   );
-}
+});
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemePalette) => StyleSheet.create({
   systemContainer: {
     alignItems: "center",
     marginVertical: 12,
@@ -373,7 +311,7 @@ const styles = StyleSheet.create({
   },
   systemText: {
     fontSize: 12,
-    color: "rgba(255,255,255,0.4)",
+    color: theme.textSecondary,
     textAlign: "center",
     fontStyle: "italic",
     letterSpacing: 0.5,
@@ -398,7 +336,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     borderRadius: 20,
     borderBottomRightRadius: 6,
-    shadowColor: INDIGO,
+    shadowColor: theme.indigo,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -410,11 +348,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderBottomLeftRadius: 6,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: theme.border,
     overflow: "hidden",
+    backgroundColor: "transparent",
   },
   text: {
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 16,
     lineHeight: 24,
   },
@@ -425,7 +364,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   metaText: {
-    color: TEXT_SECONDARY,
+    color: theme.textSecondary,
     fontSize: 11,
   },
   userMetaText: {
