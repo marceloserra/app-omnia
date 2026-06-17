@@ -22,6 +22,7 @@ import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProviderStore } from "../../store/provider-store";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
@@ -44,6 +45,7 @@ export default function SettingsScreen() {
   const store = useProviderStore();
   const theme = useTheme();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
   const settingsStore = useSettingsStore();
 
@@ -164,13 +166,13 @@ export default function SettingsScreen() {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         <ScrollView
-          contentContainerStyle={{ padding: 20, paddingBottom: 60 }}
+          contentContainerStyle={{ paddingTop: insets.top + 20, paddingHorizontal: 20, paddingBottom: 120 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <Text style={styles.largeTitle}>{t("settings.title") || "Settings"}</Text>
           <Text style={styles.sectionTitle}>AI Provider</Text>
 
           {/* Provider Picker */}
@@ -285,30 +287,31 @@ export default function SettingsScreen() {
               <View style={{ marginTop: 20 }}>
                 <Text style={styles.sectionTitle}>Provider Status</Text>
 
-                {/* Status banner */}
-                <View style={styles.statusBanner}>
-                  <View style={[styles.statusDotLarge, { backgroundColor: isConnected ? "#10b981" : "#f59e0b" }]} />
-                  <Text style={[styles.statusBannerText, { color: isConnected ? "#10b981" : "#f59e0b" }]}>
-                    {isConnected ? "Connected & Active" : "Tested — tap Set Active to activate"}
-                  </Text>
-                </View>
+                {/* Wrapped Provider Status and Model Select in a Glass Card */}
+                <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={styles.glassCard}>
+                  {/* Status banner */}
+                  <View style={styles.statusRow}>
+                    <View style={[styles.statusDotLarge, { backgroundColor: isConnected ? "#10b981" : "#f59e0b" }]} />
+                    <Text style={[styles.statusBannerText, { color: isConnected ? "#10b981" : "#f59e0b" }]}>
+                      {isConnected ? "Connected & Active" : "Tested — tap Set Active to activate"}
+                    </Text>
+                  </View>
 
-                {/* Model Selection — single row picker */}
-                {models.length > 0 && (
-                  <>
-                    <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Select Model</Text>
-                    <Pressable
-                      onPress={() => setModelPickerVisible(true)}
-                      style={({ pressed }) => [styles.modelSelectRow, pressed && { opacity: 0.7 }]}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.modelSelectLabel} numberOfLines={1}>{localModel || "No model selected"}</Text>
-                        <Text style={styles.modelSelectSub}>{models.length} models available</Text>
-                      </View>
-                      <ChevronRight size={18} color={theme.textSecondary} />
-                    </Pressable>
-                  </>
-                )}
+                  {/* Divider */}
+                  <View style={styles.divider} />
+
+                  {/* Model Selection */}
+                  <Pressable
+                    onPress={() => setModelPickerVisible(true)}
+                    style={({ pressed }) => [styles.modelSelectRow, pressed && { opacity: 0.7 }]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.modelSelectLabel} numberOfLines={1}>{localModel || "No model selected"}</Text>
+                      <Text style={styles.modelSelectSub}>{models.length} models available</Text>
+                    </View>
+                    <ChevronRight size={18} color={theme.textSecondary} />
+                  </Pressable>
+                </BlurView>
 
                 {/* Action Buttons */}
                 <View style={{ marginTop: 24, gap: 10 }}>
@@ -400,30 +403,26 @@ export default function SettingsScreen() {
             </BlurView>
           </View>
 
-          {/* Danger Zone */}
-          <View style={styles.dangerZone}>
-            <Text style={styles.dangerTitle}>Danger Zone</Text>
-            <View style={styles.dangerCard}>
-              <View style={styles.dangerHeaderRow}>
-                <View style={styles.dangerIconBox}>
-                  <AlertCircle size={20} color={theme.red} />
+          {/* Data Management */}
+          <View style={{ marginTop: 40 }}>
+            <Text style={styles.sectionTitle}>Data Management</Text>
+            <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={styles.glassCard}>
+              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
+                <View style={[styles.iconCircle, { backgroundColor: "rgba(239,68,68,0.15)" }]}>
+                  <Trash2 size={20} color="#ef4444" />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.dangerItemTitle}>Clear All History</Text>
-                  <Text style={styles.dangerItemSub}>
-                    Permanently delete all conversations and messages. This action cannot be undone.
-                  </Text>
+                <View style={{ flex: 1, marginLeft: 16 }}>
+                  <Text style={[styles.modelSelectLabel, { color: "#ef4444" }]}>Delete All History</Text>
+                  <Text style={styles.modelSelectSub}>Permanently erase all conversations</Text>
                 </View>
               </View>
-
               <Pressable
                 onPress={handleClearAll}
-                style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
+                style={({ pressed }) => [styles.deleteActionBtn, pressed && { opacity: 0.8 }]}
               >
-                <Trash2 size={16} color={theme.red} style={{ marginRight: 8 }} />
-                <Text style={styles.dangerButtonText}>Delete All Data</Text>
+                <Text style={styles.deleteActionBtnText}>Delete All Data</Text>
               </Pressable>
-            </View>
+            </BlurView>
           </View>
 
         </ScrollView>
@@ -444,9 +443,17 @@ export default function SettingsScreen() {
 }
 
 const createStyles = (theme: ThemePalette) => StyleSheet.create({
+  largeTitle: {
+    fontSize: 34,
+    fontWeight: "800",
+    color: theme.textPrimary,
+    letterSpacing: 0.5,
+    marginBottom: 32,
+    marginTop: 8,
+  },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "700",
     color: theme.textSecondary,
     textTransform: "uppercase",
     letterSpacing: 1.2,
@@ -528,35 +535,30 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
   modelSelectRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: theme.activeBg,
-    borderRadius: 16,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    borderWidth: 1.5,
-    borderColor: theme.border,
-    gap: 12,
+    paddingVertical: 12,
   },
   modelSelectLabel: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "600",
     color: theme.textPrimary,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   modelSelectSub: {
-    fontSize: 12,
+    fontSize: 13,
     color: theme.textSecondary,
   },
-  statusBanner: {
+  statusRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: theme.activeBg,
-    borderRadius: 14,
-    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: theme.border,
-    gap: 10,
   },
+  divider: {
+    height: 1,
+    backgroundColor: theme.border,
+    marginVertical: 4,
+    marginLeft: 32,
+  },
+
   statusDotLarge: {
     width: 10,
     height: 10,
@@ -589,6 +591,28 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     fontWeight: "700",
     fontSize: 16,
   },
+  deleteActionBtn: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.2)",
+    marginTop: 8,
+  },
+  deleteActionBtnText: {
+    color: "#ef4444",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   activeProviderBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -604,63 +628,5 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     fontWeight: "700",
     fontSize: 16,
   },
-  dangerZone: {
-    marginTop: 40,
-    marginBottom: 40,
-  },
-  dangerTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: theme.red,
-    textTransform: "uppercase",
-    letterSpacing: 1.2,
-    marginBottom: 12,
-    marginLeft: 4,
-  },
-  dangerCard: {
-    backgroundColor: "rgba(239, 68, 68, 0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.2)",
-    borderRadius: 24,
-    padding: 20,
-  },
-  dangerHeaderRow: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  dangerIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 16,
-  },
-  dangerItemTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: theme.textPrimary,
-    marginBottom: 4,
-  },
-  dangerItemSub: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: theme.textSecondary,
-  },
-  dangerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.3)",
-  },
-  dangerButtonText: {
-    color: theme.red,
-    fontWeight: "600",
-    fontSize: 15,
-  },
+
 });
