@@ -44,7 +44,8 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, i
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={{ flex: 1, backgroundColor: theme.bg }}
     >
-      <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
+        <View style={{ width: 40, height: 4, backgroundColor: theme.border, borderRadius: 2, alignSelf: "center", marginBottom: 16 }} />
         <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: "700" }}>Select Model</Text>
       </View>
       {filtered.length === 0 ? (
