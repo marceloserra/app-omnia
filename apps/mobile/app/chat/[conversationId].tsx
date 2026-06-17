@@ -92,75 +92,78 @@ export default function ChatScreen() {
       timestamp: Date.now(),
     };
 
-    setMessages((prev) => [...prev, userMessage, assistantMessage]);
-    setIsStreaming(true);
+    // Use functional update — no dependency on `messages` state
+    setMessages((prev) => {
+      // Build chat history for the API from the current snapshot
+      const chatHistory = [...prev, userMessage].map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
 
-    try {
-      msgRepo.create(userMessage);
-      msgRepo.create(assistantMessage);
-      convRepo.update(conversationId, { title: messages.length === 0 ? text.slice(0, 40) : undefined });
-      if (messages.length === 0) setConvTitle(text.slice(0, 40));
-    } catch (err) {
-      logger.error("SQLite", "Failed to save user message", err);
-    }
-
-    const chatHistory = [...messages, userMessage].map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
-
-    try {
-      const stream = providerCtx.provider.streamChat(providerCtx.config, {
-        messages: chatHistory,
-        modelId: providerCtx.modelId,
-        stream: true,
-      });
-
-      let fullContent = "";
-      for await (const chunk of stream) {
-        if (isAbortedRef.current) break; // User pressed Stop Generating
-        if (chunk.done) break;
-        
-        fullContent += chunk.content;
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId ? { ...m, content: fullContent } : m
-          )
-        );
-        
-        // Smart scroll: only auto-scroll if the user hasn't scrolled up
-        if (!isScrolledUp) {
-          flatListRef.current?.scrollToEnd({ animated: false });
+      // Fire and forget the stream after we have the snapshot
+      (async () => {
+        try {
+          msgRepo.create(userMessage);
+          msgRepo.create(assistantMessage);
+          if (prev.length === 0) {
+            convRepo.update(conversationId, { title: text.slice(0, 40) });
+            setConvTitle(text.slice(0, 40));
+          }
+        } catch (err) {
+          logger.error("SQLite", "Failed to save user message", err);
         }
-      }
 
-      // Finalize the assistant message in SQLite
-      try {
-        msgRepo.updateContent(assistantId, fullContent);
-      } catch (err) {
-        logger.error("SQLite", "Failed to update assistant message content", err);
-      }
+        try {
+          const stream = providerCtx.provider.streamChat(providerCtx.config, {
+            messages: chatHistory,
+            modelId: providerCtx.modelId,
+            stream: true,
+          });
 
-    } catch (e: any) {
-      if (isAbortedRef.current) return;
-      const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId ? { ...m, content: errorMsg } : m
-        )
-      );
-      try {
-        msgRepo.updateContent(assistantId, errorMsg);
-      } catch (err) {
-        logger.error("SQLite", "Failed to log assistant stream error", err);
-      }
-    } finally {
-      setIsStreaming(false);
-      isAbortedRef.current = false;
-    }
-  }, [messages, conversationId, store, getProvider, isScrolledUp]);
+          let fullContent = "";
+          for await (const chunk of stream) {
+            if (isAbortedRef.current) break;
+            if (chunk.done) break;
+            fullContent += chunk.content;
+            setMessages((cur) =>
+              cur.map((m) =>
+                m.id === assistantId ? { ...m, content: fullContent } : m
+              )
+            );
+          }
 
-  // Load messages from SQLite on mount
+          try {
+            msgRepo.updateContent(assistantId, fullContent);
+          } catch (err) {
+            logger.error("SQLite", "Failed to update assistant message content", err);
+          }
+        } catch (e: any) {
+          if (isAbortedRef.current) return;
+          const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
+          setMessages((cur) =>
+            cur.map((m) =>
+              m.id === assistantId ? { ...m, content: errorMsg } : m
+            )
+          );
+          try {
+            msgRepo.updateContent(assistantId, errorMsg);
+          } catch (err) {
+            logger.error("SQLite", "Failed to log assistant stream error", err);
+          }
+        } finally {
+          setIsStreaming(false);
+          isAbortedRef.current = false;
+        }
+      })();
+
+      return [...prev, userMessage, assistantMessage];
+    });
+
+    setIsStreaming(true);
+  }, [conversationId, store, getProvider]);
+
+  // Load messages from SQLite on mount — deps intentionally exclude handleSend
+  // to prevent re-running when handleSend identity changes during streaming.
   useEffect(() => {
     if (!conversationId) return;
     try {
@@ -172,6 +175,7 @@ export default function ChatScreen() {
 
       if (initialPrompt && !hasTriggeredPrompt.current) {
         hasTriggeredPrompt.current = true;
+        // Delay to let the screen fully mount before firing the first message
         setTimeout(() => {
           handleSend(initialPrompt);
         }, 300);
@@ -179,7 +183,8 @@ export default function ChatScreen() {
     } catch (err) {
       logger.error("SQLite", "Failed to load chat history", err);
     }
-  }, [conversationId, initialPrompt, handleSend]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, initialPrompt]); // handleSend intentionally omitted — guarded by hasTriggeredPrompt ref
 
   const handleStop = () => {
     isAbortedRef.current = true;
@@ -199,7 +204,7 @@ export default function ChatScreen() {
       behavior="padding"
       keyboardVerticalOffset={headerHeight}
     >
-      <Stack.Screen options={{ headerShown: false }} />
+      {/* Stack.Screen options moved to _layout.tsx to avoid inline object recreation on every render */}
 
       {/* ─── Custom Header ─── */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>

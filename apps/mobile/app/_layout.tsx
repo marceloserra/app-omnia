@@ -48,7 +48,7 @@ export default function RootLayout() {
         {/* Existing conversation view */}
         <Stack.Screen
           name="chat/[conversationId]"
-          options={{ headerBackTitle: "Chat", title: "" }}
+          options={{ headerShown: false }}
         />
         {/* Settings */}
         <Stack.Screen
