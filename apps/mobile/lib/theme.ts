@@ -30,17 +30,17 @@ export const DarkPalette: ThemePalette = {
 };
 
 export const LightPalette: ThemePalette = {
-  bg: "#F2F2F7",
+  bg: "#FFFFFF", // Pure white for cleaner look
   surface: "#FFFFFF",
-  surface2: "#FFFFFF",
-  border: "rgba(60, 60, 67, 0.12)",
-  indigo: "#4f46e5", // Omnia Brand Indigo (not iOS blue)
+  surface2: "#F9FAFB", // Slight off-white for contrast inside cards
+  border: "rgba(0, 0, 0, 0.08)",
+  indigo: "#4f46e5", // Omnia Brand Indigo
   textPrimary: "#000000",
-  textSecondary: "#8E8E93", // iOS Gray
-  textMuted: "#C7C7CC",
-  red: "#FF3B30", // iOS Red
+  textSecondary: "#4B5563", // Darker gray for readability
+  textMuted: "#6B7280", // Contrast-safe gray for muted text
+  red: "#EF4444", 
   activeBg: "rgba(0,0,0,0.04)",
-  purple: "#AF52DE", // iOS Purple
+  purple: "#AF52DE",
 };
 
 export function useTheme(): ThemePalette {

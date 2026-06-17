@@ -134,8 +134,7 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {/* ─── Divider ─── */}
-      <View style={styles.divider} />
+      {/* ─── Divider Removed ─── */}
 
       {/* ─── Message list + Empty State (scoped wrapper) ─── */}
       <View style={{ flex: 1 }}>
