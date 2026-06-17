@@ -162,18 +162,27 @@ export default function ChatScreen() {
 
           let fullContent = "";
           let lastHapticTime = Date.now();
+          let lastSqliteTime = Date.now();
           
           for await (const chunk of stream) {
             if (isAbortedRef.current) break;
             if (chunk.done) break;
             fullContent += chunk.content;
             
+            const now = Date.now();
+
             if (useSettingsStore.getState().hapticsEnabled) {
-              const now = Date.now();
               if (now - lastHapticTime > 80) {
                 Haptics.selectionAsync();
                 lastHapticTime = now;
               }
+            }
+
+            if (now - lastSqliteTime > 500) {
+              try {
+                getDb().msgRepo.updateContent(assistantId, fullContent);
+              } catch (err) {}
+              lastSqliteTime = now;
             }
 
             setMessages((cur) =>
@@ -229,6 +238,13 @@ export default function ChatScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, initialPrompt]); // handleSend intentionally omitted — guarded by hasTriggeredPrompt ref
+
+  // Abort stream if the component unmounts (e.g., user hits back button)
+  useEffect(() => {
+    return () => {
+      isAbortedRef.current = true;
+    };
+  }, []);
 
   const handleStop = () => {
     isAbortedRef.current = true;
