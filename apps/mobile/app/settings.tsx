@@ -253,82 +253,96 @@ export default function SettingsScreen() {
           </BlurView>
 
           {/* Test Results & Model Selection */}
-          {testResult && (
+          {/* Test Results & Model Selection */}
+          {(testResult || store.activeProviderId === activeTab) && (
             <BlurView
               intensity={isDark ? 40 : 80}
               tint={isDark ? "dark" : "light"}
               style={[
                 styles.resultCard,
-                { borderColor: testResult.ok ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)" }
+                testResult && { borderColor: testResult.ok ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)" }
               ]}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: testResult.ok ? 16 : 0 }}>
-                <View style={{ marginRight: 10 }}>
-                  {testResult.ok ? (
-                    <CheckCircle2 size={20} color="#10b981" />
-                  ) : (
-                    <AlertCircle size={20} color="#ef4444" />
-                  )}
-                </View>
-                <Text style={{ color: testResult.ok ? "#10b981" : "#ef4444", fontWeight: "600", fontSize: 15, flex: 1 }}>
-                  {testResult.ok ? "Connection Established" : testResult.msg}
-                </Text>
-              </View>
-
-              {testResult.ok && testResult.models.length > 0 && (
-                <>
-                  <Text style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 12 }}>
-                    Available models ({testResult.models.length}). Tap to select default:
-                  </Text>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}>
-                    {testResult.models.slice(0, 8).map((m) => {
-                      const isSelected = localModel === m;
-                      return (
-                        <Pressable
-                          key={m}
-                          onPress={() => setLocalModel(m)}
-                          style={[
-                            styles.modelChip,
-                            { 
-                              borderColor: isSelected ? theme.indigo : theme.border,
-                              backgroundColor: isSelected ? theme.indigo : "transparent"
-                            },
-                            { margin: 4 }
-                          ]}
-                        >
-                          {isSelected && <Check size={14} color="#fff" style={{ marginRight: 6 }} />}
-                          <Text style={{ color: isSelected ? "#fff" : theme.textSecondary, fontSize: 13, fontWeight: "500" }}>
-                            {m}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                  
-                  {/* Action Buttons */}
-                  <View style={{ marginTop: 24, gap: 12 }}>
-                    <Pressable
-                      onPress={handleSave}
-                      style={({ pressed }) => [styles.activeProviderBtn, pressed && { opacity: 0.7 }]}
-                    >
-                      <CheckCircle2 size={18} color="#10b981" style={{ marginRight: 8 }} />
-                      <Text style={styles.activeProviderText}>
-                        {store.activeProviderId === activeTab ? "Provider Active (Update)" : "Set as Active Provider"}
-                      </Text>
-                    </Pressable>
-
-                    {store.activeProviderId === activeTab && (
-                      <Pressable
-                        onPress={handleDisconnect}
-                        style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
-                      >
-                        <AlertCircle size={16} color={theme.red} style={{ marginRight: 8 }} />
-                        <Text style={styles.dangerButtonText}>Disconnect</Text>
-                      </Pressable>
+              {testResult && (
+                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: (testResult.ok || store.activeProviderId === activeTab) ? 16 : 0 }}>
+                  <View style={{ marginRight: 10 }}>
+                    {testResult.ok ? (
+                      <CheckCircle2 size={20} color="#10b981" />
+                    ) : (
+                      <AlertCircle size={20} color="#ef4444" />
                     )}
                   </View>
-                </>
+                  <Text style={{ color: testResult.ok ? "#10b981" : "#ef4444", fontWeight: "600", fontSize: 15, flex: 1 }}>
+                    {testResult.ok ? "Connection Established" : testResult.msg}
+                  </Text>
+                </View>
               )}
+
+              {(() => {
+                const models = testResult ? testResult.models : (store.activeProviderId === activeTab ? store.availableModels : []);
+                const showActions = (testResult && testResult.ok) || store.activeProviderId === activeTab;
+                
+                if (!showActions) return null;
+
+                return (
+                  <>
+                    {models.length > 0 && (
+                      <>
+                        <Text style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 12 }}>
+                          Available models ({models.length}). Tap to select default:
+                        </Text>
+                        <View style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}>
+                          {models.slice(0, 8).map((m) => {
+                            const isSelected = localModel === m;
+                            return (
+                              <Pressable
+                                key={m}
+                                onPress={() => setLocalModel(m)}
+                                style={[
+                                  styles.modelChip,
+                                  { 
+                                    borderColor: isSelected ? theme.indigo : theme.border,
+                                    backgroundColor: isSelected ? theme.indigo : "transparent"
+                                  },
+                                  { margin: 4 }
+                                ]}
+                              >
+                                {isSelected && <Check size={14} color="#fff" style={{ marginRight: 6 }} />}
+                                <Text style={{ color: isSelected ? "#fff" : theme.textSecondary, fontSize: 13, fontWeight: "500" }}>
+                                  {m}
+                                </Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      </>
+                    )}
+                    
+                    {/* Action Buttons */}
+                    <View style={{ marginTop: 24, gap: 12 }}>
+                      <Pressable
+                        onPress={handleSave}
+                        style={({ pressed }) => [styles.activeProviderBtn, pressed && { opacity: 0.7 }]}
+                      >
+                        <CheckCircle2 size={18} color="#10b981" style={{ marginRight: 8 }} />
+                        <Text style={styles.activeProviderText}>
+                          {store.activeProviderId === activeTab ? "Provider Active (Update)" : "Set as Active Provider"}
+                        </Text>
+                      </Pressable>
+
+                      {store.activeProviderId === activeTab && (
+                        <Pressable
+                          onPress={handleDisconnect}
+                          style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
+                        >
+                          <AlertCircle size={16} color={theme.red} style={{ marginRight: 8 }} />
+                          <Text style={styles.dangerButtonText}>Disconnect Provider</Text>
+                        </Pressable>
+                      )}
+                    </View>
+                  </>
+                );
+              })()}
             </BlurView>
           )}
           
