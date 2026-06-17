@@ -205,48 +205,55 @@ export default function SettingsScreen() {
           <View style={styles.iosGroup}>
             {activeTab === "openai" ? (
               <View style={styles.iosRow}>
-                <KeySquare size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />
-                <Text style={[styles.iosRowLabel, { flex: 0.8 }]}>API Key</Text>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#3b82f6" }]}>
+                  <KeySquare size={18} color="#fff" />
+                </View>
+                <Text style={[styles.iosRowLabel, { width: 85, fontSize: 16 }]}>API Key</Text>
                 <TextInput
                   placeholder="sk-proj-..."
                   placeholderTextColor={theme.textSecondary}
                   value={localOpenaiKey}
                   onChangeText={(txt) => { setLocalOpenaiKey(txt); setTestResult(null); }}
                   secureTextEntry
-                  style={{ flex: 1.5, fontSize: 17, color: theme.textSecondary, textAlign: "right" }}
+                  style={{ flex: 1, fontSize: 16, color: theme.textSecondary, textAlign: "right" }}
                 />
               </View>
             ) : (
               <>
-                <View style={[styles.iosRow, styles.iosRowBorder]}>
-                  <Network size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />
-                  <Text style={[styles.iosRowLabel, { flex: 0.8 }]}>Base URL</Text>
+                <View style={styles.iosRow}>
+                  <View style={[styles.iosIconContainer, { backgroundColor: "#8b5cf6" }]}>
+                    <Network size={18} color="#fff" />
+                  </View>
+                  <Text style={[styles.iosRowLabel, { width: 85, fontSize: 16 }]}>Base URL</Text>
                   <TextInput
                     placeholder="http://192.168.1.X:1234/v1"
                     placeholderTextColor={theme.textSecondary}
                     value={localCompatibleUrl}
                     onChangeText={(txt) => { setLocalCompatibleUrl(txt); setTestResult(null); }}
-                    style={{ flex: 1.5, fontSize: 17, color: theme.textSecondary, textAlign: "right" }}
+                    style={{ flex: 1, fontSize: 16, color: theme.textSecondary, textAlign: "right" }}
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
                 </View>
+                <View style={styles.iosRowBorder} />
                 <View style={styles.iosRow}>
-                  <KeySquare size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />
-                  <Text style={[styles.iosRowLabel, { flex: 0.8 }]}>API Key (Opt)</Text>
+                  <View style={[styles.iosIconContainer, { backgroundColor: "#3b82f6" }]}>
+                    <KeySquare size={18} color="#fff" />
+                  </View>
+                  <Text style={[styles.iosRowLabel, { width: 85, fontSize: 16 }]}>API Key</Text>
                   <TextInput
                     placeholder="sk-..."
                     placeholderTextColor={theme.textSecondary}
                     value={localCompatibleKey}
                     onChangeText={(txt) => { setLocalCompatibleKey(txt); setTestResult(null); }}
                     secureTextEntry
-                    style={{ flex: 1.5, fontSize: 17, color: theme.textSecondary, textAlign: "right" }}
+                    style={{ flex: 1, fontSize: 16, color: theme.textSecondary, textAlign: "right" }}
                   />
                 </View>
               </>
             )}
             
-            <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: theme.border, marginLeft: 16 }} />
+            <View style={styles.iosRowBorder} />
             
             <Pressable
               onPress={handleTestConnection}
@@ -275,25 +282,30 @@ export default function SettingsScreen() {
                 <Text style={styles.sectionTitle}>Provider Status</Text>
 
                 <View style={styles.iosGroup}>
-                  <View style={[styles.iosRow, styles.iosRowBorder]}>
-                    <Server size={18} color={isConnected ? "#10b981" : "#f59e0b"} style={{ marginRight: 12 }} />
+                  <View style={styles.iosRow}>
+                    <View style={[styles.iosIconContainer, { backgroundColor: isConnected ? "#10b981" : "#f59e0b" }]}>
+                      <Server size={18} color="#fff" />
+                    </View>
                     <Text style={[styles.iosRowLabel, { color: isConnected ? "#10b981" : "#f59e0b" }]}>
                       {isConnected ? "Connected & Active" : "Tested — Tap to activate"}
                     </Text>
                   </View>
+                  <View style={styles.iosRowBorder} />
 
                   {/* Model Selection */}
                   <Pressable
                     onPress={() => setModelPickerVisible(true)}
                     style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
                   >
-                    <Box size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />
+                    <View style={[styles.iosIconContainer, { backgroundColor: "#f59e0b" }]}>
+                      <Box size={18} color="#fff" />
+                    </View>
                     <Text style={styles.iosRowLabel}>Select Model</Text>
                     <Text style={styles.iosRowValue}>{localModel || "None"}</Text>
                     <ChevronRight size={18} color={theme.textSecondary} style={{ marginLeft: 6 }} />
                   </Pressable>
                   
-                  <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: theme.border, marginLeft: 16 }} />
+                  <View style={styles.iosRowBorder} />
 
                   {/* Action Buttons */}
                   <Pressable
@@ -307,7 +319,7 @@ export default function SettingsScreen() {
 
                   {isConnected && (
                     <>
-                      <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: theme.border, marginLeft: 16 }} />
+                      <View style={styles.iosRowBorder} />
                       <Pressable
                         onPress={handleDisconnect}
                         style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.8 }]}
@@ -337,18 +349,24 @@ export default function SettingsScreen() {
                     onPress={() => settingsStore.setTheme(tOpt)}
                     style={({ pressed }) => [
                       styles.iosRow, 
-                      idx < 2 && styles.iosRowBorder,
                       pressed && { opacity: 0.7 }
                     ]}
                   >
-                    {tOpt === "system" ? <Monitor size={18} color={theme.textSecondary} style={{ marginRight: 12 }} /> : tOpt === "dark" ? <Moon size={18} color={theme.textSecondary} style={{ marginRight: 12 }} /> : <Sun size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />}
+                    <View style={[styles.iosIconContainer, { backgroundColor: "#ec4899" }]}>
+                      {tOpt === "system" ? <Monitor size={18} color="#fff" /> : tOpt === "dark" ? <Moon size={18} color="#fff" /> : <Sun size={18} color="#fff" />}
+                    </View>
                     <Text style={styles.iosRowLabel}>
                       {tOpt === "system" ? "System" : tOpt === "dark" ? "Dark" : "Light"}
                     </Text>
                     {isActive && <Check size={18} color={theme.indigo} />}
                   </Pressable>
                 );
-              })}
+              }).reduce((acc, curr, idx, arr) => {
+                if (idx < arr.length - 1) {
+                  return [...acc, curr, <View key={`div-${idx}`} style={styles.iosRowBorder} />] as any;
+                }
+                return [...acc, curr] as any;
+              }, [])}
             </View>
           </View>
 
@@ -364,18 +382,24 @@ export default function SettingsScreen() {
                     onPress={() => settingsStore.setLanguage(lOpt)}
                     style={({ pressed }) => [
                       styles.iosRow, 
-                      idx < 3 && styles.iosRowBorder,
                       pressed && { opacity: 0.7 }
                     ]}
                   >
-                    <Globe size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />
+                    <View style={[styles.iosIconContainer, { backgroundColor: "#0ea5e9" }]}>
+                      <Globe size={18} color="#fff" />
+                    </View>
                     <Text style={styles.iosRowLabel}>
                       {lOpt === "system" ? "System Default" : lOpt === "en" ? "English" : lOpt === "pt" ? "Português" : "Español"}
                     </Text>
                     {isActive && <Check size={18} color={theme.indigo} />}
                   </Pressable>
                 );
-              })}
+              }).reduce((acc, curr, idx, arr) => {
+                if (idx < arr.length - 1) {
+                  return [...acc, curr, <View key={`div-${idx}`} style={styles.iosRowBorder} />] as any;
+                }
+                return [...acc, curr] as any;
+              }, [])}
             </View>
           </View>
 
@@ -387,7 +411,9 @@ export default function SettingsScreen() {
                 onPress={handleClearAll}
                 style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
               >
-                <Trash2 size={18} color="#ef4444" style={{ marginRight: 12 }} />
+                <View style={[styles.iosIconContainer, { backgroundColor: "#ef4444" }]}>
+                  <Trash2 size={18} color="#fff" />
+                </View>
                 <Text style={[styles.iosRowLabel, { color: "#ef4444", flex: 1 }]}>Delete All History</Text>
               </Pressable>
             </View>
@@ -632,9 +658,9 @@ const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create
     backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF",
   },
   iosRowBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: theme.border,
-    marginLeft: 16,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: theme.border,
+    marginLeft: 58,
   },
   iosIconContainer: {
     width: 28,
@@ -646,7 +672,7 @@ const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create
   },
   iosRowLabel: {
     flex: 1,
-    fontSize: 17,
+    fontSize: 16,
     color: theme.textPrimary,
   },
   iosRowValue: {
