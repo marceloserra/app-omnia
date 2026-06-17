@@ -10,6 +10,9 @@ Give users full, native-feeling control over their conversation history.
 - **Clear All History:** Added a "Danger Zone" in settings to wipe SQLite history.
 - **Search:** Added real-time text filtering for conversation titles in the Sidebar.
 - **Date Grouping:** Conversations in the Sidebar are automatically grouped by date (`Today`, `Yesterday`, `Previous 7 Days`, `Older`) with formatted timestamps (e.g., `2h ago`).
+- **Provider Status Dot:** A small, glowing green dot (or red if disconnected) appears next to the provider label in the Sidebar footer, giving the user an instant, at-a-glance connection status.
+- **Hamburger Menu wired:** `onPress` handlers for the hamburger `<Pressable>` were restored in both `index.tsx` and `chat/[conversationId].tsx` after being lost during a previous refactor.
+- **Empty State Overlay fix:** Refactored the initial screen's "What can I help with?" overlay from a `ListEmptyComponent` inside the inverted `FlatList` (which caused it to appear upside-down on Android due to `scaleY:-1` propagation) to an absolute overlay scoped inside a `flex:1` wrapper — keeping it completely outside the FlatList's transform tree.
 
 ## Key Decisions
 - **ADR-0016 (Premium Mobile UI Patterns):** We rejected swipe-to-delete (PanResponder) to avoid conflicts with Drawer gestures, opting for a FAANG-grade long-press Bottom Sheet instead. We also explicitly rejected standard OS `Alert.alert` dialogs in favor of custom-styled React Native Modals (`ConfirmDialog`) to maintain dark mode immersion.
