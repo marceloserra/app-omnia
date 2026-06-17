@@ -116,6 +116,10 @@ export default function SettingsScreen() {
   };
 
   const handleSave = () => {
+    const isSameProvider = store.activeProviderId === activeTab;
+    const prevModels = store.availableModels;
+    const prevConnected = store.isConnected;
+
     store.setActiveProvider(activeTab);
     if (activeTab === "openai") {
       store.setOpenaiApiKey(localOpenaiKey);
@@ -125,7 +129,13 @@ export default function SettingsScreen() {
       store.setCompatibleApiKey(localCompatibleKey);
       store.setCompatibleModelId(localModel);
     }
-    if (testResult?.ok) store.setConnected(true, testResult.models, undefined);
+    
+    if (testResult?.ok) {
+      store.setConnected(true, testResult.models, undefined);
+    } else if (isSameProvider && prevConnected) {
+      store.setConnected(true, prevModels, undefined);
+    }
+    
     Alert.alert("Success", "Provider settings saved and activated.");
   };
 
@@ -151,32 +161,32 @@ export default function SettingsScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.sectionTitle}>Select Provider</Text>
-          
-          {/* Segmented Control */}
+          <Text style={styles.sectionTitle}>AI Provider</Text>
+
+          {/* Provider Picker */}
           <BlurView intensity={isDark ? 20 : 60} tint={isDark ? "dark" : "light"} style={styles.segmentedControl}>
             {(["openai", "openai-compatible"] as Tab[]).map((tab) => {
               const isActive = activeTab === tab;
+              const isConnected = store.activeProviderId === tab && store.isConnected;
               return (
                 <Pressable
                   key={tab}
                   onPress={() => {
                     setActiveTab(tab);
-                    if (store.activeProviderId === tab && store.isConnected) {
-                      setTestResult({ ok: true, msg: "Connection Established", models: store.availableModels });
-                    } else {
-                      setTestResult(null);
-                    }
+                    setTestResult(store.activeProviderId === tab && store.isConnected
+                      ? { ok: true, models: store.availableModels }
+                      : null
+                    );
                     setLocalModel(tab === "openai" ? store.openaiModelId : store.compatibleModelId);
                   }}
                   style={[styles.segmentButton, isActive && styles.segmentButtonActive]}
                 >
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    {store.activeProviderId === tab && (
-                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#10b981", marginRight: 6 }} />
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    {isConnected && (
+                      <View style={styles.connectedDot} />
                     )}
                     <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
-                      {tab === "openai" ? "OpenAI" : "Local Network"}
+                      {tab === "openai" ? "OpenAI" : "Local / Custom"}
                     </Text>
                   </View>
                 </Pressable>
@@ -184,9 +194,8 @@ export default function SettingsScreen() {
             })}
           </BlurView>
 
-          <Text style={[styles.sectionTitle, { marginTop: 12 }]}>Connection Settings</Text>
-
-          {/* Configuration Box (Glassmorphism) */}
+          {/* Credentials Card */}
+          <Text style={[styles.sectionTitle, { marginTop: 4 }]}>Credentials</Text>
           <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={styles.glassCard}>
             {activeTab === "openai" ? (
               <>
@@ -214,7 +223,6 @@ export default function SettingsScreen() {
                   onChangeText={(txt) => { setLocalCompatibleUrl(txt); setTestResult(null); }}
                   containerStyle={{ marginBottom: 20 }}
                 />
-                
                 <View style={styles.inputHeader}>
                   <KeySquare size={16} color={theme.indigo} style={styles.inputHeaderIcon} />
                   <Text style={styles.inputLabel}>API Key (Optional)</Text>
@@ -235,7 +243,7 @@ export default function SettingsScreen() {
               disabled={isValidating || !isFormValid}
               style={({ pressed }) => [
                 styles.testButton,
-                (!isFormValid) && styles.testButtonDisabled,
+                !isFormValid && styles.testButtonDisabled,
                 pressed && { opacity: 0.8 }
               ]}
             >
@@ -252,99 +260,89 @@ export default function SettingsScreen() {
             </Pressable>
           </BlurView>
 
-          {/* Test Results & Model Selection */}
-          {/* Test Results & Model Selection */}
-          {(testResult || store.activeProviderId === activeTab) && (
-            <BlurView
-              intensity={isDark ? 40 : 80}
-              tint={isDark ? "dark" : "light"}
-              style={[
-                styles.resultCard,
-                testResult && { borderColor: testResult.ok ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)" }
-              ]}
-            >
-              {testResult && (
-                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: (testResult.ok || store.activeProviderId === activeTab) ? 16 : 0 }}>
-                  <View style={{ marginRight: 10 }}>
-                    {testResult.ok ? (
-                      <CheckCircle2 size={20} color="#10b981" />
-                    ) : (
-                      <AlertCircle size={20} color="#ef4444" />
-                    )}
-                  </View>
-                  <Text style={{ color: testResult.ok ? "#10b981" : "#ef4444", fontWeight: "600", fontSize: 15, flex: 1 }}>
-                    {testResult.ok ? "Connection Established" : testResult.msg}
+          {/* ── Provider Status Card – always visible when connected or tested ── */}
+          {(() => {
+            const isActiveTab = store.activeProviderId === activeTab;
+            const testOk = testResult?.ok === true;
+            const isConnected = isActiveTab && store.isConnected;
+            const showCard = testOk || isConnected;
+
+            if (!showCard) return null;
+
+            const models = testResult ? testResult.models : store.availableModels;
+
+            return (
+              <View style={{ marginTop: 20 }}>
+                <Text style={styles.sectionTitle}>Provider Status</Text>
+
+                {/* Status banner */}
+                <View style={styles.statusBanner}>
+                  <View style={[styles.statusDotLarge, { backgroundColor: isConnected ? "#10b981" : "#f59e0b" }]} />
+                  <Text style={[styles.statusBannerText, { color: isConnected ? "#10b981" : "#f59e0b" }]}>
+                    {isConnected ? "Connected & Active" : "Tested — tap Set Active to activate"}
                   </Text>
                 </View>
-              )}
 
-              {(() => {
-                const models = testResult ? testResult.models : (store.activeProviderId === activeTab ? store.availableModels : []);
-                const showActions = (testResult && testResult.ok) || store.activeProviderId === activeTab;
-                
-                if (!showActions) return null;
-
-                return (
-                  <>
-                    {models.length > 0 && (
-                      <>
-                        <Text style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 12 }}>
-                          Available models ({models.length}). Tap to select default:
-                        </Text>
-                        <View style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}>
-                          {models.slice(0, 8).map((m) => {
-                            const isSelected = localModel === m;
-                            return (
-                              <Pressable
-                                key={m}
-                                onPress={() => setLocalModel(m)}
-                                style={[
-                                  styles.modelChip,
-                                  { 
-                                    borderColor: isSelected ? theme.indigo : theme.border,
-                                    backgroundColor: isSelected ? theme.indigo : "transparent"
-                                  },
-                                  { margin: 4 }
-                                ]}
-                              >
-                                {isSelected && <Check size={14} color="#fff" style={{ marginRight: 6 }} />}
-                                <Text style={{ color: isSelected ? "#fff" : theme.textSecondary, fontSize: 13, fontWeight: "500" }}>
-                                  {m}
-                                </Text>
-                              </Pressable>
-                            );
-                          })}
-                        </View>
-                      </>
-                    )}
-                    
-                    {/* Action Buttons */}
-                    <View style={{ marginTop: 24, gap: 12 }}>
-                      <Pressable
-                        onPress={handleSave}
-                        style={({ pressed }) => [styles.activeProviderBtn, pressed && { opacity: 0.7 }]}
-                      >
-                        <CheckCircle2 size={18} color="#10b981" style={{ marginRight: 8 }} />
-                        <Text style={styles.activeProviderText}>
-                          {store.activeProviderId === activeTab ? "Provider Active (Update)" : "Set as Active Provider"}
-                        </Text>
-                      </Pressable>
-
-                      {store.activeProviderId === activeTab && (
-                        <Pressable
-                          onPress={handleDisconnect}
-                          style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
-                        >
-                          <AlertCircle size={16} color={theme.red} style={{ marginRight: 8 }} />
-                          <Text style={styles.dangerButtonText}>Disconnect Provider</Text>
-                        </Pressable>
-                      )}
+                {/* Model Selection */}
+                {models.length > 0 && (
+                  <View style={{ marginTop: 16 }}>
+                    <Text style={styles.sectionTitle}>Select Model</Text>
+                    <View style={styles.modelGrid}>
+                      {models.slice(0, 10).map((m) => {
+                        const isSelected = localModel === m;
+                        return (
+                          <Pressable
+                            key={m}
+                            onPress={() => setLocalModel(m)}
+                            style={({ pressed }) => [
+                              styles.modelChip,
+                              isSelected && styles.modelChipSelected,
+                              pressed && { opacity: 0.75 },
+                            ]}
+                          >
+                            {isSelected && (
+                              <View style={styles.modelChipCheck}>
+                                <Check size={10} color="#fff" />
+                              </View>
+                            )}
+                            <Text
+                              style={[styles.modelChipText, isSelected && styles.modelChipTextSelected]}
+                              numberOfLines={1}
+                            >
+                              {m}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
                     </View>
-                  </>
-                );
-              })()}
-            </BlurView>
-          )}
+                  </View>
+                )}
+
+                {/* Action Buttons */}
+                <View style={{ marginTop: 24, gap: 10 }}>
+                  <Pressable
+                    onPress={handleSave}
+                    style={({ pressed }) => [styles.actionBtnPrimary, pressed && { opacity: 0.8 }]}
+                  >
+                    <CheckCircle2 size={18} color="#fff" style={{ marginRight: 8 }} />
+                    <Text style={styles.actionBtnPrimaryText}>
+                      {isConnected ? "Update Active Provider" : "Set as Active Provider"}
+                    </Text>
+                  </Pressable>
+
+                  {isConnected && (
+                    <Pressable
+                      onPress={handleDisconnect}
+                      style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
+                    >
+                      <AlertCircle size={16} color={theme.red} style={{ marginRight: 8 }} />
+                      <Text style={styles.dangerButtonText}>Disconnect Provider</Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            );
+          })()}
           
           {/* Appearance Section */}
           <View style={{ marginTop: 24 }}>
@@ -518,13 +516,91 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
   },
+  modelGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
   modelChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: theme.border,
+    backgroundColor: theme.activeBg,
+    maxWidth: "48%",
+  },
+  modelChipSelected: {
+    borderColor: theme.indigo,
+    backgroundColor: `${theme.indigo}22`,
+  },
+  modelChipText: {
+    color: theme.textSecondary,
+    fontSize: 13,
+    fontWeight: "500",
+    flexShrink: 1,
+  },
+  modelChipTextSelected: {
+    color: theme.indigo,
+    fontWeight: "700",
+  },
+  modelChipCheck: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: theme.indigo,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+    flexShrink: 0,
+  },
+  statusBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.activeBg,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: theme.border,
+    gap: 10,
+  },
+  statusDotLarge: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    flexShrink: 0,
+  },
+  statusBannerText: {
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
+  },
+  connectedDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#10b981",
+  },
+  actionBtnPrimary: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.indigo,
+    paddingVertical: 16,
+    borderRadius: 16,
+    shadowColor: theme.indigo,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  actionBtnPrimaryText: {
+    color: "#ffffff",
+    fontWeight: "700",
+    fontSize: 16,
   },
   activeProviderBtn: {
     flexDirection: "row",
