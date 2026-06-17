@@ -283,7 +283,26 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
             <View style={styles.logoCircle}>
               <Sparkles size={18} color="#a5b4fc" />
             </View>
-            <Text style={styles.logoText}>Omnia AI</Text>
+            <View>
+              <Text style={styles.logoText}>Omnia AI</Text>
+              <View style={styles.providerChip}>
+                <View
+                  style={[
+                    styles.statusDot,
+                    store.activeProviderId
+                      ? styles.statusDotConnected
+                      : styles.statusDotDisconnected,
+                  ]}
+                />
+                <Text style={styles.providerChipText}>
+                  {store.activeProviderId === "openai"
+                    ? "OpenAI"
+                    : store.activeProviderId === "openai-compatible"
+                    ? "Local AI"
+                    : "No provider"}
+                </Text>
+              </View>
+            </View>
           </View>
           <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
             <X size={20} color={TEXT_SECONDARY} />
@@ -402,26 +421,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
           style={({ pressed }) => [styles.footer, pressed && { opacity: 0.7 }]}
         >
           <Settings size={19} color={TEXT_SECONDARY} style={{ marginRight: 12 }} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.footerTitle}>Settings</Text>
-            <View style={styles.footerStatusRow}>
-              <View
-                style={[
-                  styles.statusDot,
-                  store.activeProviderId
-                    ? styles.statusDotConnected
-                    : styles.statusDotDisconnected,
-                ]}
-              />
-              <Text style={styles.footerSub} numberOfLines={1}>
-                {store.activeProviderId === "openai"
-                  ? "OpenAI connected"
-                  : store.activeProviderId === "openai-compatible"
-                  ? "Local AI connected"
-                  : "No provider"}
-              </Text>
-            </View>
-          </View>
+          <Text style={styles.footerTitle}>Settings</Text>
         </Pressable>
       </Animated.View>
 
@@ -560,6 +560,17 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.3,
+  },
+  providerChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 3,
+  },
+  providerChipText: {
+    color: TEXT_SECONDARY,
+    fontSize: 11,
+    fontWeight: "500",
+    letterSpacing: 0.2,
   },
   closeBtn: {
     width: 32,
