@@ -1,126 +1,64 @@
-# Next Steps: Phase 3 → Phase 4 → Phase 5
+# Next Steps: Phase 7 (UX Polish & Advanced Chat)
 
 ## Overview
 
-This document maps the immediate implementation roadmap following Phase 2 sign-off.
-The goal is to go from a working Design System to a fully functional chat experience with real AI providers.
+Phases 1 through 6 are **officially complete**. We have successfully built the foundation:
+- Monorepo structure, tooling, and quality gates
+- Provider abstractions (OpenAI & OpenAI-Compatible Local AI)
+- Complete UI foundation with Native `StyleSheet`, `expo-blur`, and `expo-linear-gradient`
+- Local persistence using Expo SQLite
+- Streaming chat interface
+- Abstract Telemetry System (`@omnia/logger`)
+
+The goal of **Phase 7** is to elevate the UX to the absolute pinnacle of FAANG standards. As a Staff UI/UX Engineer, the baseline interface is solid, but it lacks the micro-interactions, rich text rendering, and utility features expected of a world-class AI mobile app.
 
 ---
 
-## Step 1 — Provider Settings Screen ✅ DONE (2026-06-16)
+## Step 1 — Markdown Parsing & Syntax Highlighting
 
-**Goal:** Allow the user to select a provider, enter credentials, and validate the connection on-device.
+**Goal:** The AI often returns code blocks, bold text, lists, and tables. Currently, this renders as plain text in the `MessageBubble`. We need to parse Markdown and highlight code elegantly.
 
 ### What to build
-- `apps/mobile/app/settings.tsx` — Settings screen reachable from the Stack header
-- A `ProviderSettingsCard` composed component using `Card`, `Input`, `Button`
-- A lightweight state store using **Zustand** (`packages/core` or inline in `apps/mobile/store/`)
-
-### State shape
-```ts
-interface ProviderState {
-  activeProviderId: "openai" | "openai-compatible" | null;
-  openaiApiKey: string;
-  compatibleBaseUrl: string;
-  compatibleApiKey?: string;
-  activeModelId: string | null;
-  setProvider: (id: ProviderState["activeProviderId"]) => void;
-  setOpenaiKey: (key: string) => void;
-  setCompatibleUrl: (url: string) => void;
-  setActiveModel: (modelId: string) => void;
-}
-```
-
-### Packages needed
-```bash
-pnpm --filter mobile add zustand
-```
-
-### Files to create
-- `apps/mobile/store/provider-store.ts` — Zustand store
-- `apps/mobile/app/settings.tsx` — Settings screen
-- `apps/mobile/components/ui/ProviderSettingsCard.tsx` — Composed component
-
-### Notes for agents
-- Use `packages/providers` `OpenAIProvider.validateConnection()` and `listModels()` directly
-- Do NOT persist API keys to AsyncStorage in Phase 3. Use in-memory state only (Phase 4 adds SQLite)
-- Add a settings icon `IconButton` to the Stack header of the index screen pointing to `/settings`
+- Integrate `react-native-markdown-display` or a custom parser.
+- Implement a custom code block renderer that uses a syntax highlighter.
+- Ensure the code blocks follow the Dark Indigo theme (e.g., using a customized one-dark syntax theme).
+- Add a tiny "Copy Code" button on the top right of every code block.
 
 ---
 
-## Step 2 — SQLite Persistence ✅ DONE (2026-06-16)
+## Step 2 — Micro-Interactions (Haptics)
 
-**Goal:** Persist conversations and messages locally on-device using Expo SQLite.
+**Goal:** Add tactile feedback to make the app feel "alive".
 
 ### What to build
-- `packages/storage/src/db.ts` — Database setup and migrations
-- `packages/storage/src/repositories/conversation-repo.ts` — CRUD for `Conversation`
-- `packages/storage/src/repositories/message-repo.ts` — CRUD for `Message`
-
-### Packages needed
-```bash
-pnpm --filter mobile exec expo install expo-sqlite
-```
-
-### Schema
-```sql
-CREATE TABLE conversations (
-  id TEXT PRIMARY KEY,
-  title TEXT NOT NULL,
-  system_prompt TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
-CREATE TABLE messages (
-  id TEXT PRIMARY KEY,
-  conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-  role TEXT NOT NULL CHECK(role IN ('user', 'assistant', 'system')),
-  content TEXT NOT NULL,
-  provider_id TEXT,
-  model_id TEXT,
-  prompt_tokens INTEGER,
-  completion_tokens INTEGER,
-  timestamp INTEGER NOT NULL
-);
-```
-
-### Notes for agents
-- Use the `@omnia/shared-types` domain models as the input/output types for all repo functions
-- Use `expo-sqlite` `openDatabaseSync` (synchronous API, SDK 56 compatible)
-- Add a migration version table for future schema changes
+- Integrate `expo-haptics`.
+- **Triggers:**
+  - `Haptics.selectionAsync()` when changing the active Provider Tab.
+  - `Haptics.impactAsync(Light)` when tapping "Send".
+  - `Haptics.notificationAsync(Success)` when the AI finishes streaming its response.
+  - `Haptics.notificationAsync(Error)` if the connection or stream fails.
 
 ---
 
-## Step 3 — Chat Interface ✅ DONE (2026-06-16)
+## Step 3 — Contextual Chat Actions
 
-**Goal:** A functional chat screen where the user can send messages and receive streaming AI responses.
+**Goal:** Allow users to manage their chat messages.
 
-(Implementation completed and verified).
-
----
-
-## Step 4 — AI Dev Telemetry ✅ DONE (2026-06-16)
-
-**Goal:** An abstract, reusable logging system that catches errors on the device (simulator/physical) and streams them to a local JSONL file on the host machine. This allows the AI agent to read `omnia-telemetry.jsonl` and proactively fix bugs without the user needing to copy-paste logs.
-
-### Architecture
-- `packages/logger`: A universal logger. In production, it can map to Sentry/Crashlytics. In `__DEV__`, it sends POST requests to the host machine.
-- `Telemetry Server`: A lightweight Node server running on port 8082, appending logs to `omnia-telemetry.jsonl`.
-- `Global Error Boundary`: Wraps the Expo root layout to catch unhandled JS exceptions and send them to the telemetry server.
+### What to build
+- **Copy Message:** Long-press a message bubble to copy its entire content to the clipboard.
+- **Stop Generating:** While `isStreaming` is true, the "Send" button should transform into a "Stop" (Square) button. Pressing it aborts the stream and saves the partial response to SQLite.
+- **Retry / Edit:** (Optional extension) Allow the user to tap their own message to edit and resend it, branching the conversation.
 
 ---
 
-## Step 5 — SQLite & Stream Wiring ✅ DONE (2026-06-16)
-- Connected `index.tsx` to read real DB conversations.
-- Connected `chat/[conversationId].tsx` to save history and stream live completions.
-- Both screens use `@omnia/logger` for exception capture.
+## Step 4 — Scroll & Keyboard UX Polish
+
+**Goal:** Ensure the user never loses context during long AI streams.
+
+### What to build
+- **Auto-scroll:** As the stream arrives, the `FlatList` already scrolls to the end, but if the user manually scrolls UP to read previous messages while the AI is typing, the auto-scroll should pause.
+- **Scroll to Bottom FAB:** A small floating circular button with a downward arrow that appears only when the user is scrolled up.
 
 ---
 
-## Step 6 — FAANG UI Polish ✅ DONE (2026-06-16)
-- Refactored `settings.tsx`, `index.tsx`, and `chat/[conversationId].tsx` to use `expo-blur` (glassmorphism) and `expo-linear-gradient` (vibrant actions).
-- Adjusted margins, visual hierarchy, and UX flows.
-
-> All foundation work is officially complete. Ready to proceed to next core feature sets!
-
+> By completing Phase 7, Omnia will not only be structurally robust but will feel like a flagship application on the App Store/Play Store.

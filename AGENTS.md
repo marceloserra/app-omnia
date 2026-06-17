@@ -25,24 +25,20 @@ If instructions conflict:
 
 ## Current Phase
 
-Active phase: Phase 1 foundation.
+Active phase: Phase 7 (UX Polish & Advanced Chat).
 
 Allowed work:
 
-- Monorepo foundation
-- Tooling
-- CI/CD
-- Documentation
-- Quality gates
-- Native app scaffold fixes required to launch iOS and Android
+- Markdown parsing and Code block highlighting
+- Haptic feedback (Taptic Engine)
+- Copy to clipboard & Retry message actions
+- "Stop generating" functionality
+- Auto-scroll floating button
 
-Disallowed Phase 1 work:
+Disallowed Phase 7 work:
 
-- Provider implementations
-- Provider abstraction implementation
-- SQLite persistence
-- Chat interface
-- Provider management UI
+- Provider implementations (already done)
+- SQLite persistence (already done)
 - Authentication, sync, cloud backend, MCP, agents, RAG, tool calling, plugins, voice, or workflows
 
 ## Architecture Rules
