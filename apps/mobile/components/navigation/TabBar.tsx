@@ -20,6 +20,7 @@ export function TabBar({ state, descriptors, navigation }: any) {
           <Pressable 
             onPress={() => navigation.navigate("index")} 
             style={styles.tabItem}
+            testID="tab-home"
           >
             <Home size={22} color={state.index === 0 ? theme.indigo : theme.textSecondary} strokeWidth={state.index === 0 ? 2.5 : 2} />
           </Pressable>
@@ -28,6 +29,7 @@ export function TabBar({ state, descriptors, navigation }: any) {
           <Pressable 
             onPress={() => navigation.navigate("history")} 
             style={styles.tabItem}
+            testID="tab-history"
           >
             <MessageSquare size={22} color={state.index === 1 ? theme.indigo : theme.textSecondary} strokeWidth={state.index === 1 ? 2.5 : 2} />
           </Pressable>
@@ -36,6 +38,7 @@ export function TabBar({ state, descriptors, navigation }: any) {
           <Pressable 
             onPress={() => router.push("/chat/new")}
             style={({ pressed }) => [styles.tabItem, pressed && { opacity: 0.5 }]}
+            testID="tab-new-chat"
           >
             <SquarePen size={22} color={theme.textPrimary} strokeWidth={2} />
           </Pressable>
@@ -44,6 +47,7 @@ export function TabBar({ state, descriptors, navigation }: any) {
           <Pressable 
             onPress={() => navigation.navigate("settings")} 
             style={styles.tabItem}
+            testID="tab-settings"
           >
             <Settings size={22} color={state.index === 2 ? theme.indigo : theme.textSecondary} strokeWidth={state.index === 2 ? 2.5 : 2} />
           </Pressable>

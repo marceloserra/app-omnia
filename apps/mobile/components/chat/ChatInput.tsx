@@ -100,6 +100,7 @@ export function ChatInput({
             if (onFocus) onFocus();
           }}
           onBlur={() => setIsFocused(false)}
+          testID="chat-input"
         />
 
         {/* Action button column */}
@@ -122,6 +123,7 @@ export function ChatInput({
                 pressed && canSend && { opacity: 0.8 },
               ]}
               accessibilityLabel="Send message"
+              testID="send-message-button"
             >
               <ArrowUp
                 size={20}

@@ -20,10 +20,10 @@
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
 | 1 | M1: Explorer Phase | Investigation of Jest/Babel and Detox setup | None | DONE |
-| 2 | M2: Resolve Jest | Fix React 19 & Jest setup, pass ConfirmDialog test | M1 | IN_PROGRESS (f48b1de1-9c0d-4fd4-afe2-b265f7a94c8f) |
-| 3 | M3: Detox Setup | Install and configure Detox for iOS/Android | M2 | PLANNED |
-| 4 | M4: E2E Suite | Implement chat & settings flow E2E tests | M3 | PLANNED |
-| 5 | M5: Verification | Quality Gates and Expo exports validation | M4 | PLANNED |
+| 2 | M2: Resolve Jest | Fix React 19 & Jest setup, pass ConfirmDialog test | M1 | DONE |
+| 3 | M3: Detox Setup | Install and configure Detox for iOS/Android | M2 | DONE |
+| 4 | M4: E2E Suite | Implement chat & settings flow E2E tests | M3 | DONE |
+| 5 | M5: Verification | Quality Gates and Expo exports validation | M4 | DONE |
 
 ## Interface Contracts
 ### E2E Test Hooks

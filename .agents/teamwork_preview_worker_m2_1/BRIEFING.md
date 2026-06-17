@@ -25,20 +25,25 @@ Resolve unit testing setup conflicts in apps/mobile for React 19 (Milestone 2).
 - **Code layout**: apps/mobile/components/ui/
 
 ## Key Decisions Made
-- Use actual async/await for render inside the test file.
+- Use async/await for RNTL v14 render inside the tests.
+- Add mock for react-native-reanimated in jest.setup.js.
+- Ensure react-native-reanimated and @gorhom/bottom-sheet are transpiled by Jest by updating transformIgnorePatterns.
 
 ## Artifact Index
 - /Users/marceloserra/Documents/coding/projects/app-omnia/.agents/teamwork_preview_worker_m2_1/handoff.md — Handoff report
 
 ## Change Tracker
-- **Files modified**: None
-- **Build status**: TBD
+- **Files modified**:
+  - apps/mobile/components/ui/__tests__/ConfirmDialog.test.tsx — Make test cases async for RNTL v14 render
+  - apps/mobile/jest.setup.js — Mock react-native-reanimated
+  - apps/mobile/jest.config.js — Add react-native-reanimated and @gorhom/bottom-sheet to transformIgnorePatterns
+- **Build status**: Pass
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: TBD
-- **Lint status**: TBD
-- **Tests added/modified**: None
+- **Build/test result**: Pass (all tests passed)
+- **Lint status**: Pass (empty rules configuration, tsc check passed)
+- **Tests added/modified**: Updated 3 tests in ConfirmDialog.test.tsx to use async render
 
 ## Loaded Skills
 - None

@@ -207,6 +207,7 @@ export default function SettingsScreen() {
                   onChangeText={(txt) => { setLocalOpenaiKey(txt); setTestResult(null); }}
                   secureTextEntry
                   style={{ flex: 1, fontSize: 16, color: theme.textSecondary, textAlign: "left" }}
+                  testID="openai-api-key-input"
                 />
               </View>
             ) : (
@@ -250,6 +251,7 @@ export default function SettingsScreen() {
               onPress={handleTestConnection}
               disabled={isValidating || !isFormValid}
               style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
+              testID="connect-provider-button"
             >
               <Text style={{ flex: 1, textAlign: "center", fontSize: 17, fontWeight: "600", color: !isFormValid ? theme.textSecondary : theme.indigo }}>
                 {isValidating ? "Connecting..." : "Connect"}
