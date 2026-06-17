@@ -3,6 +3,7 @@ import { View, Pressable, StyleSheet, Platform } from "react-native";
 import { BlurView } from "expo-blur";
 import { Home, MessageSquare, Settings, Plus } from "lucide-react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { router } from "expo-router";
 import { useTheme } from "../../lib/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -35,7 +36,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         {/* Action Button: New Chat */}
         <View style={styles.actionItem}>
           <Pressable 
-            onPress={() => navigation.navigate("chat/new")}
+            onPress={() => router.push("/chat/new")}
             style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.8 }]}
           >
             <LinearGradient
