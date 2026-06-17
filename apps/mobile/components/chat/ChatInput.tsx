@@ -73,25 +73,23 @@ export function ChatInput({
           style={styles.textInput}
           onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
           blurOnSubmit={false}
-          editable={true} // Always editable so it doesn't feel broken
+          editable={true}
           returnKeyType="send"
           enablesReturnKeyAutomatically
           scrollEnabled
         />
 
-        {/* Action button row */}
-        <View style={styles.actionRow}>
+        {/* Action button column */}
+        <View style={styles.actionCol}>
           {isStreaming ? (
-            // Stop button
             <Pressable
               onPress={handleStop}
               style={({ pressed }) => [styles.sendBtn, styles.stopBtn, pressed && { opacity: 0.75 }]}
               accessibilityLabel="Stop generating"
             >
-              <Square size={18} color="#f8fafc" fill="#f8fafc" />
+              <Square size={16} color="#f8fafc" fill="#f8fafc" />
             </Pressable>
           ) : (
-            // Send button — lights up when there's text
             <Pressable
               onPress={handleSendPress}
               disabled={text.trim().length === 0}
@@ -128,29 +126,31 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   inputCard: {
+    flexDirection: "row",
+    alignItems: "flex-end",
     backgroundColor: INPUT_BG,
     borderRadius: 26,
-    paddingTop: 12,
-    paddingLeft: 16,
-    paddingRight: 8,
-    paddingBottom: 8,
+    paddingTop: 8,
+    paddingLeft: 18,
+    paddingRight: 6,
+    paddingBottom: 6,
+    minHeight: 52,
   },
   textInput: {
+    flex: 1,
     color: TEXT_PRIMARY,
     fontSize: 16,
     lineHeight: 22,
     maxHeight: 140,
-    minHeight: 26,
-    paddingTop: 0,
-    paddingBottom: 0,
-    textAlignVertical: "top",
+    minHeight: 22,
+    paddingTop: 6,
+    paddingBottom: 8,
+    marginRight: 8,
+    textAlignVertical: "bottom",
   },
-  actionRow: {
-    flexDirection: "row",
+  actionCol: {
     justifyContent: "flex-end",
     alignItems: "center",
-    marginTop: 8,
-    marginBottom: 4,
   },
   sendBtn: {
     width: 44,
