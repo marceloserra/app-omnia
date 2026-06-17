@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, FlatList, Image, PanResponder } from "react-native";
-import { Check, Cpu } from "lucide-react-native";
+import { View, Text, Pressable, FlatList, Image, PanResponder, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { Check, Cpu, Search } from "lucide-react-native";
 import { ThemePalette } from "../../lib/theme";
 
 interface ModelPickerSheetProps {
@@ -54,7 +54,10 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, i
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1, backgroundColor: theme.bg }}
+    >
       <View {...panResponder.panHandlers}>
         <View style={{ alignItems: "center", paddingTop: 12, paddingBottom: 4 }}>
           <View style={{
@@ -129,6 +132,38 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, i
           }}
         />
       )}
-    </View>
+
+      {/* Bottom Search Bar (Ergonomic for large screens) */}
+      <View style={{
+        paddingHorizontal: 20,
+        paddingTop: 12,
+        paddingBottom: Platform.OS === "ios" ? 32 : 20,
+        borderTopWidth: 1,
+        borderTopColor: theme.border,
+        backgroundColor: theme.bg,
+      }}>
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+          borderRadius: 16,
+          paddingHorizontal: 16,
+          height: 48,
+        }}>
+          <Search size={18} color={theme.textSecondary} style={{ marginRight: 10 }} />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search models..."
+            placeholderTextColor={theme.textSecondary}
+            style={{
+              flex: 1,
+              color: theme.textPrimary,
+              fontSize: 16,
+            }}
+          />
+        </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }

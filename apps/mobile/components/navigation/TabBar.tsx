@@ -2,12 +2,11 @@ import React from "react";
 import { View, Pressable, StyleSheet, Platform } from "react-native";
 import { BlurView } from "expo-blur";
 import { Home, MessageSquare, Settings, SquarePen } from "lucide-react-native";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { router } from "expo-router";
 import { useTheme } from "../../lib/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function TabBar({ state, descriptors, navigation }: any) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const isDark = theme.bg === "#05050f";
