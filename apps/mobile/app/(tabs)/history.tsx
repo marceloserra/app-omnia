@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { 
-  View, Text, FlatList, Pressable, StyleSheet, TextInput, Modal, 
+  View, Text, SectionList, Pressable, StyleSheet, TextInput, Modal, 
   TouchableWithoutFeedback, Animated, Platform, KeyboardAvoidingView 
 } from "react-native";
 import { MessageSquare, Pin, Pencil, Trash2, Search, X } from "lucide-react-native";
@@ -42,6 +42,49 @@ export default function HistoryScreen() {
   const pinned = sorted.filter(c => pinnedIds.has(c.id));
   const unpinned = sorted.filter(c => !pinnedIds.has(c.id));
 
+  const getBucket = (dateMs: number) => {
+    const date = new Date(dateMs);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const last7 = new Date(today);
+    last7.setDate(last7.getDate() - 7);
+    const last30 = new Date(today);
+    last30.setDate(last30.getDate() - 30);
+
+    if (date >= today) return "Today";
+    if (date >= yesterday) return "Yesterday";
+    if (date >= last7) return "Previous 7 Days";
+    if (date >= last30) return "Previous 30 Days";
+    return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  };
+
+  const sections: { title: string, data: Conversation[] }[] = [];
+  
+  if (pinned.length > 0) {
+    sections.push({ title: "Pinned", data: pinned });
+  }
+
+  const buckets: Record<string, Conversation[]> = {};
+  unpinned.forEach(c => {
+    const bucket = getBucket(c.updatedAt);
+    if (!buckets[bucket]) buckets[bucket] = [];
+    buckets[bucket].push(c);
+  });
+
+  const bucketOrder = ["Today", "Yesterday", "Previous 7 Days", "Previous 30 Days"];
+  bucketOrder.forEach(b => {
+    if (buckets[b]) {
+      sections.push({ title: b, data: buckets[b] });
+      delete buckets[b];
+    }
+  });
+
+  Object.keys(buckets).forEach(b => {
+    sections.push({ title: b, data: buckets[b] });
+  });
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Text style={styles.headerTitle}>Chat History</Text>
@@ -62,19 +105,15 @@ export default function HistoryScreen() {
         )}
       </View>
 
-      <FlatList
-        data={[
-          ...(pinned.length > 0 ? [{ id: 'header-pinned', isHeader: true, title: "Pinned" }] : []),
-          ...pinned,
-          ...(unpinned.length > 0 ? [{ id: 'header-recent', isHeader: true, title: "Recent" }] : []),
-          ...unpinned
-        ]}
+      <SectionList
+        sections={sections}
         keyExtractor={item => item.id}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={({ section: { title } }) => (
+          <Text style={styles.groupTitle}>{title}</Text>
+        )}
         renderItem={({ item }) => {
-          if ('isHeader' in item) {
-            return <Text style={styles.groupTitle}>{item.title}</Text>;
-          }
           const conv = item as Conversation;
           const isPinned = pinnedIds.has(conv.id);
           
