@@ -77,7 +77,7 @@ export const useProviderStore = create<ProviderState>()(
     {
       name: "omnia-provider-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      // Don't persist ephemeral connection states
+      // Don't persist ephemeral validation state
       partialize: (state) => ({
         activeProviderId: state.activeProviderId,
         openaiApiKey: state.openaiApiKey,
@@ -85,6 +85,8 @@ export const useProviderStore = create<ProviderState>()(
         compatibleBaseUrl: state.compatibleBaseUrl,
         compatibleApiKey: state.compatibleApiKey,
         compatibleModelId: state.compatibleModelId,
+        isConnected: state.isConnected,
+        availableModels: state.availableModels,
       }),
     }
   )

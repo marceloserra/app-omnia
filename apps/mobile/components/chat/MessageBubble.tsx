@@ -241,6 +241,7 @@ export const MessageBubble = React.memo(({ message, isStreaming = false }: Messa
   const isUser = message.role === "user";
   const isSystem = message.role === "system";
   const isEmpty = !message.content && !isUser;
+  const isDark = theme.bg === "#05050f";
 
   const handleCopy = async () => {
     await Clipboard.setStringAsync(message.content);
@@ -268,7 +269,7 @@ export const MessageBubble = React.memo(({ message, isStreaming = false }: Messa
           colors={[theme.indigo, theme.indigo]}
           style={[styles.bubble, styles.userBubble]}
         >
-          <Text style={styles.text}>{message.content}</Text>
+          <Text style={[styles.text, { color: "#ffffff" }]}>{message.content}</Text>
           <View style={styles.metaRow}>
             {copied && <CheckCircle2 size={12} color="#fff" style={{ marginRight: 4 }} />}
             <Text style={[styles.metaText, styles.userMetaText]}>
@@ -282,7 +283,7 @@ export const MessageBubble = React.memo(({ message, isStreaming = false }: Messa
 
   return (
     <Pressable style={[styles.container, styles.assistantContainer]} onLongPress={handleCopy} delayLongPress={300}>
-      <BlurView intensity={20} tint="dark" style={[styles.bubble, styles.assistantBubble]}>
+      <BlurView intensity={isDark ? 20 : 60} tint={isDark ? "dark" : "light"} style={[styles.bubble, styles.assistantBubble]}>
         {isEmpty ? (
           <TypingIndicator />
         ) : (

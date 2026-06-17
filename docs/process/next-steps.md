@@ -1,64 +1,42 @@
-# Next Steps: Phase 7 (UX Polish & Advanced Chat)
+# Omnia Roadmap & Next Phases
 
 ## Overview
 
-Phases 1 through 6 are **officially complete**. We have successfully built the foundation:
-- Monorepo structure, tooling, and quality gates
-- Provider abstractions (OpenAI & OpenAI-Compatible Local AI)
-- Complete UI foundation with Native `StyleSheet`, `expo-blur`, and `expo-linear-gradient`
-- Local persistence using Expo SQLite
-- Streaming chat interface
-- Abstract Telemetry System (`@omnia/logger`)
+The Foundation Phases (1 through 9) are **officially complete**. We have successfully built the core application, ensuring extreme stability and FAANG-level UX:
+- **UI/UX Finalized:** Glassmorphism, Dark/Light reactive themes, native Android keyboard physics, and Sidebar Modal navigation.
+- **Data Layer:** SQLite persistence with array-bound varargs for native crash prevention.
+- **Release Engineering:** GitHub Actions pipeline generating automated APKs and SHA256 checksums.
 
-The goal of **Phase 7** is to elevate the UX to the absolute pinnacle of FAANG standards. As a Staff UI/UX Engineer, the baseline interface is solid, but it lacks the micro-interactions, rich text rendering, and utility features expected of a world-class AI mobile app.
+We are currently cutting the **v1.0.0 Stable** release. The current codebase requires NO further UI or architectural refactoring.
 
 ---
 
-## Step 1 — Markdown Parsing & Syntax Highlighting ✅ DONE (2026-06-16)
+## 🚫 UI/UX Code Freeze
+**IMPORTANT:** The user has explicitly mandated a freeze on UI/UX refactoring.
+*"Nosso foco e somente finalizar a UI e lancar a stable agr"*
 
-**Goal:** The AI often returns code blocks, bold text, lists, and tables. Currently, this renders as plain text in the `MessageBubble`. We need to parse Markdown and highlight code elegantly.
-
-### What to build
-- Integrate `react-native-markdown-display` or a custom parser.
-- Implement a custom code block renderer that uses a syntax highlighter.
-- Ensure the code blocks follow the Dark Indigo theme (e.g., using a customized one-dark syntax theme).
-- Add a tiny "Copy Code" button on the top right of every code block.
+Do not suggest, build, or implement any further visual design changes unless specifically requested to fix a critical bug.
 
 ---
 
-## Step 2 — Micro-Interactions (Haptics) ✅ DONE (2026-06-16)
+## Future Scope (Post v1.0.0 Stable)
 
-**Goal:** Add tactile feedback to make the app feel "alive".
+Once `v1.0.0` is published and verified on physical devices, the project will transition from a traditional chat application into an **Agentic AI Assistant**.
 
-### What to build
-- Integrate `expo-haptics`.
-- **Triggers:**
-  - `Haptics.selectionAsync()` when changing the active Provider Tab.
-  - `Haptics.impactAsync(Light)` when tapping "Send".
-  - `Haptics.notificationAsync(Success)` when the AI finishes streaming its response.
-  - `Haptics.notificationAsync(Error)` if the connection or stream fails.
+### Phase 10: Retrieval-Augmented Generation (RAG)
+- **Goal:** Allow users to upload PDFs, text files, and images.
+- **Tech:** `@omnia/rag` package with local embeddings generation (Xenova/transformers.js) or relying on OpenAI embeddings, plus a local vector search implementation (SQLite `vss` or pure JS cosine similarity).
 
----
+### Phase 11: WebFetch & Browsing
+- **Goal:** Enable the LLM to search the web and scrape real-time data.
+- **Tech:** Tool calling interfaces to execute proxy-based or native HTTPS requests to fetch webpage content and summarize it.
 
-## Step 3 — Contextual Chat Actions ✅ DONE (2026-06-16)
+### Phase 12: Model Context Protocol (MCP)
+- **Goal:** Full Agentic execution via MCP tools.
+- **Tech:** Implement native MCP clients so the local or remote LLM can execute device actions (Calendar, Contacts, filesystem).
 
-**Goal:** Allow users to manage their chat messages.
+### Phase 13: Voice & Speech-to-Text
+- **Goal:** Hands-free interaction.
+- **Tech:** Expo Audio, Whisper (local or remote), and TTS engine.
 
-### What to build
-- **Copy Message:** Long-press a message bubble to copy its entire content to the clipboard.
-- **Stop Generating:** While `isStreaming` is true, the "Send" button should transform into a "Stop" (Square) button. Pressing it aborts the stream and saves the partial response to SQLite.
-- **Retry / Edit:** (Optional extension) Allow the user to tap their own message to edit and resend it, branching the conversation.
-
----
-
-## Step 4 — Scroll & Keyboard UX Polish ✅ DONE (2026-06-16)
-
-**Goal:** Ensure the user never loses context during long AI streams.
-
-### What to build
-- **Auto-scroll:** As the stream arrives, the `FlatList` already scrolls to the end, but if the user manually scrolls UP to read previous messages while the AI is typing, the auto-scroll should pause.
-- **Scroll to Bottom FAB:** A small floating circular button with a downward arrow that appears only when the user is scrolled up.
-
----
-
-> By completing Phase 7, Omnia will not only be structurally robust but will feel like a flagship application on the App Store/Play Store.
+> **Status:** All future phases are currently PENDING. Do not begin implementation until the user explicitly dictates the start of Phase 10.
