@@ -205,3 +205,15 @@ This document serves as a centralized knowledge base for critical errors encount
   - The input container MUST be a `flex-row` with `alignItems: "flex-end"`.
   - The `TextInput` must have a `minHeight` perfectly matching the action button `height` (e.g. 34px) so that when single-line, the button and text are perfectly centered vertically.
   - DO NOT stack the text and the button vertically. Doing so breaks the Apple/ChatGPT standard of chat inputs.
+
+### Issue 11: Android Complete Layout Collapse (NativeWind `gap` & `className` interception)
+- **Symptom:** On Android, screens suddenly lose all flexbox structure (components collapse to the top-left, margins and gaps are ignored) after updating dependencies or removing `react-native-reanimated`. Metro throws `Cannot find module 'nativewind/metro'`.
+- **Root Cause:**
+  - NativeWind v4 heavily hooks into `babel.config.js` (`jsxImportSource: "nativewind"`) and `metro.config.js`. 
+  - When its underlying C++ dependencies (like Reanimated) are removed to fix iOS build issues, NativeWind's Babel transformer silently crashes on Android, discarding React Native style objects entirely.
+  - Using `gap` in Flexbox layouts is also notoriously flaky on older Android SDKs.
+- **Solution (Mandatory Rule for Agents):**
+  - **NATIVEWIND IS PERMANENTLY BANNED FROM THIS PROJECT.**
+  - All styling MUST be done using React Native's standard `StyleSheet.create`.
+  - Do NOT use `className` anywhere in the `apps/mobile` directory.
+  - Do NOT use flexbox `gap`. Use explicit `marginLeft`, `marginRight`, `marginTop`, `marginBottom`, and `padding` to separate elements.
