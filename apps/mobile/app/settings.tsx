@@ -282,7 +282,10 @@ export default function SettingsScreen() {
                           onPress={() => setLocalModel(m)}
                           style={[
                             styles.modelChip,
-                            { borderColor: isSelected ? theme.indigo : "rgba(255,255,255,0.08)" },
+                            { 
+                              borderColor: isSelected ? theme.indigo : theme.border,
+                              backgroundColor: isSelected ? theme.indigo : "transparent"
+                            },
                             { margin: 4 }
                           ]}
                         >

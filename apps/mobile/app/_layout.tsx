@@ -3,9 +3,6 @@ import { StatusBar } from "expo-status-bar";
 import { logger } from "@omnia/logger";
 import { useEffect } from "react";
 
-const HEADER_BG = "#05050f";
-const HEADER_TEXT = "#f0efff";
-
 // Catch global JS crashes
 const g = global as any;
 const originalHandler = g.ErrorUtils?.getGlobalHandler?.();
@@ -24,20 +21,24 @@ export function ErrorBoundary(props: { error: Error; retry: () => void }) {
   return null;
 }
 
+import { useTheme } from "../lib/theme";
+
 export default function RootLayout() {
+  const theme = useTheme();
+
   useEffect(() => {
     logger.info("App", "Omnia App Launched (Telemetry Active)");
   }, []);
 
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style={theme.bg === "#05050f" ? "light" : "dark"} />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: HEADER_BG },
-          headerTintColor: HEADER_TEXT,
+          headerStyle: { backgroundColor: theme.surface },
+          headerTintColor: theme.textPrimary,
           headerShadowVisible: false,
-          contentStyle: { backgroundColor: HEADER_BG },
+          contentStyle: { backgroundColor: theme.bg },
         }}
       >
         {/* Home = new chat screen with custom header */}
