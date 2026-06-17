@@ -103,8 +103,8 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
       PanResponder.create({
         onStartShouldSetPanResponder: () => false,
         onMoveShouldSetPanResponder: (_, gestureState) => {
-          // Capture horizontal swipes to the left
-          return gestureState.dx < -10 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+          // Capture horizontal swipes to the left. Increased threshold to avoid stealing sloppy vertical scrolls or sloppy taps.
+          return gestureState.dx < -30 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5;
         },
         onPanResponderMove: (_, gestureState) => {
           if (gestureState.dx < 0) {
@@ -206,11 +206,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
   const handleOpenChat = (id: string) => {
     onClose();
-    if (pathname.startsWith("/chat/")) {
-      router.setParams({ conversationId: id });
-    } else {
-      router.replace(`/chat/${id}`);
-    }
+    router.replace(`/chat/${id}`);
   };
 
   const handleSettings = () => {
@@ -432,7 +428,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
                       key={conv.id}
                       onPress={() => !isRenaming && handleOpenChat(conv.id)}
                       onLongPress={() => !isRenaming && openContextMenu(conv)}
-                      delayLongPress={400}
+                      delayLongPress={600}
                       style={({ pressed }) => [
                         styles.convItem,
                         isPinned && styles.convItemPinned,
