@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, FlatList, Image, TextInput, KeyboardAvoidingView, Platform } from "react-native";
-import { Check, Cpu, Search } from "lucide-react-native";
+import { View, Text, Pressable, FlatList, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { Search, Check, Cpu, Brain, Bot, Sparkles } from "lucide-react-native";
 import { ThemePalette } from "../../lib/theme";
 
 interface ModelPickerSheetProps {
@@ -12,27 +12,12 @@ interface ModelPickerSheetProps {
   isDark: boolean;
 }
 
-const getModelIcon = (modelName: string) => {
-  const name = modelName.toLowerCase();
-  if (name.includes("gpt") || name.includes("openai")) {
-    return "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/512px-ChatGPT_logo.svg.png";
-  }
-  if (name.includes("llama") || name.includes("meta")) {
-    return "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Meta_Platforms_Inc._logo.svg/256px-Meta_Platforms_Inc._logo.svg.png";
-  }
-  if (name.includes("mistral") || name.includes("mixtral")) {
-    return "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Mistral_AI_logo.svg/256px-Mistral_AI_logo.svg.png";
-  }
-  if (name.includes("gemma") || name.includes("gemini") || name.includes("google")) {
-    return "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/256px-Google_%22G%22_logo.svg.png";
-  }
-  if (name.includes("claude") || name.includes("anthropic")) {
-    return "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Anthropic.png/256px-Anthropic.png";
-  }
-  if (name.includes("qwen")) {
-    return "https://images.opencollective.com/qwen/3cc2b6d/logo/256.png";
-  }
-  return null;
+const getModelIcon = (name: string) => {
+  const n = name.toLowerCase();
+  if (n.includes("gpt") || n.includes("openai")) return <Brain size={18} color="#333" />;
+  if (n.includes("claude") || n.includes("anthropic")) return <Sparkles size={18} color="#333" />;
+  if (n.includes("llama") || n.includes("meta")) return <Bot size={18} color="#333" />;
+  return <Cpu size={18} color="#333" />;
 };
 
 export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, isDark }: ModelPickerSheetProps) {
@@ -80,11 +65,7 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, i
                   alignItems: "center", justifyContent: "center", marginRight: 12,
                   shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2
                 }}>
-                  {getModelIcon(item) ? (
-                    <Image source={{ uri: getModelIcon(item) as string }} style={{ width: 20, height: 20 }} resizeMode="contain" />
-                  ) : (
-                    <Cpu size={18} color="#333" />
-                  )}
+                  {getModelIcon(item)}
                 </View>
                 <Text
                   style={{

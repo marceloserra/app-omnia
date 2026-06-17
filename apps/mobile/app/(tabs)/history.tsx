@@ -146,7 +146,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     backgroundColor: theme.bg,
   },
   headerTitle: {
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: "800",
     color: theme.textPrimary,
     letterSpacing: 0.5,

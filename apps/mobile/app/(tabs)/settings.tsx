@@ -17,7 +17,7 @@ import { router } from "expo-router";
 import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
 import { Input } from "../../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
-import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X } from "lucide-react-native";
+import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe } from "lucide-react-native";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
@@ -205,6 +205,7 @@ export default function SettingsScreen() {
           <View style={styles.iosGroup}>
             {activeTab === "openai" ? (
               <View style={styles.iosRow}>
+                <KeySquare size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />
                 <Text style={[styles.iosRowLabel, { flex: 0.8 }]}>API Key</Text>
                 <TextInput
                   placeholder="sk-proj-..."
@@ -218,6 +219,7 @@ export default function SettingsScreen() {
             ) : (
               <>
                 <View style={[styles.iosRow, styles.iosRowBorder]}>
+                  <Network size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />
                   <Text style={[styles.iosRowLabel, { flex: 0.8 }]}>Base URL</Text>
                   <TextInput
                     placeholder="http://192.168.1.X:1234/v1"
@@ -230,6 +232,7 @@ export default function SettingsScreen() {
                   />
                 </View>
                 <View style={styles.iosRow}>
+                  <KeySquare size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />
                   <Text style={[styles.iosRowLabel, { flex: 0.8 }]}>API Key (Opt)</Text>
                   <TextInput
                     placeholder="sk-..."
@@ -273,6 +276,7 @@ export default function SettingsScreen() {
 
                 <View style={styles.iosGroup}>
                   <View style={[styles.iosRow, styles.iosRowBorder]}>
+                    <Server size={18} color={isConnected ? "#10b981" : "#f59e0b"} style={{ marginRight: 12 }} />
                     <Text style={[styles.iosRowLabel, { color: isConnected ? "#10b981" : "#f59e0b" }]}>
                       {isConnected ? "Connected & Active" : "Tested — Tap to activate"}
                     </Text>
@@ -283,6 +287,7 @@ export default function SettingsScreen() {
                     onPress={() => setModelPickerVisible(true)}
                     style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
                   >
+                    <Box size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />
                     <Text style={styles.iosRowLabel}>Select Model</Text>
                     <Text style={styles.iosRowValue}>{localModel || "None"}</Text>
                     <ChevronRight size={18} color={theme.textSecondary} style={{ marginLeft: 6 }} />
@@ -336,6 +341,7 @@ export default function SettingsScreen() {
                       pressed && { opacity: 0.7 }
                     ]}
                   >
+                    {tOpt === "system" ? <Monitor size={18} color={theme.textSecondary} style={{ marginRight: 12 }} /> : tOpt === "dark" ? <Moon size={18} color={theme.textSecondary} style={{ marginRight: 12 }} /> : <Sun size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />}
                     <Text style={styles.iosRowLabel}>
                       {tOpt === "system" ? "System" : tOpt === "dark" ? "Dark" : "Light"}
                     </Text>
@@ -362,6 +368,7 @@ export default function SettingsScreen() {
                       pressed && { opacity: 0.7 }
                     ]}
                   >
+                    <Globe size={18} color={theme.textSecondary} style={{ marginRight: 12 }} />
                     <Text style={styles.iosRowLabel}>
                       {lOpt === "system" ? "System Default" : lOpt === "en" ? "English" : lOpt === "pt" ? "Português" : "Español"}
                     </Text>
@@ -380,7 +387,8 @@ export default function SettingsScreen() {
                 onPress={handleClearAll}
                 style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
               >
-                <Text style={[styles.iosRowLabel, { color: "#ef4444", textAlign: "center" }]}>Delete All History</Text>
+                <Trash2 size={18} color="#ef4444" style={{ marginRight: 12 }} />
+                <Text style={[styles.iosRowLabel, { color: "#ef4444", flex: 1 }]}>Delete All History</Text>
               </Pressable>
             </View>
           </View>
@@ -427,7 +435,7 @@ export default function SettingsScreen() {
 
 const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create({
   largeTitle: {
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: "800",
     color: theme.textPrimary,
     letterSpacing: 0.5,
