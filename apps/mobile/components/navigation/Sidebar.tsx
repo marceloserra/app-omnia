@@ -95,6 +95,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const drawerScaleAnim = useRef(new Animated.Value(0.98)).current;
   const sheetSlideAnim = useRef(new Animated.Value(400)).current;
   const sheetFadeAnim = useRef(new Animated.Value(0)).current;
   const renameRefs = useRef<Record<string, TextInput | null>>({});
@@ -132,16 +133,18 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   React.useEffect(() => {
     if (visible) {
       Animated.parallel([
-        Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 80, friction: 12 }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 70, friction: 14 }),
+        Animated.spring(drawerScaleAnim, { toValue: 1, useNativeDriver: true, tension: 70, friction: 14 }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
         Animated.timing(slideAnim, { toValue: -DRAWER_WIDTH, duration: 220, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(drawerScaleAnim, { toValue: 0.98, duration: 220, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
       ]).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim, drawerScaleAnim, fadeAnim]);
 
   // Animate bottom sheet open
   React.useEffect(() => {
@@ -305,7 +308,15 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
       {/* Drawer panel */}
       <Animated.View 
-        style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}
+        style={[
+          styles.drawer, 
+          { 
+            transform: [
+              { translateX: slideAnim },
+              { scale: drawerScaleAnim }
+            ] 
+          }
+        ]}
         {...panResponder.panHandlers}
       >
 
