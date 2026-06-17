@@ -2,7 +2,7 @@
 
 <p align="center">
   <img
-    src="apps/mobile/assets/icon.png"
+    src="./apps/mobile/assets/icon.png"
     alt="Omnia icon"
     width="96"
     height="96"
