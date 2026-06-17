@@ -41,6 +41,34 @@ const en = {
   "home.suggestion.trip.prompt": "Create a 2-day weekend itinerary for a relaxing trip to the mountains. Include activities and meal ideas.",
   "home.suggestion.app.title": "Brainstorm app ideas",
   "home.suggestion.app.prompt": "Give me 5 innovative mobile app ideas that combine artificial intelligence with personal productivity.",
+
+  // New UI Strings
+  "home.greeting.subtitle": "How can I help you today?",
+  "home.empty.subtitle": "Connect an AI provider to start chatting",
+  "home.empty.cta": "Configure AI Provider",
+
+  "chat.empty.connected": "Connected to {model}. Start typing below.",
+  "chat.empty.noprovider": "You need an AI provider to start chatting.",
+  "chat.empty.cta": "Configure Provider",
+  "chat.error.disconnected": "Provider Disconnected",
+  "chat.error.reconnect": "Reconnect",
+
+  "chat.input.disabled": "No provider connected",
+  "chat.input.hint": "Omnia can make mistakes. Check important info.",
+  "chat.input.attach.title": "Coming Soon",
+  "chat.input.attach.msg": "File attachments will be available in Phase 11.",
+
+  "settings.model.select": "Select Model",
+  "settings.model.none": "None",
+  "settings.model.nomatch": "No models match",
+  "settings.provider.update": "Update Active Provider",
+  "settings.provider.set": "Set as Active Provider",
+  "settings.provider.disconnect": "Disconnect Provider",
+  
+  "settings.data.title": "Data Management",
+  "settings.data.deleteall": "Delete All History",
+  "settings.data.confirm.title": "Clear All History",
+  "settings.data.confirm.msg": "Are you sure you want to permanently delete all conversations and messages? This cannot be undone.",
 };
 
 const pt: typeof en = {
@@ -79,6 +107,33 @@ const pt: typeof en = {
   "home.suggestion.trip.prompt": "Crie um roteiro de fim de semana de 2 dias para uma viagem relaxante nas montanhas. Inclua atividades e refeições.",
   "home.suggestion.app.title": "Ideias de aplicativos",
   "home.suggestion.app.prompt": "Me dê 5 ideias inovadoras de aplicativos mobile que combinam inteligência artificial com produtividade pessoal.",
+
+  "home.greeting.subtitle": "Como posso ajudar você hoje?",
+  "home.empty.subtitle": "Conecte um provedor de IA para começar a conversar",
+  "home.empty.cta": "Configurar Provedor de IA",
+
+  "chat.empty.connected": "Conectado a {model}. Comece a digitar abaixo.",
+  "chat.empty.noprovider": "Você precisa de um provedor de IA para conversar.",
+  "chat.empty.cta": "Configurar Provedor",
+  "chat.error.disconnected": "Provedor Desconectado",
+  "chat.error.reconnect": "Reconectar",
+
+  "chat.input.disabled": "Nenhum provedor conectado",
+  "chat.input.hint": "Omnia pode cometer erros. Verifique informações importantes.",
+  "chat.input.attach.title": "Em Breve",
+  "chat.input.attach.msg": "Anexos de arquivos estarão disponíveis na Fase 11.",
+
+  "settings.model.select": "Selecionar Modelo",
+  "settings.model.none": "Nenhum",
+  "settings.model.nomatch": "Nenhum modelo encontrado",
+  "settings.provider.update": "Atualizar Provedor Ativo",
+  "settings.provider.set": "Definir como Provedor Ativo",
+  "settings.provider.disconnect": "Desconectar Provedor",
+
+  "settings.data.title": "Gerenciamento de Dados",
+  "settings.data.deleteall": "Apagar Todo o Histórico",
+  "settings.data.confirm.title": "Limpar Todo o Histórico",
+  "settings.data.confirm.msg": "Tem certeza que deseja apagar permanentemente todas as conversas e mensagens? Isso não pode ser desfeito.",
 };
 
 const es: typeof en = {
@@ -117,6 +172,33 @@ const es: typeof en = {
   "home.suggestion.trip.prompt": "Crea un itinerario de fin de semana de 2 días para un viaje relajante a las montañas. Incluye actividades y comidas.",
   "home.suggestion.app.title": "Ideas de aplicaciones",
   "home.suggestion.app.prompt": "Dame 5 ideas innovadoras de aplicaciones móviles que combinen inteligencia artificial con productividad personal.",
+
+  "home.greeting.subtitle": "¿Cómo puedo ayudarte hoy?",
+  "home.empty.subtitle": "Conecta un proveedor de IA para empezar a chatear",
+  "home.empty.cta": "Configurar Proveedor de IA",
+
+  "chat.empty.connected": "Conectado a {model}. Empieza a escribir abajo.",
+  "chat.empty.noprovider": "Necesitas un proveedor de IA para chatear.",
+  "chat.empty.cta": "Configurar Proveedor",
+  "chat.error.disconnected": "Proveedor Desconectado",
+  "chat.error.reconnect": "Reconectar",
+
+  "chat.input.disabled": "Ningún proveedor conectado",
+  "chat.input.hint": "Omnia puede cometer errores. Verifica la información importante.",
+  "chat.input.attach.title": "Próximamente",
+  "chat.input.attach.msg": "Los archivos adjuntos estarán disponibles en la Fase 11.",
+
+  "settings.model.select": "Seleccionar Modelo",
+  "settings.model.none": "Ninguno",
+  "settings.model.nomatch": "No hay modelos coincidentes",
+  "settings.provider.update": "Actualizar Proveedor Activo",
+  "settings.provider.set": "Establecer como Proveedor Activo",
+  "settings.provider.disconnect": "Desconectar Proveedor",
+
+  "settings.data.title": "Gestión de Datos",
+  "settings.data.deleteall": "Borrar Todo el Historial",
+  "settings.data.confirm.title": "Limpiar Todo el Historial",
+  "settings.data.confirm.msg": "¿Estás seguro de que deseas eliminar permanentemente todas las conversaciones y mensajes? Esto no se puede deshacer.",
 };
 
 const dictionaries = { en, pt, es };

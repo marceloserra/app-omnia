@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, Pressable, FlatList, TextInput, KeyboardAvoidingView, Platform, Image, PanResponder, Animated, Modal, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Search, X, Check, Cpu, Brain, Bot, Sparkles, Zap, Wind, Globe } from "lucide-react-native";
+import { Search, X, Check, Cpu } from "lucide-react-native";
 import { ThemePalette } from "../../lib/theme";
+import { useTranslation } from "../../lib/i18n";
 
 interface ModelPickerSheetProps {
   models: string[];
@@ -29,6 +30,7 @@ export const getModelIcon = (name: string, overrideSize?: number) => {
 export function ModelPickerSheet({ models, selected, onSelect, onClose, visible, theme, isDark }: ModelPickerSheetProps) {
   const [search, setSearch] = useState("");
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const filtered = models.filter((m) => m.toLowerCase().includes(search.toLowerCase()));
   
   const panY = React.useRef(new Animated.Value(0)).current;
@@ -90,11 +92,11 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, visible,
               {...panResponder.panHandlers}
             >
               <View style={{ width: 40, height: 4, backgroundColor: theme.border, borderRadius: 2, alignSelf: "center", marginBottom: 16 }} />
-              <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: "700" }}>Select Model</Text>
+              <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: "700" }}>{t("settings.model.select")}</Text>
             </View>
       {filtered.length === 0 ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingBottom: 60 }}>
-          <Text style={{ color: theme.textSecondary, fontSize: 15 }}>No models match</Text>
+          <Text style={{ color: theme.textSecondary, fontSize: 15 }}>{t("settings.model.nomatch")}</Text>
         </View>
       ) : (
         <FlatList

@@ -274,9 +274,9 @@ export default function ChatScreen() {
         {noProvider && messages.length > 0 && (
           <View style={{ position: 'absolute', top: insets.top + 60, left: 0, right: 0, alignItems: 'center', zIndex: 5 }} pointerEvents="box-none">
             <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: theme.red, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, shadowColor: theme.red, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
-              <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "600", marginRight: 12 }}>Provider Disconnected</Text>
+              <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "600", marginRight: 12 }}>{t("chat.error.disconnected")}</Text>
               <Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [{ backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }, pressed && { opacity: 0.7 }]}>
-                <Text style={{ color: "#ffffff", fontSize: 12, fontWeight: "700" }}>Reconnect</Text>
+                <Text style={{ color: "#ffffff", fontSize: 12, fontWeight: "700" }}>{t("chat.error.reconnect")}</Text>
               </Pressable>
             </View>
           </View>
@@ -319,18 +319,18 @@ export default function ChatScreen() {
                   {getModelIcon(activeModelId, 48)}
                 </View>
                 <Text style={styles.emptyTitle}>Omnia · {store.activeProviderId === "openai" ? "OpenAI" : "Local"}</Text>
-                <Text style={styles.emptySubtitle}>Connected to {activeModelId}. Start typing below.</Text>
+                <Text style={styles.emptySubtitle}>{t("chat.empty.connected").replace("{model}", activeModelId)}</Text>
 
                 {noProvider && (
                   <View style={{ alignItems: "center", marginTop: 24 }}>
                     <Text style={styles.emptySubtitle}>
-                      You need an AI provider to start chatting.
+                      {t("chat.empty.noprovider")}
                     </Text>
                     <Pressable
                       onPress={() => router.push("/settings")}
                       style={({ pressed }) => [styles.providerConfigBtn, pressed && { opacity: 0.8 }]}
                     >
-                      <Text style={styles.providerConfigText}>Configure Provider</Text>
+                      <Text style={styles.providerConfigText}>{t("chat.empty.cta")}</Text>
                     </Pressable>
                   </View>
                 )}

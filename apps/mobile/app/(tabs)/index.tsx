@@ -78,9 +78,9 @@ export default function HomeDashboard() {
           </View>
           <Text style={styles.greeting}>{getGreeting()}</Text>
           {store.activeProviderId ? (
-            <Text style={styles.subtitle}>How can I help you today?</Text>
+            <Text style={styles.subtitle}>{t("home.greeting.subtitle")}</Text>
           ) : (
-            <Text style={styles.subtitle}>Connect an AI provider to start chatting</Text>
+            <Text style={styles.subtitle}>{t("home.empty.subtitle")}</Text>
           )}
         </View>
 
@@ -118,7 +118,7 @@ export default function HomeDashboard() {
               }, pressed && { opacity: 0.8 }]}
             >
               <Zap size={18} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}>Configure AI Provider</Text>
+              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}>{t("home.empty.cta")}</Text>
             </Pressable>
           </View>
         )}

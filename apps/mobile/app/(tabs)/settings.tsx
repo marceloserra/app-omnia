@@ -300,8 +300,8 @@ export default function SettingsScreen() {
                     <View style={[styles.iosIconContainer, { backgroundColor: "#f59e0b" }]}>
                       <Box size={18} color="#fff" />
                     </View>
-                    <Text style={styles.iosRowLabel}>Select Model</Text>
-                    <Text style={styles.iosRowValue} numberOfLines={1} ellipsizeMode="tail">{localModel || "None"}</Text>
+                    <Text style={styles.iosRowLabel}>{t("settings.model.select")}</Text>
+                    <Text style={styles.iosRowValue} numberOfLines={1} ellipsizeMode="tail">{localModel || t("settings.model.none")}</Text>
                     <ChevronRight size={18} color={theme.textSecondary} style={{ marginLeft: 6 }} />
                   </Pressable>
                   
@@ -313,7 +313,7 @@ export default function SettingsScreen() {
                     style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.8 }]}
                   >
                     <Text style={{ flex: 1, textAlign: "center", fontSize: 17, fontWeight: "600", color: "#10b981" }}>
-                      {isConnected ? "Update Active Provider" : "Set as Active Provider"}
+                      {isConnected ? t("settings.provider.update") : t("settings.provider.set")}
                     </Text>
                   </Pressable>
 
@@ -325,7 +325,7 @@ export default function SettingsScreen() {
                         style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.8 }]}
                       >
                         <Text style={{ flex: 1, textAlign: "center", fontSize: 17, color: "#ef4444" }}>
-                          Disconnect Provider
+                          {t("settings.provider.disconnect")}
                         </Text>
                       </Pressable>
                     </>
@@ -404,8 +404,8 @@ export default function SettingsScreen() {
           </View>
 
           {/* Data Management */}
-          <View style={{ marginTop: 32, marginBottom: 20 }}>
-            <Text style={styles.sectionTitle}>Data Management</Text>
+          <View style={{ marginTop: 32, marginBottom: 40 }}>
+            <Text style={styles.sectionTitle}>{t("settings.data.title")}</Text>
             <View style={styles.iosGroup}>
               <Pressable
                 onPress={handleClearAll}
@@ -414,7 +414,7 @@ export default function SettingsScreen() {
                 <View style={[styles.iosIconContainer, { backgroundColor: "#ef4444" }]}>
                   <Trash2 size={18} color="#fff" />
                 </View>
-                <Text style={[styles.iosRowLabel, { color: "#ef4444", flex: 1 }]}>Delete All History</Text>
+                <Text style={[styles.iosRowLabel, { color: "#ef4444", flex: 1 }]}>{t("settings.data.deleteall")}</Text>
               </Pressable>
             </View>
           </View>
@@ -426,9 +426,9 @@ export default function SettingsScreen() {
 
       <ConfirmDialog
         visible={showClearConfirm}
-        title="Clear All History"
-        message="Are you sure you want to permanently delete all conversations and messages? This cannot be undone."
-        confirmText="Delete All"
+        title={t("settings.data.confirm.title")}
+        message={t("settings.data.confirm.msg")}
+        confirmText={t("chat.delete.confirm")}
         onCancel={() => setShowClearConfirm(false)}
         onConfirm={confirmClearAll}
       />

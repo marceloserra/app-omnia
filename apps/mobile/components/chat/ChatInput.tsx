@@ -12,8 +12,9 @@ import {
 import { ArrowUp, Square, Plus } from "lucide-react-native";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
+import { useTranslation } from "../../lib/i18n";
 
-interface ChatInputProps {
+export interface ChatInputProps {
   onSend: (text: string) => void;
   onStop?: () => void;
   onPressDisabled?: () => void;
@@ -34,6 +35,7 @@ export function ChatInput({
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
+  const { t } = useTranslation();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
 
   const canSend = text.trim().length > 0 && !disabled;
@@ -61,7 +63,7 @@ export function ChatInput({
       {/* The pill-shaped input card */}
       <View style={[styles.inputCard, isFocused && styles.inputCardFocused]}>
         <Pressable 
-          onPress={() => Alert.alert("Coming Soon", "File attachments will be available in Phase 11.")}
+          onPress={() => Alert.alert(t("chat.input.attach.title"), t("chat.input.attach.msg"))}
           style={({ pressed }) => [styles.attachBtn, pressed && { opacity: 0.6 }]}
         >
           <Plus size={24} color={theme.textSecondary} />
@@ -72,7 +74,7 @@ export function ChatInput({
           ref={inputRef}
           value={text}
           onChangeText={setText}
-          placeholder="Message Omnia…"
+          placeholder={t("chat.input.placeholder")}
           placeholderTextColor={theme.textMuted}
           multiline
           maxLength={4000}
@@ -123,7 +125,7 @@ export function ChatInput({
 
       {/* Tiny hint */}
       <Text style={styles.hint}>
-        {disabled ? "No provider connected" : "Omnia can make mistakes. Check important info."}
+        {disabled ? t("chat.input.disabled") : t("chat.input.hint")}
       </Text>
     </View>
   );
