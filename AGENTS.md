@@ -25,26 +25,22 @@ If instructions conflict:
 
 ## Current Phase
 
-Active phase: **Phase 8 ACTIVE**
+Active phase: **Phase 9 ACTIVE**
 
-### Phase 8 — Conversation Management (In Progress)
+### Phase 9 — Release Management (In Progress)
 
 **Completed:**
-- Context menu: Long-press replaces swipe-to-delete for a more premium FAANG Bottom Sheet UX.
-- Rename conversation inline (TextInput).
-- Delete conversation with custom stylised `ConfirmDialog` (no native alerts).
-- Delete All History (Danger Zone in Settings + custom dialog).
-- Sidebar real-time search/filter by conversation title.
-- Pin/Unpin conversations.
+- Defined Release Engineering Strategy (`docs/architecture/release-strategy.md`).
+- Implemented PR Pipeline (`.github/workflows/pr.yml`).
+- Implemented Main Branch Validation Pipeline (`.github/workflows/main.yml`).
+- Implemented automated Release Pipeline with APK & SHA256 generation (`.github/workflows/release.yml`).
 
 **Remaining / Adjusted:**
-- Conversation date grouping: Today / Yesterday / Last 7 days / Older.
-- Swipe-to-delete: Cancelled in favor of the premium Bottom Sheet context menu.
+- Full UI/UX refactoring for Theme and Language injection across all components.
+- Tagging and cutting the first stable `v1.0.0` release.
 
-Disallowed in Phase 8:
-- Provider implementations (done)
-- Authentication, sync, cloud backend, MCP, agents, RAG, tool calling, plugins, voice, workflows
-- Bulk multi-select, cloud search, conversation forking
+Disallowed in Phase 9:
+- RAG, Tool Calling, MCP, WebFetch, Voice.
 
 ## Architecture Rules
 
