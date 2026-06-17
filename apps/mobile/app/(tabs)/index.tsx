@@ -8,12 +8,14 @@ import { useProviderStore } from "../../store/provider-store";
 import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
 import { Modal } from "react-native";
 import { router } from "expo-router";
+import { useTranslation } from "../../lib/i18n";
 
 export default function HomeDashboard() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const store = useProviderStore();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
   const isDark = theme.bg === "#05050f";
   const [modelPickerVisible, setModelPickerVisible] = useState(false);
 
@@ -25,10 +27,10 @@ export default function HomeDashboard() {
   };
 
   const suggestions = [
-    { title: "Explain quantum computing", icon: Zap },
-    { title: "Draft an email", icon: MessageSquare },
-    { title: "Plan a weekend trip", icon: Compass },
-    { title: "Brainstorm app ideas", icon: Lightbulb },
+    { title: t("home.suggestion.quantum.title"), prompt: t("home.suggestion.quantum.prompt"), icon: Zap },
+    { title: t("home.suggestion.email.title"), prompt: t("home.suggestion.email.prompt"), icon: MessageSquare },
+    { title: t("home.suggestion.trip.title"), prompt: t("home.suggestion.trip.prompt"), icon: Compass },
+    { title: t("home.suggestion.app.title"), prompt: t("home.suggestion.app.prompt"), icon: Lightbulb },
   ];
 
   return (
@@ -81,7 +83,7 @@ export default function HomeDashboard() {
           {suggestions.map((s, i) => (
             <Pressable 
               key={i} 
-              onPress={() => router.push({ pathname: "/chat/new", params: { initialPrompt: s.title } })}
+              onPress={() => router.push({ pathname: "/chat/new", params: { initialPrompt: s.prompt } })}
               style={({ pressed }) => [styles.suggestionCard, pressed && { opacity: 0.7 }]}
             >
               <View style={styles.suggestionIconWrapper}>
