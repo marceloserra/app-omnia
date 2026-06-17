@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <strong>The FAANG-tier, offline-capable AI client for iOS and Android.</strong>
+  <strong>The ultimate, FAANG-tier native client for your Self-Hosted and Cloud AI models.</strong>
 </p>
 
 <p align="center">
@@ -21,9 +21,9 @@
 </p>
 
 <p align="center">
-  <a href="#why-omnia">Why Omnia</a> •
+  <a href="#the-motivation">The Motivation</a> •
   <a href="#feature-snapshot">Feature Snapshot</a> •
-  <a href="#architecture">Architecture</a> •
+  <a href="#built-for-mobile-reality">Architecture</a> •
   <a href="#quickstart">Quickstart</a>
 </p>
 <br>
@@ -38,30 +38,46 @@
 </p>
 <br>
 
-## Why Omnia?
+## 🚀 The Pitch: Why Omnia?
 
-Most mobile AI clients are glorified web wrappers that break down the moment you step into an elevator. **Omnia** is built differently. Engineered with strict FAANG-level mobile patterns, it guarantees that you never lose a prompt, your chats render at a buttery 60 FPS, and the application gracefully falls back to local processing when the cloud goes dark. 
+We didn't just build another web wrapper. We engineered a **true native mobile experience** that treats your self-hosted local models with the exact same respect, speed, and premium UI as trillion-dollar cloud APIs. 
 
-## Feature Snapshot
-
-| Area | Included |
-| --- | --- |
-| **Chat UX** | Real-time streaming, dynamic title generation, Markdown engine, code highlighting with 1-click copy, and "Dynamic Island" provider chips. |
-| **Data Integrity** | Complete local-first SQLite persistence. Swipe-to-delete, Chat Pinning, and infinite scroll history natively optimized. |
-| **Resilience** | Circuit Breakers with Auto-Fallback to local models, Exponential Backoff on network drops, and Idempotency Keys to prevent duplicate API billing. |
-| **Hardware Integration** | Precise Haptic engine feedback (vibrations) on chat stream completion, errors, and physical interactions. |
-| **Personalization** | FAANG-grade bottom sheet modal for live model switching mid-conversation, and unified dark-mode Settings Hub. |
-
-## Built for Mobile Reality
-
-- **Single Source of Truth (Hybrid):** Streams write directly to a synchronous SQLite database running on the device, eliminating React RAM leaks.
-- **Graceful Degradation:** If OpenAI hits a `429 Rate Limit` or loses connection, Omnia automatically "trips the circuit" and switches to your embedded/local `OpenAI Compatible` endpoint.
-- **Idempotent by Default:** Injects unique `X-Request-ID` headers to prevent duplicated token generation if your 5G connection blinks during a request.
-- **Strictly Feature-Sliced:** The codebase follows Colocation and Feature-Sliced Design (FSD), making the monorepo structurally beautiful to navigate.
+Omnia is built for power users, developers, and AI enthusiasts who demand buttery 60 FPS rendering, bulletproof offline resilience, and a stunning Apple-tier dark mode aesthetic. Whether you are hitting OpenAI's servers or your own local rig in the basement, Omnia connects instantly, streams flawlessly, and never drops a prompt.
 
 ---
 
-## Quickstart
+## 💡 The Motivation
+
+In my journey of building and experimenting with self-hosted AI projects, I desperately needed a native mobile app that was simple, beautiful, and effortless to connect to my Local Self-Hosted AI stack ([ai-self-hosted-lab](https://github.com/marceloserra/ai-self-hosted-lab)). 
+
+While I absolutely loved incredible projects like **Open WebUI** and **llama.cpp UI**, I always felt the friction of browser-based interfaces on my phone. I wanted something that felt *native*—something that tapped into the iPhone's haptic engine, handled network drops gracefully, and lived on my home screen. So, I decided to build it. Omnia is the bridge between your powerful local lab and your pocket.
+
+---
+
+## 🔥 Feature Snapshot
+
+| Capability | What it means for you |
+| --- | --- |
+| **Buttery Real-Time Streaming** | Tokens render smoothly at 60 FPS, completely optimized for mobile hardware without causing React RAM leaks. |
+| **"Dynamic Island" Provider Chips** | Know exactly which model you are talking to. A sleek, borderless floating header houses your active AI provider and model configuration. |
+| **Live Model Switching** | Change your mind mid-conversation? Tap the header to open a FAANG-grade bottom sheet and switch from ChatGPT to your Local Llama seamlessly. |
+| **Developer-First Markdown** | Native rendering for complex Markdown, tables, and nested formatting. Code blocks feature full syntax highlighting and a 1-click copy button. |
+| **Auto-Fallback & Circuit Breakers** | If the cloud rate-limits you or your 5G drops, Omnia's network layer automatically intercepts the error and routes the prompt to your fallback local models. |
+| **Swipe-to-Pin & Delete** | Complete local SQLite persistence. Swipe left to permanently delete chats, or swipe right to Pin your most important architecture discussions to the top. |
+| **Haptic Engine Integration** | Feel your AI typing. Deep integration with device haptics provides tactile feedback on stream completions, physical interactions, and system errors. |
+
+---
+
+## 🏗 Built for Mobile Reality
+
+Most AI clients crash or lose your long prompt when you switch apps. Omnia is engineered for the chaotic reality of mobile networks:
+- **Idempotent by Default:** Injects unique `X-Request-ID` headers to prevent duplicated token generation if your connection blinks.
+- **Single Source of Truth:** The chat streams write directly to a synchronous SQLite database running on the device. Even if you kill the app mid-generation, your chat history is perfectly preserved.
+- **Feature-Sliced Design:** The monorepo architecture strictly isolates concerns into domain-specific packages, meaning the business logic is decoupled from React Native components.
+
+---
+
+## 🛠 Quickstart
 
 Omnia uses `pnpm` and `Turborepo` for monorepo orchestration.
 
@@ -75,10 +91,18 @@ pnpm install
 pnpm --filter mobile dev
 ```
 
-## Monorepo Structure
+---
 
-- `apps/mobile`: The React Native (Expo) application.
-- `packages/shared-types`: Universal TypeScript types and schemas.
-- `packages/storage`: SQLite database and repositories.
-- `packages/providers`: LLM API connections and streaming logic.
-- `packages/logger`: Core logging logic.
+## 🏆 Credits & Acknowledgements
+
+**Special Thanks & Inspiration:**
+- Massive thanks to the **llama.cpp** project for paving the way and inspiring the UI simplicity.
+- Shoutout to **LM Studio** for proving that managing local models can be a gorgeous experience.
+
+**Developed by:**
+This project was aggressively engineered and pair-programmed by an ensemble of frontier AI models:
+1. **Claude 3.5 Sonnet**, **Gemini 1.5 Pro**, **GPT-4o**, and **Qwen 2.5 Coder 32B** (provided by my own [ai-self-hosted-lab](https://github.com/marceloserra/ai-self-hosted-lab)).
+
+<p align="center">
+  <i>"One app. Every model. Your pocket."</i>
+</p>
