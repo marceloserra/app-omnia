@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import {
   View, Text, Pressable, StyleSheet, ScrollView,
   Animated, Modal, TouchableWithoutFeedback, Platform,
-  StatusBar, TextInput, Alert,
+  StatusBar, TextInput, Alert, PanResponder,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import {
@@ -98,6 +98,35 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   const sheetSlideAnim = useRef(new Animated.Value(400)).current;
   const sheetFadeAnim = useRef(new Animated.Value(0)).current;
   const renameRefs = useRef<Record<string, TextInput | null>>({});
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          // Capture horizontal swipes to the left
+          return gestureState.dx < -10 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+        },
+        onPanResponderMove: (_, gestureState) => {
+          if (gestureState.dx < 0) {
+            slideAnim.setValue(gestureState.dx);
+          }
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dx < -80 || gestureState.vx < -0.5) {
+            onClose();
+          } else {
+            Animated.spring(slideAnim, {
+              toValue: 0,
+              useNativeDriver: true,
+              tension: 80,
+              friction: 12,
+            }).start();
+          }
+        },
+      }),
+    [onClose, slideAnim]
+  );
 
   // Animate drawer open/close
   React.useEffect(() => {
@@ -275,7 +304,10 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
       </TouchableWithoutFeedback>
 
       {/* Drawer panel */}
-      <Animated.View style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}>
+      <Animated.View 
+        style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}
+        {...panResponder.panHandlers}
+      >
 
         {/* Header */}
         <View style={styles.header}>
