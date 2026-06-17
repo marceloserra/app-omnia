@@ -316,7 +316,7 @@ export default function ChatScreen() {
           {isScrolledUp && (
             <View style={styles.fabContainer}>
               <Pressable onPress={scrollToBottom} style={({ pressed }) => [styles.fab, pressed && { opacity: 0.8 }]}>
-                <ArrowDown size={20} color={theme.textPrimary} strokeWidth={2.5} />
+                <ArrowDown size={20} color="#ffffff" strokeWidth={2.5} />
               </Pressable>
             </View>
           )}
@@ -438,9 +438,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: theme.surface,
-    borderWidth: 1,
-    borderColor: theme.border,
+    backgroundColor: theme.indigo,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
