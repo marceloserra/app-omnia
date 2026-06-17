@@ -101,7 +101,7 @@ export function ChatInput({
               accessibilityLabel="Send message"
             >
               <ArrowUp
-                size={22}
+                size={18}
                 color={text.trim().length > 0 ? "#ffffff" : "rgba(255,255,255,0.3)"}
                 strokeWidth={3}
               />
@@ -129,12 +129,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     backgroundColor: INPUT_BG,
-    borderRadius: 26,
+    borderRadius: 24,
     paddingTop: 8,
-    paddingLeft: 18,
-    paddingRight: 6,
-    paddingBottom: 6,
-    minHeight: 52,
+    paddingLeft: 16,
+    paddingRight: 8,
+    paddingBottom: 8,
+    minHeight: 50,
   },
   textInput: {
     flex: 1,
@@ -142,20 +142,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     maxHeight: 140,
-    minHeight: 22,
+    minHeight: 34, // Matches button height perfectly
     paddingTop: 6,
-    paddingBottom: 8,
-    marginRight: 8,
-    textAlignVertical: "bottom",
+    paddingBottom: 6,
+    marginRight: 10,
+    textAlignVertical: "top",
   },
   actionCol: {
     justifyContent: "flex-end",
     alignItems: "center",
   },
   sendBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
   },
