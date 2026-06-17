@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { View, FlatList, Text, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Pressable, StyleSheet } from "react-native";
+import { View, FlatList, Text, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Pressable, StyleSheet, InteractionManager } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
@@ -183,23 +183,38 @@ export default function ChatScreen() {
   // to prevent re-running when handleSend identity changes during streaming.
   useEffect(() => {
     if (!conversationId) return;
-    try {
-      const conv = convRepo.getById(conversationId);
-      if (conv) setConvTitle(conv.title);
 
-      const history = msgRepo.listByConversation(conversationId);
-      setMessages(history);
+    // Instantly clear old messages so the UI updates and feels snappy
+    setMessages([]);
 
-      if (initialPrompt && !hasTriggeredPrompt.current) {
-        hasTriggeredPrompt.current = true;
-        // Delay to let the screen fully mount before firing the first message
-        setTimeout(() => {
-          handleSend(initialPrompt, true);
-        }, 300);
+    const loadHistory = () => {
+      try {
+        const conv = convRepo.getById(conversationId);
+        if (conv) setConvTitle(conv.title);
+
+        const history = msgRepo.listByConversation(conversationId);
+        setMessages(history);
+
+        if (initialPrompt && !hasTriggeredPrompt.current) {
+          hasTriggeredPrompt.current = true;
+          // Delay to let the screen fully mount before firing the first message
+          setTimeout(() => {
+            handleSend(initialPrompt, true);
+          }, 300);
+        }
+      } catch (err) {
+        logger.error("SQLite", "Failed to load chat history", err);
       }
-    } catch (err) {
-      logger.error("SQLite", "Failed to load chat history", err);
-    }
+    };
+
+    // Defer the heavy SQLite read and AST parsing until after the Drawer animation (or any navigation) finishes
+    const interactionPromise = InteractionManager.runAfterInteractions(() => {
+      loadHistory();
+    });
+
+    return () => {
+      interactionPromise.cancel();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, initialPrompt]); // handleSend intentionally omitted — guarded by hasTriggeredPrompt ref
 
