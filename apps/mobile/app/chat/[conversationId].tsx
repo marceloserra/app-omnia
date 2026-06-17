@@ -76,6 +76,10 @@ export default function ChatScreen() {
   const isAbortedRef = useRef(false);
   const scrollOffsetRef = useRef(0); // track position to restore after keyboard hides
 
+  // Circuit Breaker State
+  const consecutiveFailuresRef = useRef(0);
+  const CIRCUIT_BREAKER_THRESHOLD = 2;
+
   // No manual keyboard scroll listeners needed when using inverted FlatList
 
   const getProvider = useCallback(() => {
@@ -205,16 +209,42 @@ export default function ChatScreen() {
           } catch (err) {}
           return;
         }
-        const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
-        setMessages((cur) =>
-          cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m)
-        );
-        try {
-          getDb().msgRepo.updateContent(assistantId, errorMsg);
-        } catch (err) {
-          logger.error("SQLite", "Failed to log assistant stream error", err);
+
+        // Circuit Breaker Logic
+        consecutiveFailuresRef.current += 1;
+        if (store.activeProviderId === "openai" && consecutiveFailuresRef.current >= CIRCUIT_BREAKER_THRESHOLD) {
+          consecutiveFailuresRef.current = 0; // Reset breaker
+          
+          // Show graceful fallback message
+          const fallbackMsg = `Network unstable. Switched to Local AI. Please resend your message.`;
+          setMessages((cur) =>
+            cur.map((m) => m.id === assistantId ? { ...m, content: fallbackMsg } : m)
+          );
+          try { getDb().msgRepo.updateContent(assistantId, fallbackMsg); } catch (err) {}
+          
+          // Haptic feedback for circuit trip
+          if (useSettingsStore.getState().hapticsEnabled) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          }
+          
+          // Auto-switch to local model
+          store.setActiveProviderId("openai-compatible");
+        } else {
+          const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
+          setMessages((cur) =>
+            cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m)
+          );
+          try {
+            getDb().msgRepo.updateContent(assistantId, errorMsg);
+          } catch (err) {
+            logger.error("SQLite", "Failed to log assistant stream error", err);
+          }
         }
       } finally {
+        // Reset failures on success if we reached the end of the loop without entering catch
+        if (!isAbortedRef.current && fullContent.length > 0) {
+          consecutiveFailuresRef.current = 0;
+        }
         setIsStreaming(false);
         isAbortedRef.current = false;
       }

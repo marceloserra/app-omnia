@@ -1,5 +1,37 @@
 import { LLMProvider, ProviderConnectionConfig, ChatRequest, StreamChunk, Model } from "@omnia/shared-types";
 
+/**
+ * Exponential Backoff with Jitter for network resilience.
+ */
+async function fetchWithBackoff(url: string, options: any, maxRetries = 3): Promise<Response> {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      const response = await fetch(url, options);
+      // Retry on Rate Limit (429) or Server Error (5xx)
+      if (response.ok || (response.status !== 429 && response.status < 500)) {
+        return response;
+      }
+    } catch (err) {
+      if (attempt === maxRetries - 1) throw err;
+    }
+    
+    attempt++;
+    const baseWait = Math.pow(2, attempt) * 500; // 1s, 2s, 4s...
+    const jitter = Math.random() * 200; // Up to 200ms jitter
+    await new Promise(resolve => setTimeout(resolve, baseWait + jitter));
+  }
+  throw new Error("Max retries exceeded");
+}
+
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export class OpenAIProvider implements LLMProvider {
   public readonly id = "openai";
   public readonly name = "OpenAI";
@@ -7,7 +39,9 @@ export class OpenAIProvider implements LLMProvider {
   private getHeaders(config: ProviderConnectionConfig): HeadersInit {
     return {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${config.apiKey}`
+      "Authorization": `Bearer ${config.apiKey}`,
+      "Idempotency-Key": generateUUID(), // Prevent duplicate processing on network retries
+      "X-Request-ID": generateUUID()
     };
   }
 
@@ -15,7 +49,7 @@ export class OpenAIProvider implements LLMProvider {
     if (!config.apiKey) return false;
     
     try {
-      const response = await fetch("https://api.openai.com/v1/models", {
+      const response = await fetchWithBackoff("https://api.openai.com/v1/models", {
         headers: this.getHeaders(config)
       });
       return response.ok;
@@ -28,7 +62,7 @@ export class OpenAIProvider implements LLMProvider {
     if (!config.apiKey) return [];
     
     try {
-      const response = await fetch("https://api.openai.com/v1/models", {
+      const response = await fetchWithBackoff("https://api.openai.com/v1/models", {
         headers: this.getHeaders(config)
       });
       
@@ -49,7 +83,7 @@ export class OpenAIProvider implements LLMProvider {
   }
 
   async *streamChat(config: ProviderConnectionConfig, request: ChatRequest): AsyncGenerator<StreamChunk, void, unknown> {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetchWithBackoff("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: this.getHeaders(config),
       body: JSON.stringify({
