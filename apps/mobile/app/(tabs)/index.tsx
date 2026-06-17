@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronDown, Sparkles, MessageSquare, Zap, Compass, Lightbulb } from "lucide-react-native";
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useProviderStore } from "../../store/provider-store";
-import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
+import { ModelPickerSheet, getModelIcon } from "../../components/chat/ModelPickerSheet";
 import { Modal } from "react-native";
 import { router } from "expo-router";
 import { useTranslation } from "../../lib/i18n";
@@ -47,7 +47,9 @@ export default function HomeDashboard() {
               tint={isDark ? "dark" : "light"} 
               style={[styles.floatingChipInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
             >
-              <View style={[styles.modelChipDot, { backgroundColor: "#10b981" }]} />
+              <View style={{ width: 14, height: 14, alignItems: 'center', justifyContent: 'center' }}>
+                {getModelIcon(store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId, 14)}
+              </View>
               <Text style={styles.dynamicIslandText} numberOfLines={1}>
                 {store.activeProviderId === "openai" ? "OpenAI" : "Local"} · {store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
               </Text>
@@ -75,24 +77,51 @@ export default function HomeDashboard() {
             <Sparkles size={28} color="#fff" />
           </View>
           <Text style={styles.greeting}>{getGreeting()}</Text>
-          <Text style={styles.subtitle}>How can I help you today?</Text>
+          {store.activeProviderId ? (
+            <Text style={styles.subtitle}>How can I help you today?</Text>
+          ) : (
+            <Text style={styles.subtitle}>Connect an AI provider to start chatting</Text>
+          )}
         </View>
 
-        {/* Suggestions Grid */}
-        <View style={styles.suggestionsContainer}>
-          {suggestions.map((s, i) => (
+        {store.activeProviderId ? (
+          <View style={styles.suggestionsContainer}>
+            {suggestions.map((s, i) => (
+              <Pressable 
+                key={i} 
+                onPress={() => router.push({ pathname: "/chat/new", params: { initialPrompt: s.prompt } })}
+                style={({ pressed }) => [styles.suggestionCard, pressed && { opacity: 0.7 }]}
+              >
+                <View style={styles.suggestionIconWrapper}>
+                  <s.icon size={18} color={theme.indigo} />
+                </View>
+                <Text style={styles.suggestionText}>{s.title}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : (
+          <View style={{ alignItems: "center", marginTop: 40 }}>
             <Pressable 
-              key={i} 
-              onPress={() => router.push({ pathname: "/chat/new", params: { initialPrompt: s.prompt } })}
-              style={({ pressed }) => [styles.suggestionCard, pressed && { opacity: 0.7 }]}
+              onPress={() => router.push("/settings")}
+              style={({ pressed }) => [{
+                backgroundColor: theme.indigo,
+                paddingHorizontal: 24,
+                paddingVertical: 14,
+                borderRadius: 100,
+                flexDirection: "row",
+                alignItems: "center",
+                shadowColor: theme.indigo,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 10,
+                elevation: 6,
+              }, pressed && { opacity: 0.8 }]}
             >
-              <View style={styles.suggestionIconWrapper}>
-                <s.icon size={18} color={theme.indigo} />
-              </View>
-              <Text style={styles.suggestionText}>{s.title}</Text>
+              <Zap size={18} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}>Configure AI Provider</Text>
             </Pressable>
-          ))}
-        </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* Modal */}
