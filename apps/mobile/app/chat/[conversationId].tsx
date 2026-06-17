@@ -296,12 +296,7 @@ export default function ChatScreen() {
         </View>
       )}
 
-      {isStreaming && (
-        <View style={styles.streamingIndicator}>
-          <ActivityIndicator size="small" color="#818cf8" />
-          <Text style={{ color: TEXT_SECONDARY, fontSize: 13, fontWeight: "500" }}>Omnia is thinking...</Text>
-        </View>
-      )}
+
 
       <ChatInput 
         onSend={handleSend} 
@@ -413,13 +408,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     letterSpacing: 0.3,
   },
-  streamingIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    backgroundColor: "transparent",
-  },
+
   fabContainer: {
     position: "absolute",
     bottom: 90, // Above the input
