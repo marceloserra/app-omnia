@@ -9,7 +9,7 @@ import { OpenAIProvider } from "@omnia/providers";
 import { OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
-import { AppHeader } from "../components/navigation/AppHeader";
+import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 
 const BG = "#05050f";
@@ -147,9 +147,17 @@ export default function IndexChatScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: BG }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <AppHeader title="Omnia" showNewChat={false} />
+      <View style={styles.ambientGlow} />
+
+      {noProvider && (
+        <BlurView intensity={20} tint="dark" style={styles.noProviderBanner}>
+          <Text style={{ color: TEXT_SECONDARY, fontSize: 13, textAlign: "center" }}>
+            No provider connected. Go to Settings to configure one.
+          </Text>
+        </BlurView>
+      )}
 
       <FlatList
         data={messages}

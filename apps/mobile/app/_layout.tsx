@@ -1,12 +1,13 @@
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { Pressable } from "react-native";
+import { Settings } from "lucide-react-native";
 import { logger } from "@omnia/logger";
 import { useEffect } from "react";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../assets/css/global.css";
 
-const HEADER_BG = "#05050f";
-const HEADER_TEXT = "#f8fafc";
+const HEADER_BG = "#0a0918";
+const HEADER_TEXT = "#f0efff";
 
 // Catch global JS crashes
 const g = global as any;
@@ -32,29 +33,44 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: HEADER_BG }}>
+    <>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
-          headerShown: false,
+          headerStyle: { backgroundColor: HEADER_BG },
+          headerTintColor: HEADER_TEXT,
+          headerTitleStyle: { fontWeight: "700", fontSize: 17 },
+          headerShadowVisible: false,
           contentStyle: { backgroundColor: HEADER_BG },
+          headerTitleAlign: "center",
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="chat/[conversationId]" />
         <Stack.Screen
-          name="settings"
+          name="index"
           options={{
-            headerShown: true,
-            presentation: "modal",
-            title: "Settings",
-            headerStyle: { backgroundColor: "#0d0c1d" },
-            headerTintColor: HEADER_TEXT,
-            headerTitleStyle: { fontWeight: "700" },
-            headerShadowVisible: false,
+            title: "Omnia",
+            headerLargeTitle: true,
+            headerLargeTitleStyle: { color: HEADER_TEXT, fontWeight: "700" },
+            headerRight: () => (
+              <Pressable
+                onPress={() => router.push("/settings")}
+                style={{ padding: 6 }}
+                accessibilityLabel="Open settings"
+              >
+                <Settings size={20} color={HEADER_TEXT} />
+              </Pressable>
+            ),
           }}
         />
+        <Stack.Screen
+          name="settings"
+          options={{ title: "Settings" }}
+        />
+        <Stack.Screen
+          name="chat/[conversationId]"
+          options={{ title: "Chat", headerBackTitle: "Home" }}
+        />
       </Stack>
-    </GestureHandlerRootView>
+    </>
   );
 }
