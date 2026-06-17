@@ -24,7 +24,7 @@ interface ProviderState {
   availableModels: string[];
 
   // Actions
-  setActiveProvider: (id: ProviderId) => void;
+  setActiveProvider: (id: ProviderId | null) => void;
   setOpenaiApiKey: (key: string) => void;
   setOpenaiModelId: (modelId: string) => void;
   setCompatibleBaseUrl: (url: string) => void;

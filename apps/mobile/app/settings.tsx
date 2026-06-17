@@ -119,6 +119,12 @@ export default function SettingsScreen() {
     router.back();
   };
 
+  const handleDisconnect = () => {
+    store.setActiveProvider(null);
+    store.setConnected(false, [], undefined);
+    router.back();
+  };
+
   const isFormValid = activeTab === "openai" ? !!localOpenaiKey.trim() : !!localCompatibleUrl.trim();
 
   return (
@@ -153,9 +159,14 @@ export default function SettingsScreen() {
                   }}
                   style={[styles.segmentButton, isActive && styles.segmentButtonActive]}
                 >
-                  <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
-                    {tab === "openai" ? "OpenAI" : "Local Network"}
-                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    {store.activeProviderId === tab && (
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#10b981", marginRight: 6 }} />
+                    )}
+                    <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
+                      {tab === "openai" ? "OpenAI" : "Local Network"}
+                    </Text>
+                  </View>
                 </Pressable>
               );
             })}
@@ -311,24 +322,49 @@ export default function SettingsScreen() {
 
         </ScrollView>
 
-        {/* Floating Save Button - Premium Gradient */}
+        {/* Floating Actions - Premium Gradient */}
         <BlurView intensity={80} tint="dark" style={styles.floatingBar}>
-          <Pressable
-            onPress={handleSave}
-            disabled={!testResult?.ok}
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-          >
-            <LinearGradient
-              colors={testResult?.ok ? ["#4f46e5", "#6366f1", "#818cf8"] : ["rgba(255,255,255,0.05)", "rgba(255,255,255,0.05)"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.saveButtonGradient}
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            {store.activeProviderId === activeTab && (
+              <Pressable
+                onPress={handleDisconnect}
+                style={({ pressed }) => [
+                  { 
+                    flex: 1, 
+                    backgroundColor: "rgba(239, 68, 68, 0.1)", 
+                    borderRadius: 20, 
+                    borderWidth: 1, 
+                    borderColor: "rgba(239, 68, 68, 0.3)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
+                  pressed && { opacity: 0.7 }
+                ]}
+              >
+                <Text style={{ color: "#fca5a5", fontWeight: "600", fontSize: 16 }}>Disconnect</Text>
+              </Pressable>
+            )}
+
+            <Pressable
+              onPress={handleSave}
+              disabled={!testResult?.ok}
+              style={({ pressed }) => ({ flex: store.activeProviderId === activeTab ? 1.5 : 1, opacity: pressed ? 0.85 : 1 })}
             >
-              <Text style={[styles.saveButtonText, !testResult?.ok && { color: TEXT_SECONDARY }]}>
-                {testResult?.ok ? "Save Configuration" : "Test connection to save"}
-              </Text>
-            </LinearGradient>
-          </Pressable>
+              <LinearGradient
+                colors={testResult?.ok ? ["#4f46e5", "#6366f1"] : ["rgba(99,102,241,0.2)", "rgba(99,102,241,0.1)"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[
+                  styles.saveButton,
+                  !testResult?.ok && { borderWidth: 1, borderColor: "rgba(99,102,241,0.3)" }
+                ]}
+              >
+                <Text style={[styles.saveButtonText, !testResult?.ok && { color: TEXT_SECONDARY }]}>
+                  {store.activeProviderId === activeTab ? "Update Provider" : "Set Active"}
+                </Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
         </BlurView>
       </KeyboardAvoidingView>
 
@@ -460,7 +496,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "rgba(255,255,255,0.05)",
   },
-  saveButtonGradient: {
+  saveButton: {
     paddingVertical: 18,
     borderRadius: 16,
     alignItems: "center",
