@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, FlatList, TextInput, KeyboardAvoidingView, Platform, Image, PanResponder } from "react-native";
+import { View, Text, Pressable, FlatList, TextInput, KeyboardAvoidingView, Platform, Image, PanResponder, Animated, Modal, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Search, X, Check, Cpu, Brain, Bot, Sparkles, Zap, Wind, Globe } from "lucide-react-native";
 import { ThemePalette } from "../../lib/theme";
 
@@ -7,6 +8,7 @@ interface ModelPickerSheetProps {
   models: string[];
   selected: string;
   onSelect: (m: string) => void;
+  visible: boolean;
   onClose: () => void;
   theme: ThemePalette;
   isDark: boolean;
@@ -24,32 +26,72 @@ export const getModelIcon = (name: string, overrideSize?: number) => {
   return <Cpu size={size} color="#64748b" />;
 };
 
-export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, isDark }: ModelPickerSheetProps) {
+export function ModelPickerSheet({ models, selected, onSelect, onClose, visible, theme, isDark }: ModelPickerSheetProps) {
   const [search, setSearch] = useState("");
+  const insets = useSafeAreaInsets();
   const filtered = models.filter((m) => m.toLowerCase().includes(search.toLowerCase()));
+  
+  const panY = React.useRef(new Animated.Value(0)).current;
+
+  // Reset position when opened
+  React.useEffect(() => {
+    if (visible) {
+      panY.setValue(0);
+    }
+  }, [visible]);
+
   const panResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (e, gestureState) => {
+        if (gestureState.dy > 0) {
+          panY.setValue(gestureState.dy);
+        }
+      },
       onPanResponderRelease: (e, gestureState) => {
-        if (gestureState.dy > 50) {
-          onClose();
+        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+          Animated.timing(panY, {
+            toValue: 800,
+            duration: 250,
+            useNativeDriver: true,
+          }).start(() => onClose());
+        } else {
+          Animated.spring(panY, {
+            toValue: 0,
+            bounciness: 4,
+            useNativeDriver: true,
+          }).start();
         }
       },
     })
   ).current;
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1, backgroundColor: theme.bg }}
+    <Modal
+      visible={visible}
+      animationType="fade"
+      transparent={true}
+      onRequestClose={onClose}
     >
-      <View 
-        style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}
-        {...panResponder.panHandlers}
-      >
-        <View style={{ width: 40, height: 4, backgroundColor: theme.border, borderRadius: 2, alignSelf: "center", marginBottom: 16 }} />
-        <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: "700" }}>Select Model</Text>
-      </View>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+          <Animated.View style={{ 
+            width: "100%", height: "65%", 
+            backgroundColor: theme.bg, 
+            borderTopLeftRadius: 24, borderTopRightRadius: 24, 
+            overflow: "hidden", 
+            shadowColor: "#000", shadowOffset: { width: 0, height: -5 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10, 
+            paddingBottom: insets.bottom,
+            transform: [{ translateY: panY }]
+          }}>
+            <View 
+              style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}
+              {...panResponder.panHandlers}
+            >
+              <View style={{ width: 40, height: 4, backgroundColor: theme.border, borderRadius: 2, alignSelf: "center", marginBottom: 16 }} />
+              <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: "700" }}>Select Model</Text>
+            </View>
       {filtered.length === 0 ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingBottom: 60 }}>
           <Text style={{ color: theme.textSecondary, fontSize: 15 }}>No models match</Text>
@@ -141,6 +183,9 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, i
           />
         </View>
       </View>
-    </KeyboardAvoidingView>
+      </Animated.View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }

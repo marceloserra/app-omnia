@@ -239,29 +239,18 @@ export default function HomeScreen() {
 
 
       {/* ─── Model Picker Modal ─── */}
-      <Modal
+      <ModelPickerSheet
         visible={modelPickerVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setModelPickerVisible(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setModelPickerVisible(false)} />
-          <View style={{ height: "80%", backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" }}>
-            <ModelPickerSheet
-              models={store.availableModels}
-              selected={store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
-              theme={theme}
-              isDark={isDark}
-              onClose={() => setModelPickerVisible(false)}
-              onSelect={(m) => {
-                if (store.activeProviderId === "openai") store.setOpenaiModelId(m);
-                else store.setCompatibleModelId(m);
-              }}
-            />
-          </View>
-        </View>
-      </Modal>
+        models={store.availableModels}
+        selected={store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
+        theme={theme}
+        isDark={isDark}
+        onClose={() => setModelPickerVisible(false)}
+        onSelect={(m) => {
+          if (store.activeProviderId === "openai") store.setOpenaiModelId(m);
+          else store.setCompatibleModelId(m);
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }

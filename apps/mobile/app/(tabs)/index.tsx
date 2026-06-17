@@ -96,31 +96,18 @@ export default function HomeDashboard() {
       </ScrollView>
 
       {/* Modal */}
-      <Modal
+      <ModelPickerSheet
         visible={modelPickerVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setModelPickerVisible(false)}
-      >
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-            <Pressable style={StyleSheet.absoluteFill} onPress={() => setModelPickerVisible(false)} />
-            <View style={{ width: "100%", height: "65%", backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: -5 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10, paddingBottom: insets.bottom }}>
-              <ModelPickerSheet
-                models={store.availableModels}
-                selected={store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
-                theme={theme}
-                isDark={isDark}
-                onClose={() => setModelPickerVisible(false)}
-                onSelect={(m) => {
-                  if (store.activeProviderId === "openai") store.setOpenaiModelId(m);
-                  else store.setCompatibleModelId(m);
-                }}
-              />
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        models={store.availableModels}
+        selected={store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
+        theme={theme}
+        isDark={isDark}
+        onClose={() => setModelPickerVisible(false)}
+        onSelect={(m) => {
+          if (store.activeProviderId === "openai") store.setOpenaiModelId(m);
+          else store.setCompatibleModelId(m);
+        }}
+      />
     </View>
   );
 }
