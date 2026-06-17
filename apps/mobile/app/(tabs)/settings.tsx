@@ -301,7 +301,7 @@ export default function SettingsScreen() {
                       <Box size={18} color="#fff" />
                     </View>
                     <Text style={styles.iosRowLabel}>Select Model</Text>
-                    <Text style={styles.iosRowValue}>{localModel || "None"}</Text>
+                    <Text style={styles.iosRowValue} numberOfLines={1} ellipsizeMode="tail">{localModel || "None"}</Text>
                     <ChevronRight size={18} color={theme.textSecondary} style={{ marginLeft: 6 }} />
                   </Pressable>
                   
@@ -676,7 +676,9 @@ const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create
     color: theme.textPrimary,
   },
   iosRowValue: {
-    fontSize: 17,
+    flexShrink: 1,
+    fontSize: 16,
     color: theme.textSecondary,
+    textAlign: "right",
   },
 });
