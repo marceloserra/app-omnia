@@ -282,7 +282,7 @@ export const MessageBubble = React.memo(({ message, isStreaming = false }: Messa
         {isEmpty ? (
           <TypingIndicator />
         ) : (
-          <Markdown style={markdownStyles} rules={renderRules(theme, tableStyles)}>
+          <Markdown style={markdownStyles} rules={renderRules(theme, tableStyles)} scrollEnabled={false}>
             {message.content}
           </Markdown>
         )}
