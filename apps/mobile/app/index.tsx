@@ -2,14 +2,14 @@ import React, { useState, useRef, useCallback } from "react";
 import { View, FlatList, Text, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { Message } from "@omnia/shared-types";
-import { MessageBubble } from "../../components/chat/MessageBubble";
-import { ChatInput } from "../../components/chat/ChatInput";
-import { useProviderStore } from "../../store/provider-store";
+import { MessageBubble } from "../components/chat/MessageBubble";
+import { ChatInput } from "../components/chat/ChatInput";
+import { useProviderStore } from "../store/provider-store";
 import { OpenAIProvider } from "@omnia/providers";
 import { OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
-import { BlurView } from "expo-blur";
+import { AppHeader } from "../components/navigation/AppHeader";
 import * as Haptics from "expo-haptics";
 
 const BG = "#05050f";
@@ -147,17 +147,9 @@ export default function IndexChatScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: BG }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      keyboardVerticalOffset={0}
     >
-      <View style={styles.ambientGlow} />
-
-      {noProvider && (
-        <BlurView intensity={20} tint="dark" style={styles.noProviderBanner}>
-          <Text style={{ color: TEXT_SECONDARY, fontSize: 13, textAlign: "center" }}>
-            No provider connected. Go to Settings to configure one.
-          </Text>
-        </BlurView>
-      )}
+      <AppHeader title="Omnia" showNewChat={false} />
 
       <FlatList
         data={messages}

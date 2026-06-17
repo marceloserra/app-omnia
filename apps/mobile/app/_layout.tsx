@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../assets/css/global.css";
 
 const HEADER_BG = "#05050f";
+const HEADER_TEXT = "#f8fafc";
 
 // Catch global JS crashes
 const g = global as any;
@@ -39,16 +40,18 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: HEADER_BG },
         }}
       >
-        <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+        <Stack.Screen name="index" />
+        <Stack.Screen name="chat/[conversationId]" />
         <Stack.Screen
           name="settings"
           options={{
             headerShown: true,
             presentation: "modal",
             title: "Settings",
-            headerStyle: { backgroundColor: "#13112a" },
-            headerTintColor: "#f8fafc",
+            headerStyle: { backgroundColor: "#0d0c1d" },
+            headerTintColor: HEADER_TEXT,
             headerTitleStyle: { fontWeight: "700" },
+            headerShadowVisible: false,
           }}
         />
       </Stack>
