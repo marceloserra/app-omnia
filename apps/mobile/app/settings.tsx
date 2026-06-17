@@ -313,7 +313,7 @@ export default function SettingsScreen() {
                       style={[styles.segmentButton, isActive && styles.segmentButtonActive, { paddingVertical: 10 }]}
                     >
                       <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
-                        {tOpt === "system" ? t("settings.appearance.theme.system") : 
+                        {tOpt === "system" ? "System" : 
                          tOpt === "dark" ? t("settings.appearance.theme.dark") : 
                          t("settings.appearance.theme.light")}
                       </Text>
