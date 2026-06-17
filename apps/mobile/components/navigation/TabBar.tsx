@@ -1,12 +1,11 @@
 import React from "react";
 import { View, Pressable, StyleSheet, Platform } from "react-native";
 import { BlurView } from "expo-blur";
-import { Home, MessageSquare, Settings, Plus } from "lucide-react-native";
+import { Home, MessageSquare, Settings, SquarePen } from "lucide-react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { router } from "expo-router";
 import { useTheme } from "../../lib/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const theme = useTheme();
@@ -34,20 +33,12 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         </Pressable>
 
         {/* Action Button: New Chat */}
-        <View style={styles.actionItem}>
-          <Pressable 
-            onPress={() => router.push("/chat/new")}
-            style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.8 }]}
-          >
-            <LinearGradient
-              colors={[theme.indigo, theme.indigo]}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={styles.actionGradient}
-            >
-              <Plus size={24} color="#fff" strokeWidth={2.5} />
-            </LinearGradient>
-          </Pressable>
-        </View>
+        <Pressable 
+          onPress={() => router.push("/chat/new")}
+          style={({ pressed }) => [styles.tabItem, pressed && { opacity: 0.5 }]}
+        >
+          <SquarePen size={22} color={theme.textPrimary} strokeWidth={2} />
+        </Pressable>
 
         {/* Settings Tab */}
         <Pressable 
@@ -90,21 +81,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  actionItem: {
-    paddingHorizontal: 8,
-  },
-  actionBtn: {
-    shadowColor: "#6366f1",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  actionGradient: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  }
 });
