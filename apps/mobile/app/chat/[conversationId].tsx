@@ -248,8 +248,11 @@ export default function ChatScreen() {
           setIsScrolledUp(contentOffset.y > 100);
         }}
         scrollEventThrottle={16}
-        ListEmptyComponent={
-          <View style={[styles.emptyContainer, { transform: [{ scaleY: -1 }] }]}>
+      />
+
+      {messages.length === 0 && (
+        <View style={styles.emptyOverlay} pointerEvents="box-none">
+          <View style={styles.emptyContainer}>
             <View style={styles.emptyIconWrapper}>
               <Text style={{ fontSize: 28, color: "#818cf8" }}>✦</Text>
             </View>
@@ -276,8 +279,8 @@ export default function ChatScreen() {
               </Text>
             )}
           </View>
-        }
-      />
+        </View>
+      )}
 
       {/* Scroll to bottom FAB */}
       {isScrolledUp && (
@@ -346,14 +349,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "rgba(239,68,68,0.2)",
-    borderWidth: 1,
-    borderColor: "rgba(239,68,68,0.3)",
-    marginHorizontal: 16,
-    marginTop: 16,
+    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(239, 68, 68, 0.2)",
+  },
+  emptyOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: -1,
   },
   emptyContainer: {
     flex: 1,

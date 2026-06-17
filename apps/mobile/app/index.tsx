@@ -134,8 +134,12 @@ export default function HomeScreen() {
         maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
         renderItem={({ item }) => <MessageBubble message={item} />}
         contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
-        ListEmptyComponent={
-          <View style={[styles.emptyContainer, { transform: [{ scaleY: -1 }] }]}>
+      />
+
+      {/* ─── Empty State Overlay ─── */}
+      {messages.length === 0 && (
+        <View style={styles.emptyOverlay} pointerEvents="box-none">
+          <View style={styles.emptyContainer}>
             <View style={styles.emptyGlyph}>
               <Text style={{ fontSize: 32, color: "#818cf8" }}>✦</Text>
             </View>
@@ -158,8 +162,8 @@ export default function HomeScreen() {
               </Text>
             )}
           </View>
-        }
-      />
+        </View>
+      )}
 
       {/* ─── Streaming indicator ─── */}
       {isStreaming && (
@@ -222,7 +226,16 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: BORDER,
   },
-
+  emptyOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: -1,
+  },
   emptyContainer: {
     flex: 1,
     alignItems: "center",
