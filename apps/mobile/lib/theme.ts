@@ -31,16 +31,16 @@ export const DarkPalette: ThemePalette = {
 };
 
 export const LightPalette: ThemePalette = {
-  bg: "#FFFFFF", // Pure white for cleaner look
+  bg: "#f2f2f7",          // iOS system groupedBackground (light gray)
   surface: "#FFFFFF",
-  surface2: "#F9FAFB", // Slight off-white for contrast inside cards
-  border: "rgba(0, 0, 0, 0.08)",
-  indigo: "#4f46e5", // Omnia Brand Indigo
+  surface2: "#FFFFFF",     // Cards sit white on the gray bg for contrast
+  border: "rgba(0, 0, 0, 0.12)",
+  indigo: "#4f46e5",
   textPrimary: "#000000",
-  textSecondary: "#4B5563", // Darker gray for readability
-  textMuted: "#6B7280", // Contrast-safe gray for muted text
+  textSecondary: "#4B5563",
+  textMuted: "#6B7280",
   red: "#EF4444", 
-  activeBg: "rgba(0,0,0,0.04)",
+  activeBg: "rgba(0,0,0,0.06)",
   purple: "#AF52DE",
 };
 

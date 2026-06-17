@@ -10,7 +10,6 @@ import {
   Alert,
 } from "react-native";
 import { ArrowUp, Square, Plus } from "lucide-react-native";
-import { BlurView } from "expo-blur";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -60,11 +59,7 @@ export function ChatInput({
   };
 
   return (
-    <BlurView 
-      intensity={theme.bg === "#05050f" ? 60 : 80}
-      tint={theme.bg === "#05050f" ? "dark" : "light"}
-      style={styles.outerContainer}
-    >
+    <View style={styles.outerContainer}>
       {/* The pill-shaped input card */}
       <View style={[styles.inputCard, isFocused && styles.inputCardFocused]}>
         <Pressable 
@@ -132,7 +127,7 @@ export function ChatInput({
       <Text style={styles.hint}>
         {disabled ? t("chat.input.disabled") : t("chat.input.hint")}
       </Text>
-    </BlurView>
+    </View>
   );
 }
 
@@ -145,8 +140,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     paddingTop: 12,
     paddingHorizontal: 16,
     paddingBottom: Platform.select({ ios: 32, android: 20 }),
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "rgba(255,255,255,0.05)",
+    // Transparent — the inputCard provides its own pill background
   },
   inputCard: {
     flexDirection: "row",
