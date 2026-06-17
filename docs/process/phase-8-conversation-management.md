@@ -12,34 +12,27 @@ The goal of **Phase 8** is to give users full control over their conversation hi
 
 ---
 
-## Step 1 — Delete Conversation (Swipe-to-Delete in Sidebar)
+## Step 1 — Delete Conversation (Context Menu over Swipe)
 
 **Goal:** Let users remove individual conversations from history.
 
-### What to build
-- Implement a **swipe-left gesture** on each `ConversationListItem` in the `Sidebar`.
-- Reveal a red **Delete** action button (trash icon) on swipe.
-- On confirm, delete from SQLite via `convRepo.delete(id)` and `msgRepo.deleteByConversation(id)`.
-- Add a brief **undo toast** (2s window) before the delete is committed, matching iOS/Android patterns.
-- Haptics: `Haptics.notificationAsync(Warning)` on delete, `Haptics.impactAsync(Light)` on undo.
-
-### Technical Notes
-- Implement swipe gesture using `Animated.Value` + `PanResponder` (no external gesture library required — must stay within the pure RN constraint).
-- Do NOT use `react-native-gesture-handler` swipeables, as they require native linking that can conflict with Expo Go.
+### What was built
+- **Decision (ADR-0016):** Swipe-to-delete using PanResponder was bypassed in favor of a FAANG-grade **Bottom Sheet Context Menu** triggered by a long-press. This prevents gesture conflicts with the Drawer navigation.
+- A custom `<ConfirmDialog>` component replaces the native `Alert.alert` to maintain the premium dark-mode aesthetic.
+- Deletion removes rows from SQLite via `convRepo.delete(id)` and `msgRepo.deleteByConversation(id)`.
+- Haptics: `Haptics.notificationAsync(Warning)` on delete.
 
 ---
 
-## Step 2 — Rename Conversation
+## Step 2 — Rename & Pin Conversation
 
-**Goal:** Allow users to give conversations a meaningful title.
+**Goal:** Allow users to give conversations a meaningful title and pin favorites.
 
-### What to build
-- **Long-press** on a `ConversationListItem` in the sidebar reveals an **action sheet** (custom modal bottom sheet, pure RN — no `@gorhom/bottom-sheet`).
-- Action sheet options:
-  - ✏️ **Rename** — opens an inline `TextInput` replacing the title in the list.
-  - 🗑️ **Delete** — same flow as Step 1 (delete with undo).
-- On rename confirm, call `convRepo.update(id, { title: newTitle })`.
-- Cap title at 60 characters, auto-trim whitespace.
+### What was built
+- **Long-press** on a `ConversationListItem` reveals the Bottom Sheet.
+- 📌 **Pin** — Adds the conversation ID to a Set, rendering it at the top with a distinct icon.
+- ✏️ **Rename** — Opens an inline `TextInput` replacing the title in the list seamlessly.
+- 🗑️ **Delete** — Opens the custom `ConfirmDialog`.
 
 ---
 
@@ -47,12 +40,10 @@ The goal of **Phase 8** is to give users full control over their conversation hi
 
 **Goal:** One-tap nuclear option for clearing all history.
 
-### What to build
-- Add a **"Clear All History"** button in `settings.tsx` under a "Danger Zone" section.
-- Show a native `Alert.alert` confirmation dialog before executing.
-- On confirm: delete all rows from `conversations` and `messages` tables.
-- Navigate to home screen (`router.replace("/")`) after clearing.
-- Haptics: `Haptics.notificationAsync(Warning)`.
+### What was built
+- Added a **"Clear All History"** Danger Zone card in `settings.tsx`.
+- Uses the custom `<ConfirmDialog>` instead of a native Alert (ADR-0016).
+- On confirm: calls `deleteAll()` on repos and navigates to `router.replace("/")`.
 
 ---
 
@@ -60,12 +51,9 @@ The goal of **Phase 8** is to give users full control over their conversation hi
 
 **Goal:** Let users find past conversations by keyword.
 
-### What to build
-- Add a **search bar** at the top of the `Sidebar` conversation list (appears below the "New Chat" button).
-- Filters the in-memory `conversations` array by `title.toLowerCase().includes(query)` on each keystroke.
-- Placeholder: `"Search chats…"` with a `Search` lucide icon.
-- Animate the list filtering with `LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)`.
-- Shows a subtle empty state ("No results for '…'") when no matches found.
+### What was built
+- Search bar at the top of the `Sidebar`.
+- Filters the in-memory array by `title.toLowerCase()`.
 
 ---
 

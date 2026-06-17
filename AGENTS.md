@@ -25,31 +25,21 @@ If instructions conflict:
 
 ## Current Phase
 
-Active phase: **Phase 7 COMPLETE** — awaiting user activation of Phase 8.
+Active phase: **Phase 8 ACTIVE**
 
-### Phase 7 — Delivered (2026-06-17)
+### Phase 8 — Conversation Management (In Progress)
 
-- ✅ Markdown parsing and custom Code block rendering (with copy button)
-- ✅ Haptic feedback on all key interactions (send, stop, copy, error, success)
-- ✅ Copy to clipboard (long-press message bubbles)
-- ✅ Stop Generating (square button aborts stream, saves partial to SQLite)
-- ✅ Auto-scroll FAB (appears when user scrolls up during streaming)
-- ✅ FAANG Drawer Navigation (hamburger button, home = new chat, drawer = history)
-- ✅ Android keyboard fix (`pan` mode + `KeyboardAvoidingView padding` + `keyboardDidShow` scroll)
-- ✅ NativeWind permanently removed — pure `StyleSheet.create` only
+**Completed:**
+- Context menu: Long-press replaces swipe-to-delete for a more premium FAANG Bottom Sheet UX.
+- Rename conversation inline (TextInput).
+- Delete conversation with custom stylised `ConfirmDialog` (no native alerts).
+- Delete All History (Danger Zone in Settings + custom dialog).
+- Sidebar real-time search/filter by conversation title.
+- Pin/Unpin conversations.
 
-Stable tag: `v0.7.0-stable`
-
-### Phase 8 — Conversation Management (NOT YET ACTIVE)
-
-**Do not implement Phase 8 work until the user explicitly says "start Phase 8".**
-
-When activated, allowed work:
-- Swipe-to-delete individual conversations (with undo toast, PanResponder, no gesture-handler)
-- Long-press context sheet: Rename and Delete
-- Delete All History (Settings danger zone + `Alert.alert` confirmation)
-- Sidebar search/filter by conversation title
-- Conversation date grouping: Today / Yesterday / Last 7 days / Older
+**Remaining / Adjusted:**
+- Conversation date grouping: Today / Yesterday / Last 7 days / Older.
+- Swipe-to-delete: Cancelled in favor of the premium Bottom Sheet context menu.
 
 Disallowed in Phase 8:
 - Provider implementations (done)
