@@ -22,6 +22,7 @@ interface ChatInputProps {
   onPressDisabled?: () => void;
   isStreaming?: boolean;
   disabled?: boolean;
+  onFocus?: () => void;
 }
 
 export function ChatInput({
@@ -30,6 +31,7 @@ export function ChatInput({
   onPressDisabled,
   isStreaming = false,
   disabled = false,
+  onFocus,
 }: ChatInputProps) {
   const [text, setText] = useState("");
   const inputRef = useRef<TextInput>(null);
@@ -74,6 +76,7 @@ export function ChatInput({
           returnKeyType="send"
           enablesReturnKeyAutomatically
           scrollEnabled
+          onFocus={onFocus}
         />
 
         {/* Action button column */}

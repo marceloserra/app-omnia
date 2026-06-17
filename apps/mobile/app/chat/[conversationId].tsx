@@ -249,6 +249,8 @@ export default function ChatScreen() {
           inverted
           maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
           keyExtractor={(m) => m.id}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => <MessageBubble message={item} />}
         contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
         onScroll={(e) => {
@@ -308,6 +310,7 @@ export default function ChatScreen() {
         isStreaming={isStreaming}
         disabled={noProvider}
         onPressDisabled={() => router.push("/settings")}
+        onFocus={scrollToBottom}
       />
 
       {/* Drawer */}
