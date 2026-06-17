@@ -21,7 +21,7 @@
       "softwareKeyboardLayoutMode": "resize"
     },
     "androidStatusBar": {
-      "translucent": true
+      "translucent": false
     },
     "web": {
       "favicon": "./assets/favicon.png"

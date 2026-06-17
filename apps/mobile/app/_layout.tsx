@@ -32,7 +32,8 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style={theme.bg === "#05050f" ? "light" : "dark"} />
+      {/* @ts-expect-error expo-status-bar backgroundColor is valid on android but types might complain */}
+      <StatusBar style={theme.bg === "#05050f" ? "light" : "dark"} backgroundColor={theme.bg} />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: theme.bg },
