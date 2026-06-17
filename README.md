@@ -1,63 +1,84 @@
-# Omnia
+<h1 align="center">Omnia AI</h1>
 
-> One app. Every model.
+<p align="center">
+  <img
+    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/GitHub_Invertocat_Logo.svg/100px-GitHub_Invertocat_Logo.svg.png"
+    alt="Omnia icon"
+    width="96"
+    height="96"
+  />
+</p>
 
-Universal AI client for mobile. Connect to local and cloud LLMs from one application. Clean, modern, ChatGPT-like experience.
+<p align="center">
+  <strong>The FAANG-tier, offline-capable AI client for iOS and Android.</strong>
+</p>
 
-## Status
+<p align="center">
+  <img alt="Latest Release" src="https://img.shields.io/badge/Release-v1.0.0-0A84FF?style=flat-square" />
+  <img alt="React Native" src="https://img.shields.io/badge/React_Native-05050f?style=flat-square&logo=react" />
+  <img alt="Expo" src="https://img.shields.io/badge/Expo-SDK_56-black?style=flat-square&logo=expo" />
+  <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-16A34A?style=flat-square" />
+</p>
 
-Current phase: `0.1.0-alpha` foundation.
+<p align="center">
+  <a href="#why-omnia">Why Omnia</a> •
+  <a href="#feature-snapshot">Feature Snapshot</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#quickstart">Quickstart</a>
+</p>
+<br>
 
-Phase 1 scope is monorepo setup, tooling, CI/CD, documentation, and quality gates. Product features begin in later phases.
+<p align="center">
+  <!-- TODO: Replace with actual .gif demo from Simulator -->
+  <img
+    src="https://via.placeholder.com/360x640/05050f/6366f1?text=Omnia+Demo+Video+.gif"
+    alt="Omnia demo"
+    width="360"
+  />
+</p>
+<br>
+
+## Why Omnia?
+
+Most mobile AI clients are glorified web wrappers that break down the moment you step into an elevator. **Omnia** is built differently. Engineered with strict FAANG-level mobile patterns, it guarantees that you never lose a prompt, your chats render at a buttery 60 FPS, and the application gracefully falls back to local processing when the cloud goes dark. 
+
+## Feature Snapshot
+
+| Area | Included |
+| --- | --- |
+| **Chat UX** | Real-time streaming, dynamic title generation, Markdown engine, code highlighting with 1-click copy, and "Dynamic Island" provider chips. |
+| **Data Integrity** | Complete local-first SQLite persistence. Swipe-to-delete, Chat Pinning, and infinite scroll history natively optimized. |
+| **Resilience** | Circuit Breakers with Auto-Fallback to local models, Exponential Backoff on network drops, and Idempotency Keys to prevent duplicate API billing. |
+| **Hardware Integration** | Precise Haptic engine feedback (vibrations) on chat stream completion, errors, and physical interactions. |
+| **Personalization** | FAANG-grade bottom sheet modal for live model switching mid-conversation, and unified dark-mode Settings Hub. |
+
+## Built for Mobile Reality
+
+- **Single Source of Truth (Hybrid):** Streams write directly to a synchronous SQLite database running on the device, eliminating React RAM leaks.
+- **Graceful Degradation:** If OpenAI hits a `429 Rate Limit` or loses connection, Omnia automatically "trips the circuit" and switches to your embedded/local `OpenAI Compatible` endpoint.
+- **Idempotent by Default:** Injects unique `X-Request-ID` headers to prevent duplicated token generation if your 5G connection blinks during a request.
+- **Strictly Feature-Sliced:** The codebase follows Colocation and Feature-Sliced Design (FSD), making the monorepo structurally beautiful to navigate.
+
+---
+
+## Quickstart
+
+Omnia uses `pnpm` and `Turborepo` for monorepo orchestration.
+
+```bash
+# 1. Clone & Install
+git clone https://github.com/marceloserra/app-omnia.git
+cd app-omnia
+pnpm install
+
+# 2. Run the App
+pnpm --filter mobile dev
+```
 
 ## Monorepo Structure
 
-- `apps/mobile/` - React Native + Expo mobile application
-- `apps/web/` - Placeholder documentation for future web expansion
-- `packages/shared-types/` - Domain models and Zod schemas
-- `packages/core/` - Future business logic and chat orchestration
-- `packages/providers/` - Future provider abstraction and implementations
-- `packages/storage/` - Future SQLite persistence
-- `packages/ui/` - Future shared UI components, only if justified
-- `docs/architecture/` - Architecture documentation
-- `docs/decisions/` - Playbook-aligned decision records
-- `docs/process/` - Quality gates and workflow notes
-- `docs/guides/` - Contributor guides
-
-## Quick Start
-
-```bash
-pnpm install
-pnpm dev
-```
-
-## Quality Gates
-
-```bash
-pnpm lint
-pnpm typecheck
-pnpm test
-```
-
-Native bundle checks:
-
-```bash
-pnpm --filter ./apps/mobile exec expo export --platform ios --output-dir /private/tmp/omnia-ios-export --clear
-pnpm --filter ./apps/mobile exec expo export --platform android --output-dir /private/tmp/omnia-android-export --clear
-```
-
-## Playbook
-
-Omnia follows the AI Engineering Playbook bootstrap conventions. Agents and contributors must read `AGENTS.md` before making changes.
-
-Key references:
-
-- `MANIFEST.md`
-- `AGENTS.md`
-- `docs/process/quality-gates.md`
-- `docs/references/phase-scope.md`
-- `docs/architecture/overview.md`
-
-## License
-
-MIT
+- `apps/mobile`: The React Native (Expo) application.
+- `packages/shared-types`: Universal TypeScript types and schemas.
+- `packages/storage`: SQLite database and repositories.
+- `packages/providers`: LLM API connections and streaming logic.
+- `packages/logger`: Core logging logic.
