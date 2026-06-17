@@ -4,6 +4,7 @@ import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
 import { ChatInput } from "../../components/chat/ChatInput";
+import { Sidebar } from "../../components/navigation/Sidebar";
 import { useProviderStore } from "../../store/provider-store";
 import { OpenAIProvider } from "@omnia/providers";
 import { OpenAICompatibleProvider } from "@omnia/providers";
@@ -11,11 +12,14 @@ import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/
 import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import { ArrowDown } from "lucide-react-native";
+import { ArrowDown, AlignLeft, Settings } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
+const SURFACE = "#0e0e1f";
+const BORDER = "rgba(255,255,255,0.07)";
+const TEXT_PRIMARY = "#f0efff";
 const TEXT_SECONDARY = "#94a3b8";
 
 const db = openDatabase();
@@ -34,6 +38,7 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [convTitle, setConvTitle] = useState("Chat");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // UX States
   const [isScrolledUp, setIsScrolledUp] = useState(false);
@@ -189,7 +194,29 @@ export default function ChatScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
     >
-      <Stack.Screen options={{ title: convTitle }} />
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* ─── Custom Header ─── */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <Pressable
+          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setSidebarOpen(true); }}
+          style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
+          accessibilityLabel="Open menu"
+        >
+          <AlignLeft size={21} color={TEXT_PRIMARY} strokeWidth={1.8} />
+        </Pressable>
+
+        <Text style={styles.headerTitle} numberOfLines={1}>{convTitle}</Text>
+
+        <Pressable
+          onPress={() => router.push("/settings")}
+          style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
+          accessibilityLabel="Settings"
+        >
+          <Settings size={21} color={TEXT_PRIMARY} strokeWidth={1.8} />
+        </Pressable>
+      </View>
+      <View style={styles.headerDivider} />
 
       {/* Ambient Glow */}
       <View style={styles.ambientGlow} />
@@ -273,11 +300,45 @@ export default function ChatScreen() {
         disabled={noProvider}
         onPressDisabled={() => router.push("/settings")}
       />
+
+      {/* Drawer */}
+      <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingBottom: 10,
+    backgroundColor: BG,
+  },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: SURFACE,
+    borderWidth: 1,
+    borderColor: BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    color: TEXT_PRIMARY,
+    fontSize: 15,
+    fontWeight: "600",
+    letterSpacing: 0.2,
+    flex: 1,
+    textAlign: "center",
+    marginHorizontal: 8,
+  },
+  headerDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: BORDER,
+  },
   ambientGlow: {
     position: "absolute",
     top: -100,

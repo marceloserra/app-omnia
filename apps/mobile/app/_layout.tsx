@@ -1,7 +1,5 @@
 import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Pressable } from "react-native";
-import { Settings } from "lucide-react-native";
 import { logger } from "@omnia/logger";
 import { useEffect } from "react";
 
@@ -40,24 +38,22 @@ export default function RootLayout() {
           headerTintColor: HEADER_TEXT,
           headerShadowVisible: false,
           contentStyle: { backgroundColor: HEADER_BG },
-          headerTitle: "", // Clear out titles to make it super clean
         }}
       >
+        {/* Home = new chat screen with custom header */}
         <Stack.Screen
           name="index"
           options={{ headerShown: false }}
         />
+        {/* Existing conversation view */}
         <Stack.Screen
-          name="new-chat"
-          options={{ headerBackTitle: "Chats", title: "" }}
+          name="chat/[conversationId]"
+          options={{ headerBackTitle: "Chat", title: "" }}
         />
+        {/* Settings */}
         <Stack.Screen
           name="settings"
           options={{ title: "Settings" }}
-        />
-        <Stack.Screen
-          name="chat/[conversationId]"
-          options={{ headerBackTitle: "Chats" }}
         />
       </Stack>
     </>
