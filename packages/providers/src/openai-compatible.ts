@@ -66,8 +66,9 @@ export class OpenAICompatibleProvider implements LLMProvider {
         messages: request.messages,
         temperature: request.temperature ?? 0.7,
         stream: true
-      })
-    });
+      }),
+      reactNative: { textStreaming: true }
+    } as any);
 
     if (!response.ok) {
       throw new Error(`Provider API error: ${response.statusText}`);
