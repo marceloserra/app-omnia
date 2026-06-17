@@ -323,10 +323,10 @@ export default function SettingsScreen() {
                   {isConnected && (
                     <Pressable
                       onPress={handleDisconnect}
-                      style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
+                      style={({ pressed }) => [styles.deleteActionBtn, pressed && { opacity: 0.7 }]}
                     >
                       <AlertCircle size={16} color={theme.red} style={{ marginRight: 8 }} />
-                      <Text style={styles.dangerButtonText}>Disconnect Provider</Text>
+                      <Text style={styles.deleteActionBtnText}>Disconnect Provider</Text>
                     </Pressable>
                   )}
                 </View>
