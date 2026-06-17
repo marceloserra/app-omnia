@@ -1,280 +1,207 @@
-import React, { useState, useRef, useCallback } from "react";
-import { View, FlatList, Text, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable, StyleSheet } from "react-native";
-import { router } from "expo-router";
-import { Message } from "@omnia/shared-types";
-import { MessageBubble } from "../components/chat/MessageBubble";
-import { ChatInput } from "../components/chat/ChatInput";
-import { useProviderStore } from "../store/provider-store";
-import { OpenAIProvider } from "@omnia/providers";
-import { OpenAICompatibleProvider } from "@omnia/providers";
-import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
-import { logger } from "@omnia/logger";
-import { BlurView } from "expo-blur";
-import * as Haptics from "expo-haptics";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  FlatList,
+  Text,
+  Pressable,
+  StyleSheet,
+  Platform,
+} from "react-native";
+import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Plus, Settings, MessageSquarePlus } from "lucide-react-native";
+import { openDatabase, createConversationRepo } from "@omnia/storage";
+import * as Haptics from "expo-haptics";
+import { ConversationListItem } from "../components/chat/ConversationListItem";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
-const TEXT_SECONDARY = "#94a3b8";
 
 const db = openDatabase();
-const msgRepo = createMessageRepo(db);
 const convRepo = createConversationRepo(db);
 
-function generateId() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+interface Conversation {
+  id: string;
+  title: string;
+  updatedAt: number;
 }
 
-export default function IndexChatScreen() {
-  const store = useProviderStore();
+export default function IndexScreen() {
   const insets = useSafeAreaInsets();
-  const headerHeight = insets.top + 44; // Standard iOS header height
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const isAbortedRef = useRef(false);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
-  const getProvider = useCallback(() => {
-    if (store.activeProviderId === "openai") {
-      return {
-        provider: new OpenAIProvider(),
-        config: { apiKey: store.openaiApiKey },
-        modelId: store.openaiModelId,
-      };
-    } else if (store.activeProviderId === "openai-compatible") {
-      return {
-        provider: new OpenAICompatibleProvider(),
-        config: { baseUrl: store.compatibleBaseUrl, apiKey: store.compatibleApiKey || undefined },
-        modelId: store.compatibleModelId,
-      };
-    }
-    return null;
-  }, [store]);
-
-  const handleSend = useCallback(async (text: string) => {
-    const providerCtx = getProvider();
-    if (!providerCtx) return;
-
-    isAbortedRef.current = false;
-    
-    // Create new conversation
-    const newConvId = generateId();
-    convRepo.create({
-      id: newConvId,
-      title: text.slice(0, 40),
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    });
-
-    const userMessage: Message = {
-      id: generateId(),
-      conversationId: newConvId,
-      role: "user",
-      content: text,
-      timestamp: Date.now(),
-    };
-
-    const assistantId = generateId();
-    const assistantMessage: Message = {
-      id: assistantId,
-      conversationId: newConvId,
-      role: "assistant",
-      content: "",
-      providerId: store.activeProviderId ?? undefined,
-      modelId: providerCtx.modelId,
-      timestamp: Date.now(),
-    };
-
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setMessages([userMessage, assistantMessage]);
-    setIsStreaming(true);
-
-    try {
-      msgRepo.create(userMessage);
-      msgRepo.create(assistantMessage);
-    } catch (err) {
-      logger.error("SQLite", "Failed to save user message", err);
-    }
-
-    try {
-      const stream = providerCtx.provider.streamChat(providerCtx.config, {
-        messages: [{ role: "user", content: text }],
-        modelId: providerCtx.modelId,
-        stream: true,
-      });
-
-      let fullContent = "";
-      for await (const chunk of stream) {
-        if (isAbortedRef.current) break;
-        if (chunk.done) break;
-        
-        fullContent += chunk.content;
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId ? { ...m, content: fullContent } : m
-          )
-        );
-      }
-
+  // Reload list whenever this screen regains focus (e.g. coming back from a chat)
+  useFocusEffect(
+    useCallback(() => {
       try {
-        msgRepo.updateContent(assistantId, fullContent);
-        if (!isAbortedRef.current) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        }
-      } catch (err) {
-        logger.error("SQLite", "Failed to update assistant message", err);
+        const all = convRepo.listAll();
+        // Sort newest first
+        const sorted = [...all].sort((a, b) => b.updatedAt - a.updatedAt);
+        setConversations(sorted);
+      } catch {
+        setConversations([]);
       }
+    }, [])
+  );
 
-    } catch (e: any) {
-      if (isAbortedRef.current) return;
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
-      setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m));
-      try {
-        msgRepo.updateContent(assistantId, errorMsg);
-      } catch (err) {}
-    } finally {
-      setIsStreaming(false);
-      // Seamlessly transfer context to the chat route
-      router.replace(`/chat/${newConvId}`);
-    }
-  }, [store, getProvider]);
-
-  const handleStop = () => {
-    isAbortedRef.current = true;
-    setIsStreaming(false);
+  const handleNewChat = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push("/new-chat");
   };
 
-  const noProvider = !store.activeProviderId || !store.isConnected;
+  const handleOpenChat = (id: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push(`/chat/${id}`);
+  };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: BG }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
-    >
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Omnia</Text>
+        <View style={styles.headerActions}>
+          <Pressable
+            onPress={() => router.push("/settings")}
+            style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.6 }]}
+            accessibilityLabel="Settings"
+          >
+            <Settings size={22} color="rgba(240,239,255,0.8)" strokeWidth={1.8} />
+          </Pressable>
+          <Pressable
+            onPress={handleNewChat}
+            style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.6 }]}
+            accessibilityLabel="New chat"
+          >
+            <MessageSquarePlus size={22} color="rgba(240,239,255,0.8)" strokeWidth={1.8} />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Ambient glow */}
       <View style={styles.ambientGlow} />
 
+      {/* Conversation list */}
       <FlatList
-        data={messages}
-        keyExtractor={(m) => m.id}
-        renderItem={({ item }) => <MessageBubble message={item} />}
-        contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
+        data={conversations}
+        keyExtractor={(c) => c.id}
+        renderItem={({ item }) => (
+          <ConversationListItem item={item} onPress={handleOpenChat} />
+        )}
+        contentContainerStyle={conversations.length === 0 ? { flex: 1 } : { paddingBottom: 100 }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconWrapper}>
-              <Text style={{ fontSize: 28, color: "#818cf8" }}>✦</Text>
+            <View style={styles.emptyGlyph}>
+              <Text style={{ fontSize: 36, color: "#818cf8" }}>✦</Text>
             </View>
             <Text style={styles.emptyTitle}>Omnia</Text>
-            
-            {noProvider ? (
-              <View style={{ alignItems: "center", marginTop: 8 }}>
-                <Text style={[styles.emptySubtitle, { marginBottom: 20 }]}>
-                  You need an AI provider to start chatting.
-                </Text>
-                <Pressable
-                  onPress={() => router.push("/settings")}
-                  style={({ pressed }) => [
-                    styles.providerConfigBtn,
-                    pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
-                  ]}
-                >
-                  <Text style={styles.providerConfigText}>Configure Provider</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Text style={styles.emptySubtitle}>
-                What would you like to build today?
-              </Text>
-            )}
+            <Text style={styles.emptySubtitle}>
+              Your conversations will appear here.{"\n"}Tap the button below to start.
+            </Text>
           </View>
         }
       />
 
-      {isStreaming && (
-        <View style={styles.streamingIndicator}>
-          <ActivityIndicator size="small" color="#818cf8" />
-          <Text style={{ color: TEXT_SECONDARY, fontSize: 13, fontWeight: "500" }}>Omnia is thinking...</Text>
-        </View>
-      )}
-
-      <ChatInput 
-        onSend={handleSend} 
-        onStop={handleStop}
-        isStreaming={isStreaming}
-        disabled={noProvider}
-        onPressDisabled={() => router.push("/settings")}
-      />
-    </KeyboardAvoidingView>
+      {/* Floating "New Chat" button */}
+      <Pressable
+        onPress={handleNewChat}
+        style={({ pressed }) => [
+          styles.fab,
+          { bottom: insets.bottom + 24 },
+          pressed && { opacity: 0.85, transform: [{ scale: 0.96 }] },
+        ]}
+        accessibilityLabel="Start new chat"
+      >
+        <Plus size={22} color="#fff" strokeWidth={2.5} />
+        <Text style={styles.fabLabel}>New Chat</Text>
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: BG,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+  },
+  headerTitle: {
+    color: "#f0efff",
+    fontSize: 22,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 4,
+  },
+  iconBtn: {
+    padding: 10,
+    borderRadius: 12,
+  },
   ambientGlow: {
     position: "absolute",
-    top: -100,
-    right: -50,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
+    top: -80,
+    right: -60,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
     backgroundColor: INDIGO,
-    opacity: 0.1,
-    filter: "blur(100px)",
-    zIndex: -1,
-  },
-  noProviderBanner: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.05)",
+    opacity: 0.08,
   },
   emptyContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 120,
+    paddingBottom: 80,
+    gap: 12,
   },
-  emptyIconWrapper: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "rgba(99,102,241,0.15)",
+  emptyGlyph: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    backgroundColor: "rgba(99,102,241,0.1)",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
+    marginBottom: 4,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#f8fafc",
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  emptySubtitle: {
-    fontSize: 15,
-    color: TEXT_SECONDARY,
-    textAlign: "center",
-    paddingHorizontal: 40,
-    lineHeight: 22,
-  },
-  providerConfigBtn: {
-    backgroundColor: "rgba(99,102,241,0.15)",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.3)",
-  },
-  providerConfigText: {
-    color: "#a5b4fc",
-    fontWeight: "600",
-    fontSize: 15,
+    color: "#f0efff",
+    fontSize: 22,
+    fontWeight: "700",
     letterSpacing: 0.3,
   },
-  streamingIndicator: {
+  emptySubtitle: {
+    color: "rgba(148,163,184,0.6)",
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  fab: {
+    position: "absolute",
+    right: 20,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    gap: 10,
-    backgroundColor: "transparent",
+    gap: 8,
+    backgroundColor: INDIGO,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 28,
+    shadowColor: INDIGO,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  fabLabel: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
+    letterSpacing: 0.2,
   },
 });

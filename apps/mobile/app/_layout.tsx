@@ -46,25 +46,19 @@ export default function RootLayout() {
       >
         <Stack.Screen
           name="index"
-          options={{
-            headerRight: () => (
-              <Pressable
-                onPress={() => router.push("/settings")}
-                style={({ pressed }) => [{ padding: 8, marginRight: 4, opacity: pressed ? 0.7 : 1 }]}
-                accessibilityLabel="Open settings"
-              >
-                <Settings size={26} color={HEADER_TEXT} />
-              </Pressable>
-            ),
-          }}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="new-chat"
+          options={{ headerBackTitle: "Chats", title: "" }}
         />
         <Stack.Screen
           name="settings"
-          options={{ title: "Settings" }} // Settings can still have its title
+          options={{ title: "Settings" }}
         />
         <Stack.Screen
           name="chat/[conversationId]"
-          options={{ headerBackTitle: "Home" }}
+          options={{ headerBackTitle: "Chats" }}
         />
       </Stack>
     </>
