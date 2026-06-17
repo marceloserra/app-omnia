@@ -5,7 +5,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronDown, Sparkles, MessageSquare, Zap, Compass, Lightbulb } from "lucide-react-native";
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useProviderStore } from "../../store/provider-store";
-import { ModelPickerSheet, getModelIcon } from "../../components/chat/ModelPickerSheet";
+import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
+import { ModelChip } from "../../components/chat/ModelChip";
 import { Modal } from "react-native";
 import { router } from "expo-router";
 import { useTranslation } from "../../lib/i18n";
@@ -37,37 +38,13 @@ export default function HomeDashboard() {
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Top Floating Island */}
       <View style={[styles.headerFloating, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
-        {store.activeProviderId ? (
-          <Pressable
-            onPress={() => setModelPickerVisible(true)}
-            style={({ pressed }) => [styles.floatingChipContainer, pressed && { opacity: 0.7 }]}
-          >
-            <BlurView 
-              intensity={isDark ? 60 : 100} 
-              tint={isDark ? "dark" : "light"} 
-              style={[styles.floatingChipInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
-            >
-              <View style={{ width: 14, height: 14, alignItems: 'center', justifyContent: 'center' }}>
-                {getModelIcon(store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId, 14)}
-              </View>
-              <Text style={styles.dynamicIslandText} numberOfLines={1}>
-                {store.activeProviderId === "openai" ? "OpenAI" : "Local"} · {store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
-              </Text>
-              <ChevronDown size={14} color={theme.textSecondary} />
-            </BlurView>
-          </Pressable>
-        ) : (
-          <View style={styles.floatingChipContainer}>
-            <BlurView 
-              intensity={isDark ? 60 : 100} 
-              tint={isDark ? "dark" : "light"} 
-              style={[styles.floatingChipInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
-            >
-              <Sparkles size={14} color={theme.indigo} strokeWidth={2} />
-              <Text style={styles.dynamicIslandText} numberOfLines={1}>Omnia</Text>
-            </BlurView>
-          </View>
-        )}
+        <ModelChip
+          providerId={store.activeProviderId}
+          modelId={store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
+          isDark={isDark}
+          theme={theme}
+          onPress={() => setModelPickerVisible(true)}
+        />
       </View>
 
       {/* Main Content */}
