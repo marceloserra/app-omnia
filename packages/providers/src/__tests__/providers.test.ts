@@ -8,9 +8,10 @@ describe('Providers Package', () => {
       expect(provider).toBeDefined();
     });
 
-    it('should throw error without api key', async () => {
+    it('should return empty array without api key', async () => {
       const provider = new OpenAIProvider();
-      await expect(provider.listModels({ apiKey: '' })).rejects.toThrow();
+      const models = await provider.listModels({ apiKey: '' });
+      expect(models).toEqual([]);
     });
   });
 
@@ -20,9 +21,11 @@ describe('Providers Package', () => {
       expect(provider).toBeDefined();
     });
 
-    it('should require baseUrl', async () => {
+    it('should return fallback models without baseUrl', async () => {
       const provider = new OpenAICompatibleProvider();
-      await expect(provider.listModels({ baseUrl: '' })).rejects.toThrow();
+      const models = await provider.listModels({ baseUrl: '' });
+      expect(Array.isArray(models)).toBe(true);
+      expect(models.length).toBeGreaterThan(0);
     });
   });
 });

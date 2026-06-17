@@ -155,6 +155,7 @@ export default function ChatScreen() {
         logger.error("SQLite", "Failed to save message", err);
       }
 
+      let fullContent = "";
       try {
         const stream = providerCtx.provider.streamChat(providerCtx.config, {
           messages: chatHistory,
@@ -162,7 +163,6 @@ export default function ChatScreen() {
           stream: true,
         });
 
-        let fullContent = "";
         let lastHapticTime = Date.now();
         let lastSqliteTime = Date.now();
         
@@ -198,7 +198,13 @@ export default function ChatScreen() {
           logger.error("SQLite", "Failed to update assistant message content", err);
         }
       } catch (e: any) {
-        if (isAbortedRef.current) return;
+        if (isAbortedRef.current) {
+          // If aborted, the network request might throw. Save whatever partial content we have.
+          try {
+            getDb().msgRepo.updateContent(assistantId, fullContent);
+          } catch (err) {}
+          return;
+        }
         const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
         setMessages((cur) =>
           cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m)

@@ -19,8 +19,8 @@ jest.mock('../../../lib/theme', () => ({
 }));
 
 describe('ConfirmDialog', () => {
-  it('renders correctly when visible', () => {
-    render(
+  it('renders correctly when visible', async () => {
+    await render(
       <ConfirmDialog
         visible={true}
         title="Delete Chat?"
@@ -36,9 +36,9 @@ describe('ConfirmDialog', () => {
     expect(screen.getByText('Delete')).toBeTruthy();
   });
 
-  it('calls onConfirm when confirm button is pressed', () => {
+  it('calls onConfirm when confirm button is pressed', async () => {
     const onConfirmMock = jest.fn();
-    render(
+    await render(
       <ConfirmDialog
         visible={true}
         title="Delete Chat?"
@@ -52,9 +52,9 @@ describe('ConfirmDialog', () => {
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onCancel when cancel button is pressed', () => {
+  it('calls onCancel when cancel button is pressed', async () => {
     const onCancelMock = jest.fn();
-    render(
+    await render(
       <ConfirmDialog
         visible={true}
         title="Delete Chat?"
