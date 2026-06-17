@@ -57,20 +57,20 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: theme.bg },
         }}
       >
-        {/* Home = new chat screen with custom header */}
+        {/* Tab Navigator (Home, History, Settings) */}
         <Stack.Screen
-          name="index"
+          name="(tabs)"
           options={{ headerShown: false }}
+        />
+        {/* New chat screen */}
+        <Stack.Screen
+          name="chat/new"
+          options={{ headerShown: false, animation: "slide_from_right" }}
         />
         {/* Existing conversation view */}
         <Stack.Screen
           name="chat/[conversationId]"
           options={{ headerShown: false, animation: "none" }}
-        />
-        {/* Settings */}
-        <Stack.Screen
-          name="settings"
-          options={{ title: "Settings" }}
         />
       </Stack>
     </ThemeProvider>
