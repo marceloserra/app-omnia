@@ -341,8 +341,12 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
             ] 
           }
         ]}
-        {...panResponder.panHandlers}
       >
+        {/* Invisible swipe-to-close strip on the right edge — captures horizontal gestures only, never stealing taps from list items */}
+        <View
+          style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 24, zIndex: 1 }}
+          {...panResponder.panHandlers}
+        />
 
         {/* Header */}
         <View style={styles.header}>

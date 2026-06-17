@@ -9,11 +9,14 @@ import {
   Platform,
   StyleSheet,
   Alert,
+  Modal,
+  TextInput,
+  FlatList,
 } from "react-native";
 import { router } from "expo-router";
 import { Input } from "../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
-import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2 } from "lucide-react-native";
+import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X } from "lucide-react-native";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
@@ -28,6 +31,152 @@ const SUCCESS = "#10b981";
 const ERROR = "#ef4444";
 
 type Tab = "openai" | "openai-compatible";
+
+// ─── Model Picker Sheet ────────────────────────────────────────────────────────
+
+interface ModelPickerSheetProps {
+  models: string[];
+  selected: string;
+  onSelect: (m: string) => void;
+  onClose: () => void;
+  theme: ThemePalette;
+  isDark: boolean;
+}
+
+function ModelPickerSheet({ models, selected, onSelect, onClose, theme, isDark }: ModelPickerSheetProps) {
+  const [search, setSearch] = useState("");
+
+  const filtered = models.filter((m) =>
+    m.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Drag handle */}
+      <View style={{ alignItems: "center", paddingTop: 12, paddingBottom: 4 }}>
+        <View style={{
+          width: 40, height: 4, borderRadius: 2,
+          backgroundColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)",
+        }} />
+      </View>
+
+      {/* Header */}
+      <View style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.border,
+      }}>
+        <Text style={{ fontSize: 17, fontWeight: "700", color: theme.textPrimary, letterSpacing: 0.2 }}>
+          Select Model
+        </Text>
+        <Pressable
+          onPress={onClose}
+          style={({ pressed }) => [{
+            width: 32, height: 32, borderRadius: 16,
+            backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+            alignItems: "center", justifyContent: "center",
+          }, pressed && { opacity: 0.6 }]}
+        >
+          <X size={18} color={theme.textSecondary} />
+        </Pressable>
+      </View>
+
+      {/* Search field */}
+      <View style={{
+        flexDirection: "row",
+        alignItems: "center",
+        marginHorizontal: 20,
+        marginTop: 16,
+        marginBottom: 8,
+        backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: theme.border,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        gap: 10,
+      }}>
+        <Search size={16} color={theme.textSecondary} />
+        <TextInput
+          placeholder="Search models…"
+          placeholderTextColor={theme.textSecondary}
+          value={search}
+          onChangeText={setSearch}
+          style={{ flex: 1, fontSize: 15, color: theme.textPrimary }}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        {search.length > 0 && (
+          <Pressable onPress={() => setSearch("")}>
+            <X size={14} color={theme.textSecondary} />
+          </Pressable>
+        )}
+      </View>
+
+      {/* List */}
+      {filtered.length === 0 ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingBottom: 60 }}>
+          <Text style={{ color: theme.textSecondary, fontSize: 15 }}>No models match "{search}"</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          renderItem={({ item }) => {
+            const isSelected = item === selected;
+            return (
+              <Pressable
+                onPress={() => onSelect(item)}
+                style={({ pressed }) => [{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  marginVertical: 3,
+                  borderRadius: 14,
+                  borderLeftWidth: isSelected ? 4 : 0,
+                  borderLeftColor: isSelected ? "#6366f1" : "transparent",
+                  backgroundColor: isSelected
+                    ? (isDark ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.07)")
+                    : "transparent",
+                }, pressed && { opacity: 0.7 }]}
+              >
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 14,
+                    color: isSelected ? "#6366f1" : theme.textPrimary,
+                    fontWeight: isSelected ? "700" : "400",
+                  }}
+                  numberOfLines={2}
+                >
+                  {item}
+                </Text>
+                {isSelected && (
+                  <View style={{
+                    width: 22, height: 22, borderRadius: 11,
+                    backgroundColor: "#6366f1",
+                    alignItems: "center", justifyContent: "center", marginLeft: 12,
+                  }}>
+                    <Check size={13} color="#fff" />
+                  </View>
+                )}
+              </Pressable>
+            );
+          }}
+        />
+      )}
+    </View>
+  );
+}
+
+// ─── Settings Screen ──────────────────────────────────────────────────────────
 
 export default function SettingsScreen() {
   const store = useProviderStore();
@@ -47,6 +196,7 @@ export default function SettingsScreen() {
   const [isValidating, setIsValidating] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg?: string; models: string[] } | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [modelPickerVisible, setModelPickerVisible] = useState(false);
 
   // Sync testResult when store hydrates asynchronously
   React.useEffect(() => {
@@ -129,13 +279,13 @@ export default function SettingsScreen() {
       store.setCompatibleApiKey(localCompatibleKey);
       store.setCompatibleModelId(localModel);
     }
-    
+
     if (testResult?.ok) {
       store.setConnected(true, testResult.models, undefined);
     } else if (isSameProvider && prevConnected) {
       store.setConnected(true, prevModels, undefined);
     }
-    
+
     Alert.alert("Success", "Provider settings saved and activated.");
   };
 
@@ -148,7 +298,7 @@ export default function SettingsScreen() {
   const isFormValid = activeTab === "openai" ? !!localOpenaiKey.trim() : !!localCompatibleUrl.trim();
 
   const isDark = theme.bg === "#05050f";
-  
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <KeyboardAvoidingView
@@ -283,39 +433,21 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
 
-                {/* Model Selection */}
+                {/* Model Selection — single row picker */}
                 {models.length > 0 && (
-                  <View style={{ marginTop: 16 }}>
-                    <Text style={styles.sectionTitle}>Select Model</Text>
-                    <View style={styles.modelGrid}>
-                      {models.slice(0, 10).map((m) => {
-                        const isSelected = localModel === m;
-                        return (
-                          <Pressable
-                            key={m}
-                            onPress={() => setLocalModel(m)}
-                            style={({ pressed }) => [
-                              styles.modelChip,
-                              isSelected && styles.modelChipSelected,
-                              pressed && { opacity: 0.75 },
-                            ]}
-                          >
-                            {isSelected && (
-                              <View style={styles.modelChipCheck}>
-                                <Check size={10} color="#fff" />
-                              </View>
-                            )}
-                            <Text
-                              style={[styles.modelChipText, isSelected && styles.modelChipTextSelected]}
-                              numberOfLines={1}
-                            >
-                              {m}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  </View>
+                  <>
+                    <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Select Model</Text>
+                    <Pressable
+                      onPress={() => setModelPickerVisible(true)}
+                      style={({ pressed }) => [styles.modelSelectRow, pressed && { opacity: 0.7 }]}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.modelSelectLabel} numberOfLines={1}>{localModel || "No model selected"}</Text>
+                        <Text style={styles.modelSelectSub}>{models.length} models available</Text>
+                      </View>
+                      <ChevronRight size={18} color={theme.textSecondary} />
+                    </Pressable>
+                  </>
                 )}
 
                 {/* Action Buttons */}
@@ -324,7 +456,7 @@ export default function SettingsScreen() {
                     onPress={handleSave}
                     style={({ pressed }) => [styles.actionBtnPrimary, pressed && { opacity: 0.8 }]}
                   >
-                    <CheckCircle2 size={18} color="#fff" style={{ marginRight: 8 }} />
+                    <CheckCircle2 size={18} color="#10b981" style={{ marginRight: 8 }} />
                     <Text style={styles.actionBtnPrimaryText}>
                       {isConnected ? "Update Active Provider" : "Set as Active Provider"}
                     </Text>
@@ -340,10 +472,27 @@ export default function SettingsScreen() {
                     </Pressable>
                   )}
                 </View>
+
+                {/* Model Picker Modal */}
+                <Modal
+                  visible={modelPickerVisible}
+                  animationType="slide"
+                  presentationStyle="pageSheet"
+                  onRequestClose={() => setModelPickerVisible(false)}
+                >
+                  <ModelPickerSheet
+                    models={models}
+                    selected={localModel}
+                    onSelect={(m) => { setLocalModel(m); setModelPickerVisible(false); }}
+                    onClose={() => setModelPickerVisible(false)}
+                    theme={theme}
+                    isDark={isDark}
+                  />
+                </Modal>
               </View>
             );
           })()}
-          
+
           {/* Appearance Section */}
           <View style={{ marginTop: 24 }}>
             <Text style={styles.sectionTitle}>{t("settings.appearance.title")}</Text>
@@ -358,7 +507,7 @@ export default function SettingsScreen() {
                       style={[styles.segmentButton, isActive && styles.segmentButtonActive, { paddingVertical: 10 }]}
                     >
                       <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
-                        {tOpt === "system" ? "System" : 
+                        {tOpt === "system" ? "System" :
                          tOpt === "dark" ? "Dark" : "Light"}
                       </Text>
                     </Pressable>
@@ -406,7 +555,7 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              
+
               <Pressable
                 onPress={handleClearAll}
                 style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
@@ -516,45 +665,26 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
   },
-  modelGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  modelChip: {
+  modelSelectRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 14,
+    backgroundColor: theme.activeBg,
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
     borderWidth: 1.5,
     borderColor: theme.border,
-    backgroundColor: theme.activeBg,
-    maxWidth: "48%",
+    gap: 12,
   },
-  modelChipSelected: {
-    borderColor: theme.indigo,
-    backgroundColor: `${theme.indigo}22`,
+  modelSelectLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: theme.textPrimary,
+    marginBottom: 2,
   },
-  modelChipText: {
+  modelSelectSub: {
+    fontSize: 12,
     color: theme.textSecondary,
-    fontSize: 13,
-    fontWeight: "500",
-    flexShrink: 1,
-  },
-  modelChipTextSelected: {
-    color: theme.indigo,
-    fontWeight: "700",
-  },
-  modelChipCheck: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: theme.indigo,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-    flexShrink: 0,
   },
   statusBanner: {
     flexDirection: "row",
@@ -588,17 +718,14 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: theme.indigo,
+    backgroundColor: "rgba(16, 185, 129, 0.12)",
     paddingVertical: 16,
     borderRadius: 16,
-    shadowColor: theme.indigo,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 6,
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.35)",
   },
   actionBtnPrimaryText: {
-    color: "#ffffff",
+    color: "#10b981",
     fontWeight: "700",
     fontSize: 16,
   },

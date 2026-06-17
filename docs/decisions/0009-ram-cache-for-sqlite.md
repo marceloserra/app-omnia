@@ -2,9 +2,13 @@
 
 Date: 2026-06-17
 
+## Superseded
+
+This ADR was superseded on 2026-06-17. The RAM cache was removed because it does not scale on mobile (unbounded memory growth). The actual root cause of perceived latency was `setMessages([])` clearing the UI before new data loaded. Since `router.setParams` does not remount the component, simply removing that clear call eliminates the flash with zero caching overhead. See the revised implementation in `apps/mobile/app/chat/[conversationId].tsx`.
+
 ## Status
 
-Accepted
+Superseded
 
 ## Context
 

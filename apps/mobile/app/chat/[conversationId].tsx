@@ -1,18 +1,17 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { View, FlatList, Text, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Pressable, StyleSheet } from "react-native";
+import { View, FlatList, Text, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable, StyleSheet, Modal, TextInput } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
 import { ChatInput } from "../../components/chat/ChatInput";
 import { Sidebar } from "../../components/navigation/Sidebar";
 import { useProviderStore } from "../../store/provider-store";
-import { useChatCacheStore } from "../../store/chat-cache-store";
 import { OpenAIProvider } from "@omnia/providers";
 import { OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
-import { ArrowDown, AlignLeft, Settings } from "lucide-react-native";
+import { ArrowDown, AlignLeft, Settings, ChevronDown, Search, X, Check } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
@@ -26,6 +25,164 @@ function generateId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
+// ─── Chat Model Picker ────────────────────────────────────────────────────────
+
+interface ChatModelPickerProps {
+  models: string[];
+  selectedModel: string;
+  activeProviderId: string | null;
+  onSelect: (m: string) => void;
+  theme: ThemePalette;
+  onClose: () => void;
+}
+
+function ChatModelPicker({ models, selectedModel, activeProviderId, onSelect, theme, onClose }: ChatModelPickerProps) {
+  const [search, setSearch] = useState("");
+  const isDark = theme.bg === "#05050f";
+
+  const filtered = models.filter((m) =>
+    m.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleSelect = (m: string) => {
+    onSelect(m);
+    onClose();
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" }}>
+      {/* Drag handle */}
+      <View style={{ alignItems: "center", paddingTop: 12, paddingBottom: 4 }}>
+        <View style={{
+          width: 40, height: 4, borderRadius: 2,
+          backgroundColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)",
+        }} />
+      </View>
+
+      {/* Header */}
+      <View style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.border,
+      }}>
+        <Text style={{ fontSize: 17, fontWeight: "700", color: theme.textPrimary, letterSpacing: 0.2 }}>
+          Select Model
+        </Text>
+        <Pressable
+          onPress={onClose}
+          style={({ pressed }) => [{
+            width: 32, height: 32, borderRadius: 16,
+            backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+            alignItems: "center", justifyContent: "center",
+          }, pressed && { opacity: 0.6 }]}
+        >
+          <X size={18} color={theme.textSecondary} />
+        </Pressable>
+      </View>
+
+      {/* Search field */}
+      <View style={{
+        flexDirection: "row",
+        alignItems: "center",
+        marginHorizontal: 20,
+        marginTop: 16,
+        marginBottom: 8,
+        backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: theme.border,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        gap: 10,
+      }}>
+        <Search size={16} color={theme.textSecondary} />
+        <TextInput
+          placeholder="Search models…"
+          placeholderTextColor={theme.textSecondary}
+          value={search}
+          onChangeText={setSearch}
+          style={{ flex: 1, fontSize: 15, color: theme.textPrimary }}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        {search.length > 0 && (
+          <Pressable onPress={() => setSearch("")}>
+            <X size={14} color={theme.textSecondary} />
+          </Pressable>
+        )}
+      </View>
+
+      {/* List */}
+      {models.length === 0 ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingBottom: 60, paddingHorizontal: 32 }}>
+          <Text style={{ color: theme.textSecondary, fontSize: 15, textAlign: "center", lineHeight: 22 }}>
+            No models available. Connect a provider in Settings.
+          </Text>
+        </View>
+      ) : filtered.length === 0 ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingBottom: 60 }}>
+          <Text style={{ color: theme.textSecondary, fontSize: 15 }}>No models match "{search}"</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          renderItem={({ item }) => {
+            const isSelected = item === selectedModel;
+            return (
+              <Pressable
+                onPress={() => handleSelect(item)}
+                style={({ pressed }) => [{
+                  flexDirection: "row" as const,
+                  alignItems: "center" as const,
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  marginVertical: 3,
+                  borderRadius: 14,
+                  borderLeftWidth: isSelected ? 4 : 0,
+                  borderLeftColor: isSelected ? "#6366f1" : "transparent",
+                  backgroundColor: isSelected
+                    ? (isDark ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.07)")
+                    : "transparent",
+                }, pressed && { opacity: 0.7 }]}
+              >
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 14,
+                    color: isSelected ? "#6366f1" : theme.textPrimary,
+                    fontWeight: isSelected ? "700" : "400",
+                  }}
+                  numberOfLines={2}
+                >
+                  {item}
+                </Text>
+                {isSelected && (
+                  <View style={{
+                    width: 22, height: 22, borderRadius: 11,
+                    backgroundColor: "#6366f1",
+                    alignItems: "center", justifyContent: "center", marginLeft: 12,
+                  }}>
+                    <Check size={13} color="#fff" />
+                  </View>
+                )}
+              </Pressable>
+            );
+          }}
+        />
+      )}
+    </View>
+  );
+}
+
+// ─── Chat Screen ──────────────────────────────────────────────────────────────
+
 export default function ChatScreen() {
   const { conversationId, initialPrompt } = useLocalSearchParams<{ conversationId: string; initialPrompt?: string }>();
   const hasTriggeredPrompt = useRef(false);
@@ -37,10 +194,11 @@ export default function ChatScreen() {
   const headerHeight = insets.top + 44;
   const [messages, setMessages] = useState<Message[]>(() => {
     if (!conversationId) return [];
-    // Read-through RAM cache to guarantee instant mounting (SPA-like fluidity)
-    const cached = useChatCacheStore.getState().getMessages(conversationId);
-    if (cached && cached.length > 0) return cached;
-    return []; // Fall back to empty array; useEffect will load from SQLite asynchronously
+    try {
+      return msgRepo.listByConversation(conversationId);
+    } catch {
+      return [];
+    }
   });
   const [isStreaming, setIsStreaming] = useState(false);
   const [convTitle, setConvTitle] = useState(() => {
@@ -53,7 +211,8 @@ export default function ChatScreen() {
     }
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
+  const [modelPickerVisible, setModelPickerVisible] = useState(false);
+
   // UX States
   const [isScrolledUp, setIsScrolledUp] = useState(false);
   const flatListRef = useRef<FlatList>(null);
@@ -142,11 +301,9 @@ export default function ChatScreen() {
             if (isAbortedRef.current) break;
             if (chunk.done) break;
             fullContent += chunk.content;
-            setMessages((cur) => {
-              const next = cur.map((m) => m.id === assistantId ? { ...m, content: fullContent } : m);
-              useChatCacheStore.getState().setMessages(conversationId, next);
-              return next;
-            });
+            setMessages((cur) =>
+              cur.map((m) => m.id === assistantId ? { ...m, content: fullContent } : m)
+            );
           }
 
           try {
@@ -157,11 +314,9 @@ export default function ChatScreen() {
         } catch (e: any) {
           if (isAbortedRef.current) return;
           const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
-          setMessages((cur) => {
-            const next = cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m);
-            useChatCacheStore.getState().setMessages(conversationId, next);
-            return next;
-          });
+          setMessages((cur) =>
+            cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m)
+          );
           try {
             msgRepo.updateContent(assistantId, errorMsg);
           } catch (err) {
@@ -174,58 +329,29 @@ export default function ChatScreen() {
       })();
 
       const nextMessages = isInitialPrompt ? [...prev, assistantMessage] : [...prev, userMessage!, assistantMessage];
-      useChatCacheStore.getState().setMessages(conversationId, nextMessages);
       return nextMessages;
     });
 
     setIsStreaming(true);
   }, [conversationId, store, getProvider]);
 
-  // Load messages from SQLite on mount — deps intentionally exclude handleSend
-  // to prevent re-running when handleSend identity changes during streaming.
+  // Load messages from SQLite on conversationId change.
+  // No setMessages([]) here — keep previous messages visible during transition.
   useEffect(() => {
     if (!conversationId) return;
-
-    const cached = useChatCacheStore.getState().getMessages(conversationId);
-    const hasCache = cached && cached.length > 0;
-
-    if (!hasCache) {
-      setMessages([]);
-    } else if (messages !== cached) {
-      setMessages(cached);
-    }
-
-    const loadHistory = () => {
-      try {
-        const conv = convRepo.getById(conversationId);
-        if (conv) setConvTitle(conv.title);
-
-        if (!hasCache) {
-          const history = msgRepo.listByConversation(conversationId);
-          setMessages(history);
-          useChatCacheStore.getState().setMessages(conversationId, history);
-        }
-
-        if (initialPrompt && !hasTriggeredPrompt.current) {
-          hasTriggeredPrompt.current = true;
-          // Delay to let the screen fully mount before firing the first message
-          setTimeout(() => {
-            handleSend(initialPrompt, true);
-          }, 300);
-        }
-      } catch (err) {
-        logger.error("SQLite", "Failed to load chat history", err);
+    try {
+      const conv = convRepo.getById(conversationId);
+      if (conv) setConvTitle(conv.title);
+      const history = msgRepo.listByConversation(conversationId);
+      setMessages(history);
+      if (initialPrompt && !hasTriggeredPrompt.current) {
+        hasTriggeredPrompt.current = true;
+        setTimeout(() => { handleSend(initialPrompt, true); }, 300);
       }
-    };
-
-    if (hasCache) {
-      loadHistory();
-    } else {
-      // Defer the heavy SQLite read and AST parsing until after the Drawer animation finishes
-      const timeoutId = setTimeout(() => loadHistory(), 250);
-      return () => clearTimeout(timeoutId);
+    } catch (err) {
+      logger.error("SQLite", "Failed to load chat history", err);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, initialPrompt]); // handleSend intentionally omitted — guarded by hasTriggeredPrompt ref
 
   const handleStop = () => {
@@ -239,6 +365,7 @@ export default function ChatScreen() {
   };
 
   const noProvider = !store.activeProviderId;
+  const activeModelId = store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId;
 
   return (
     <KeyboardAvoidingView
@@ -257,6 +384,20 @@ export default function ChatScreen() {
           </Pressable>
 
           <Text style={styles.headerTitle} numberOfLines={1}>{convTitle}</Text>
+
+          {store.activeProviderId && (
+            <Pressable
+              onPress={() => setModelPickerVisible(true)}
+              style={({ pressed }) => [styles.modelChipHeader, { marginRight: 4 }, pressed && { opacity: 0.7 }]}
+              accessibilityLabel="Change model"
+            >
+              <View style={styles.modelChipDot} />
+              <Text style={styles.modelChipHeaderText} numberOfLines={1}>
+                {activeModelId}
+              </Text>
+              <ChevronDown size={12} color="#10b981" />
+            </Pressable>
+          )}
 
           <Pressable
             onPress={() => router.push("/settings")}
@@ -301,7 +442,7 @@ export default function ChatScreen() {
                   <Text style={{ fontSize: 32, color: theme.indigo }}>✦</Text>
                 </View>
                 <Text style={styles.emptyTitle}>{t("chat.empty.title")}</Text>
-                
+
                 {noProvider ? (
                   <View style={{ alignItems: "center" }}>
                     <Text style={styles.emptySubtitle}>
@@ -332,8 +473,8 @@ export default function ChatScreen() {
           )}
         </View>
 
-        <ChatInput 
-          onSend={handleSend} 
+        <ChatInput
+          onSend={handleSend}
           onStop={handleStop}
           isStreaming={isStreaming}
           disabled={noProvider}
@@ -342,6 +483,28 @@ export default function ChatScreen() {
       </View>
 
       <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <Modal
+        visible={modelPickerVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setModelPickerVisible(false)}
+      >
+        <ChatModelPicker
+          models={store.availableModels}
+          selectedModel={store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
+          activeProviderId={store.activeProviderId}
+          onSelect={(m) => {
+            if (store.activeProviderId === "openai") {
+              store.setOpenaiModelId(m);
+            } else {
+              store.setCompatibleModelId(m);
+            }
+          }}
+          theme={theme}
+          onClose={() => setModelPickerVisible(false)}
+        />
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -372,6 +535,31 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     flex: 1,
     textAlign: "center",
     marginHorizontal: 8,
+  },
+  modelChipHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(16, 185, 129, 0.12)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.3)",
+    gap: 5,
+    maxWidth: 160,
+  },
+  modelChipDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#10b981",
+    flexShrink: 0,
+  },
+  modelChipHeaderText: {
+    color: "#10b981",
+    fontSize: 12,
+    fontWeight: "600",
+    flexShrink: 1,
   },
 
   noProviderInline: {
@@ -440,7 +628,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
 
   fabContainer: {
     position: "absolute",
-    bottom: 16, // Tied to the bottom of the list area, above the input
+    bottom: 16,
     right: 20,
     zIndex: 10,
   },
