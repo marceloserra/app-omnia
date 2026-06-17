@@ -11,6 +11,7 @@ import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/
 import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
@@ -26,6 +27,7 @@ function generateId() {
 
 export default function IndexChatScreen() {
   const store = useProviderStore();
+  const headerHeight = useHeaderHeight();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const isAbortedRef = useRef(false);
@@ -147,7 +149,7 @@ export default function IndexChatScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: BG }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
     >
       <View style={styles.ambientGlow} />
 

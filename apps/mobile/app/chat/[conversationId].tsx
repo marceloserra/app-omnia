@@ -12,6 +12,7 @@ import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { ArrowDown } from "lucide-react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
@@ -28,6 +29,7 @@ function generateId() {
 export default function ChatScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
   const store = useProviderStore();
+  const headerHeight = useHeaderHeight();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [convTitle, setConvTitle] = useState("Chat");
@@ -184,7 +186,7 @@ export default function ChatScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: BG }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
     >
       <Stack.Screen options={{ title: convTitle }} />
 
