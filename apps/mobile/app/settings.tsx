@@ -140,7 +140,7 @@ export default function SettingsScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         <ScrollView
-          contentContainerStyle={{ padding: 20, paddingBottom: 160 }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 60 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -293,6 +293,29 @@ export default function SettingsScreen() {
                       );
                     })}
                   </View>
+                  
+                  {/* Action Buttons */}
+                  <View style={{ marginTop: 24, gap: 12 }}>
+                    <Pressable
+                      onPress={handleSave}
+                      style={({ pressed }) => [styles.activeProviderBtn, pressed && { opacity: 0.7 }]}
+                    >
+                      <CheckCircle2 size={18} color="#10b981" style={{ marginRight: 8 }} />
+                      <Text style={styles.activeProviderText}>
+                        {store.activeProviderId === activeTab ? "Provider Active (Update)" : "Set as Active Provider"}
+                      </Text>
+                    </Pressable>
+
+                    {store.activeProviderId === activeTab && (
+                      <Pressable
+                        onPress={handleDisconnect}
+                        style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
+                      >
+                        <AlertCircle size={16} color={theme.red} style={{ marginRight: 8 }} />
+                        <Text style={styles.dangerButtonText}>Disconnect</Text>
+                      </Pressable>
+                    )}
+                  </View>
                 </>
               )}
             </BlurView>
@@ -373,50 +396,7 @@ export default function SettingsScreen() {
 
         </ScrollView>
 
-        {/* Floating Actions - Premium Gradient */}
-        <BlurView intensity={isDark ? 80 : 100} tint={isDark ? "dark" : "light"} style={styles.floatingBar}>
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            {store.activeProviderId === activeTab && (
-              <Pressable
-                onPress={handleDisconnect}
-                style={({ pressed }) => [
-                  { 
-                    flex: 1, 
-                    backgroundColor: "rgba(239, 68, 68, 0.1)", 
-                    borderRadius: 20, 
-                    borderWidth: 1, 
-                    borderColor: "rgba(239, 68, 68, 0.3)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  },
-                  pressed && { opacity: 0.7 }
-                ]}
-              >
-                <Text style={{ color: "#fca5a5", fontWeight: "600", fontSize: 16 }}>Disconnect</Text>
-              </Pressable>
-            )}
 
-            <Pressable
-              onPress={handleSave}
-              disabled={!testResult?.ok}
-              style={({ pressed }) => ({ flex: store.activeProviderId === activeTab ? 1.5 : 1, opacity: pressed ? 0.85 : 1 })}
-            >
-              <LinearGradient
-                colors={testResult?.ok ? ["#4f46e5", "#6366f1"] : ["rgba(99,102,241,0.2)", "rgba(99,102,241,0.1)"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[
-                  styles.saveButton,
-                  !testResult?.ok && { borderWidth: 1, borderColor: "rgba(99,102,241,0.3)" }
-                ]}
-              >
-                <Text style={[styles.saveButtonText, !testResult?.ok && { color: theme.textSecondary }]}>
-                  {store.activeProviderId === activeTab ? "Update Provider" : "Set Active"}
-                </Text>
-              </LinearGradient>
-            </Pressable>
-          </View>
-        </BlurView>
       </KeyboardAvoidingView>
 
       <ConfirmDialog
@@ -521,33 +501,20 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  floatingBar: {
-    position: "absolute",
-    bottom: 32,
-    left: 20,
-    right: 20,
-    padding: 16,
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: theme.border,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  saveButton: {
-    paddingVertical: 16,
-    borderRadius: 20,
+  activeProviderBtn: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "rgba(16, 185, 129, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.3)",
+    paddingVertical: 14,
+    borderRadius: 16,
   },
-  saveButtonText: {
-    color: "#ffffff",
+  activeProviderText: {
+    color: "#10b981",
     fontWeight: "700",
     fontSize: 16,
-    letterSpacing: 0.3,
   },
   dangerZone: {
     marginTop: 40,
