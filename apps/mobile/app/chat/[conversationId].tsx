@@ -230,11 +230,7 @@ export default function ChatScreen() {
   const activeModelId = store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId;
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: theme.bg }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={0}
-    >
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <View style={{ flex: 1 }}>
         {/* Floating Header (Dynamic Island vibe) */}
         <View style={[styles.headerFloating, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
@@ -370,13 +366,18 @@ export default function ChatScreen() {
 
       </View>
 
-      <ChatInput
-        onSend={handleSend}
-        onStop={handleStop}
-        isStreaming={isStreaming}
-        disabled={noProvider}
-        onPressDisabled={() => { if (noProvider) router.push("/settings"); }}
-      />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+      >
+        <ChatInput
+          onSend={handleSend}
+          onStop={handleStop}
+          isStreaming={isStreaming}
+          disabled={noProvider}
+          onPressDisabled={() => { if (noProvider) router.push("/settings"); }}
+        />
+      </KeyboardAvoidingView>
 
       <ModelPickerSheet
         visible={modelPickerVisible}
@@ -393,7 +394,7 @@ export default function ChatScreen() {
         isDark={isDark}
         onClose={() => setModelPickerVisible(false)}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
