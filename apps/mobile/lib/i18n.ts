@@ -43,6 +43,9 @@ const en = {
   "home.suggestion.app.prompt": "Give me 5 innovative mobile app ideas that combine artificial intelligence with personal productivity.",
 
   // New UI Strings
+  "home.greeting.morning": "Good morning",
+  "home.greeting.afternoon": "Good afternoon",
+  "home.greeting.evening": "Good evening",
   "home.greeting.subtitle": "How can I help you today?",
   "home.empty.subtitle": "Connect an AI provider to start chatting",
   "home.empty.cta": "Configure AI Provider",
@@ -108,7 +111,10 @@ const pt: typeof en = {
   "home.suggestion.app.title": "Ideias de aplicativos",
   "home.suggestion.app.prompt": "Me dê 5 ideias inovadoras de aplicativos mobile que combinam inteligência artificial com produtividade pessoal.",
 
-  "home.greeting.subtitle": "Como posso ajudar você hoje?",
+  "home.greeting.morning": "Bom dia",
+  "home.greeting.afternoon": "Boa tarde",
+  "home.greeting.evening": "Boa noite",
+  "home.greeting.subtitle": "Como posso te ajudar hoje?",
   "home.empty.subtitle": "Conecte um provedor de IA para começar a conversar",
   "home.empty.cta": "Configurar Provedor de IA",
 
