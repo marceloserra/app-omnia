@@ -1,31 +1,25 @@
 import React from 'react';
 import { TextInput, View, Text, ViewStyle } from 'react-native';
 
-interface InputProps {
+interface InputProps extends React.ComponentProps<typeof TextInput> {
   label?: string;
-  placeholder?: string;
-  value?: string;
-  onChangeText?: (text: string) => void;
   variant?: 'text' | 'textarea' | 'search';
   error?: boolean;
   errorMessage?: string;
   disabled?: boolean;
-  autoFocus?: boolean;
   containerStyle?: ViewStyle;
   className?: string;
 }
 
 export function Input({
   label,
-  placeholder,
-  value,
-  onChangeText,
   variant = 'text',
   error = false,
   errorMessage,
   disabled = false,
-  autoFocus = false,
   containerStyle,
+  placeholder,
+  ...props
 }: InputProps) {
   const isTextarea = variant === 'textarea';
 
@@ -39,13 +33,8 @@ export function Input({
 
       <TextInput
         placeholder={placeholder}
-        placeholderTextColor="rgba(199, 210, 254, 0.4)"
-        value={value}
-        onChangeText={onChangeText}
-        multiline={isTextarea}
-        numberOfLines={isTextarea ? 6 : 1}
+        {...props}
         editable={!disabled}
-        autoFocus={autoFocus}
         accessibilityLabel={label || placeholder}
         style={{
           borderRadius: 12,

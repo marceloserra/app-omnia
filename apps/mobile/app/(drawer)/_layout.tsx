@@ -10,7 +10,7 @@ const HEADER_TEXT = "#f8fafc";
 export default function DrawerLayout() {
   return (
     <Drawer
-      drawerContent={(props) => <CustomDrawer {...props} />}
+      drawerContent={(props) => <CustomDrawer {...(props as any)} />}
       screenOptions={{
         headerTransparent: true,
         headerTitle: "",

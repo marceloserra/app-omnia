@@ -8,13 +8,14 @@ import "../assets/css/global.css";
 const HEADER_BG = "#05050f";
 
 // Catch global JS crashes
-const originalHandler = global.ErrorUtils?.getGlobalHandler?.();
-if (global.ErrorUtils && !global.ErrorUtils.__omnia_hooked) {
-  global.ErrorUtils.setGlobalHandler((error: any, isFatal?: boolean) => {
+const g = global as any;
+const originalHandler = g.ErrorUtils?.getGlobalHandler?.();
+if (g.ErrorUtils && !g.ErrorUtils.__omnia_hooked) {
+  g.ErrorUtils.setGlobalHandler((error: any, isFatal?: boolean) => {
     logger.error("AppCrash", "Unhandled JS Exception", error, { isFatal });
     if (originalHandler) originalHandler(error, isFatal);
   });
-  global.ErrorUtils.__omnia_hooked = true;
+  g.ErrorUtils.__omnia_hooked = true;
 }
 
 export function ErrorBoundary(props: { error: Error; retry: () => void }) {

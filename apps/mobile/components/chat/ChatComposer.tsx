@@ -46,7 +46,7 @@ export function ChatComposer({
       <Button 
         onPress={handleSend}
         disabled={!message.trim() || disabled}
-        variant="primary"
+        variant="default"
         size="md"
       >
         Send

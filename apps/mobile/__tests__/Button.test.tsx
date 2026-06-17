@@ -9,7 +9,7 @@ describe('Button Component', () => {
   });
 
   it('applies correct variant classes', async () => {
-    const { debug } = await render(<Button variant="primary">Primary</Button>);
+    const { debug } = await render(<Button variant="default">Primary</Button>);
     // In a real test, we would check the className prop
     expect(true).toBe(true); // Placeholder assertion
   });
