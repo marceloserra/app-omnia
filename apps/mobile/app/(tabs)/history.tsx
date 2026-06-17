@@ -237,7 +237,6 @@ export default function HistoryScreen() {
                 marginBottom: 8,
                 borderRadius: 16,
                 overflow: "hidden", // strictly contains actions inside the pill shape
-                backgroundColor: theme.surface,
                 borderWidth: 1,
                 borderColor: theme.border,
               }}
@@ -354,7 +353,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
   convItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "transparent",
+    backgroundColor: theme.surface,
     padding: 16,
   },
   convItemPressed: {
