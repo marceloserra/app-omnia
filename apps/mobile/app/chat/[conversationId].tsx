@@ -24,15 +24,6 @@ const convRepo = createConversationRepo(db);
 function generateId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
-
-            );
-          }}
-        />
-      )}
-    </View>
-  );
-}
-
 // ─── Chat Screen ──────────────────────────────────────────────────────────────
 
 export default function ChatScreen() {
