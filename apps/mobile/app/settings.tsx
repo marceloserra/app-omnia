@@ -314,8 +314,7 @@ export default function SettingsScreen() {
                     >
                       <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
                         {tOpt === "system" ? "System" : 
-                         tOpt === "dark" ? t("settings.appearance.theme.dark") : 
-                         t("settings.appearance.theme.light")}
+                         tOpt === "dark" ? "Dark" : "Light"}
                       </Text>
                     </Pressable>
                   );
