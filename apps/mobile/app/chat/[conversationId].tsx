@@ -65,7 +65,7 @@ export default function ChatScreen() {
     // When keyboard opens: scroll to end if user hasn't scrolled up
     const showSub = Keyboard.addListener("keyboardDidShow", () => {
       if (!isScrolledUp) {
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+        flatListRef.current?.scrollToEnd({ animated: false });
       }
     });
     // When keyboard closes: restore previous scroll position so content doesn't jump
@@ -215,8 +215,8 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: BG }}
-      behavior="padding"
-      keyboardVerticalOffset={headerHeight}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
     >
       <Stack.Screen options={{ headerShown: false }} />
 

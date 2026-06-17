@@ -50,12 +50,12 @@ export default function HomeScreen() {
 
   const noProvider = !store.activeProviderId || !store.isConnected;
 
-  // Scroll to bottom when keyboard opens on Android
+  // Keyboard scroll behaviour (Android)
   useEffect(() => {
-    const sub = Keyboard.addListener("keyboardDidShow", () => {
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    const showSub = Keyboard.addListener("keyboardDidShow", () => {
+      flatListRef.current?.scrollToEnd({ animated: false });
     });
-    return () => sub.remove();
+    return () => showSub.remove();
   }, []);
 
   const getProvider = useCallback(() => {
@@ -169,8 +169,8 @@ export default function HomeScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: BG }}
-      behavior="padding"
-      keyboardVerticalOffset={headerHeight}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
     >
       {/* ─── Custom Header ─── */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
