@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   View, Text, Pressable, StyleSheet, ScrollView,
   Animated, Modal, TouchableWithoutFeedback, Platform,
@@ -23,8 +23,47 @@ const BORDER = "rgba(255,255,255,0.07)";
 const INDIGO = "#6366f1";
 const TEXT_PRIMARY = "#f8fafc";
 const TEXT_SECONDARY = "#94a3b8";
+const TEXT_MUTED = "rgba(148,163,184,0.6)";
 const DRAWER_WIDTH = 300;
 const RED = "#ef4444";
+const ACTIVE_BG = "rgba(255,255,255,0.08)";
+
+// ─── Date Helpers ──────────────────────────────────────────────────────────
+function getDateGroup(timestamp: number): string {
+  const now = new Date();
+  const target = new Date(timestamp);
+  
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startOfTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+  
+  const diffDays = Math.round((startOfToday - startOfTarget) / msPerDay);
+  
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays <= 7) return "Previous 7 Days";
+  return "Older";
+}
+
+function formatTimestamp(timestamp: number): string {
+  const now = new Date();
+  const target = new Date(timestamp);
+  const diffMs = now.getTime() - timestamp;
+  const diffMins = Math.round(diffMs / 60000);
+  const diffHrs = Math.round(diffMins / 60);
+
+  if (diffMins < 60) return diffMins <= 1 ? "Just now" : `${diffMins}m ago`;
+  
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startOfTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+  const diffDays = Math.round((startOfToday - startOfTarget) / (24 * 60 * 60 * 1000));
+  
+  if (diffDays === 0) return `${diffHrs}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${MONTHS[target.getMonth()]} ${target.getDate()}`;
+}
 
 const db = openDatabase();
 const convRepo = createConversationRepo(db);
@@ -201,13 +240,35 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Sort: pinned first, then by updatedAt desc
-  const sorted = [...filtered].sort((a, b) => {
-    const aPinned = pinnedIds.has(a.id) ? 1 : 0;
-    const bPinned = pinnedIds.has(b.id) ? 1 : 0;
-    if (bPinned !== aPinned) return bPinned - aPinned;
-    return b.updatedAt - a.updatedAt;
-  });
+  // Group by date
+  const groupedConvs = useMemo(() => {
+    const groups: Record<string, Conversation[]> = {
+      "Pinned": [],
+      "Today": [],
+      "Yesterday": [],
+      "Previous 7 Days": [],
+      "Older": []
+    };
+    
+    // Sort all filtered by updatedAt desc first
+    const sorted = [...filtered].sort((a, b) => b.updatedAt - a.updatedAt);
+    
+    sorted.forEach(c => {
+      if (pinnedIds.has(c.id)) {
+        groups["Pinned"].push(c);
+      } else {
+        groups[getDateGroup(c.updatedAt)].push(c);
+      }
+    });
+    
+    return [
+      { title: "Pinned", data: groups["Pinned"] },
+      { title: "Today", data: groups["Today"] },
+      { title: "Yesterday", data: groups["Yesterday"] },
+      { title: "Previous 7 Days", data: groups["Previous 7 Days"] },
+      { title: "Older", data: groups["Older"] },
+    ].filter(g => g.data.length > 0);
+  }, [filtered, pinnedIds]);
 
   return (
     <Modal
@@ -272,68 +333,75 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
           )}
         </View>
 
-        <Text style={styles.sectionLabel}>
-          {searchQuery ? "Search Results" : "Recent"}
-        </Text>
-
         <ScrollView
           style={styles.list}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 24 }}
           keyboardShouldPersistTaps="handled"
         >
-          {sorted.length === 0 ? (
+          {groupedConvs.length === 0 ? (
             <Text style={styles.emptyText}>No recent chats yet.</Text>
           ) : (
-            sorted.map((conv) => {
-              const isPinned = pinnedIds.has(conv.id);
-              const isRenaming = rename.active && rename.conversationId === conv.id;
+            groupedConvs.map((group: { title: string; data: Conversation[] }) => (
+              <View key={group.title} style={styles.groupContainer}>
+                <Text style={styles.groupTitle}>{group.title}</Text>
+                
+                {group.data.map((conv: Conversation) => {
+                  const isPinned = pinnedIds.has(conv.id);
+                  const isRenaming = rename.active && rename.conversationId === conv.id;
 
-              return (
-                <Pressable
-                  key={conv.id}
-                  onPress={() => !isRenaming && handleOpenChat(conv.id)}
-                  onLongPress={() => !isRenaming && openContextMenu(conv)}
-                  delayLongPress={400}
-                  style={({ pressed }) => [
-                    styles.convItem,
-                    isPinned && styles.convItemPinned,
-                    pressed && !isRenaming && styles.convItemPressed,
-                  ]}
-                >
-                  {isPinned ? (
-                    <Pin size={14} color="#a5b4fc" style={{ marginRight: 10, flexShrink: 0 }} />
-                  ) : (
-                    <MessageSquare size={14} color={TEXT_SECONDARY} style={{ marginRight: 10, flexShrink: 0 }} />
-                  )}
+                  return (
+                    <Pressable
+                      key={conv.id}
+                      onPress={() => !isRenaming && handleOpenChat(conv.id)}
+                      onLongPress={() => !isRenaming && openContextMenu(conv)}
+                      delayLongPress={400}
+                      style={({ pressed }) => [
+                        styles.convItem,
+                        isPinned && styles.convItemPinned,
+                        pressed && !isRenaming && styles.convItemPressed,
+                      ]}
+                    >
+                      {isPinned ? (
+                        <Pin size={14} color="#a5b4fc" style={{ marginRight: 10, flexShrink: 0 }} />
+                      ) : (
+                        <MessageSquare size={14} color={TEXT_SECONDARY} style={{ marginRight: 10, flexShrink: 0 }} />
+                      )}
 
-                  {isRenaming ? (
-                    <View style={styles.renameRow}>
-                      <TextInput
-                        ref={ref => { renameRefs.current[conv.id] = ref; }}
-                        value={rename.value}
-                        onChangeText={val => setRename(r => ({ ...r, value: val }))}
-                        style={styles.renameInput}
-                        maxLength={60}
-                        returnKeyType="done"
-                        onSubmitEditing={() => handleRenameConfirm(conv.id)}
-                        autoFocus
-                      />
-                      <Pressable onPress={() => handleRenameConfirm(conv.id)} hitSlop={8} style={styles.renameConfirmBtn}>
-                        <Text style={styles.renameConfirmText}>✓</Text>
-                      </Pressable>
-                      <Pressable onPress={handleRenameCancel} hitSlop={8} style={{ paddingLeft: 6 }}>
-                        <X size={14} color={TEXT_SECONDARY} />
-                      </Pressable>
-                    </View>
-                  ) : (
-                    <Text style={[styles.convTitle, isPinned && styles.convTitlePinned]} numberOfLines={1}>
-                      {conv.title}
-                    </Text>
-                  )}
-                </Pressable>
-              );
-            })
+                      {isRenaming ? (
+                        <View style={styles.renameRow}>
+                          <TextInput
+                            ref={ref => { renameRefs.current[conv.id] = ref; }}
+                            value={rename.value}
+                            onChangeText={val => setRename(r => ({ ...r, value: val }))}
+                            style={styles.renameInput}
+                            maxLength={60}
+                            returnKeyType="done"
+                            onSubmitEditing={() => handleRenameConfirm(conv.id)}
+                            autoFocus
+                          />
+                          <Pressable onPress={() => handleRenameConfirm(conv.id)} hitSlop={8} style={styles.renameConfirmBtn}>
+                            <Text style={styles.renameConfirmText}>✓</Text>
+                          </Pressable>
+                          <Pressable onPress={handleRenameCancel} hitSlop={8} style={{ paddingLeft: 6 }}>
+                            <X size={14} color={TEXT_SECONDARY} />
+                          </Pressable>
+                        </View>
+                      ) : (
+                        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                          <Text style={[styles.convTitle, isPinned && styles.convTitlePinned]} numberOfLines={1}>
+                            {conv.title}
+                          </Text>
+                          {!isPinned && (
+                            <Text style={styles.timestamp}>{formatTimestamp(conv.updatedAt)}</Text>
+                          )}
+                        </View>
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))
           )}
         </ScrollView>
 
@@ -519,16 +587,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
     marginLeft: 10,
   },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "rgba(148,163,184,0.6)",
-    textTransform: "uppercase",
-    letterSpacing: 1.4,
-    marginBottom: 8,
-    paddingHorizontal: 20,
-    marginTop: 8,
-  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -556,6 +614,19 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 10,
   },
+  groupContainer: {
+    marginBottom: 12,
+  },
+  groupTitle: {
+    color: TEXT_MUTED,
+    fontSize: 11,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 8,
+  },
   convItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -568,7 +639,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(99,102,241,0.08)",
   },
   convItemPressed: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: ACTIVE_BG,
   },
   convTitle: {
     color: "#94a3b8",
@@ -576,8 +647,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   convTitlePinned: {
-    color: "#c7d2fe",
-    fontWeight: "500",
+    color: "#e2e8f0",
+    fontWeight: "600",
+  },
+  timestamp: {
+    color: "rgba(255,255,255,0.3)",
+    fontSize: 11,
+    marginLeft: 12,
+    flexShrink: 0,
   },
   renameRow: {
     flex: 1,
