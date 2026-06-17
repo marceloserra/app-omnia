@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
 import { DrawerContentScrollView, DrawerContentComponentProps } from "@react-navigation/drawer";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { MessageSquare, Plus, Settings, Sparkles } from "lucide-react-native";
 import { openDatabase, createConversationRepo } from "@omnia/storage";
 import { Conversation } from "@omnia/shared-types";
@@ -20,6 +20,8 @@ const convRepo = createConversationRepo(db);
 export function CustomDrawer(props: DrawerContentComponentProps) {
   const store = useProviderStore();
   const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
 
   useFocusEffect(
     useCallback(() => {
@@ -80,16 +82,19 @@ export function CustomDrawer(props: DrawerContentComponentProps) {
         {conversations.length === 0 ? (
           <Text style={styles.emptyText}>No recent chats.</Text>
         ) : (
-          conversations.map((conv) => (
-            <Pressable
-              key={conv.id}
-              onPress={() => handleOpenChat(conv.id)}
-              style={({ pressed }) => [styles.convItem, pressed && styles.convItemPressed]}
-            >
-              <MessageSquare size={16} color={TEXT_SECONDARY} style={{ marginRight: 12 }} />
-              <Text style={styles.convTitle} numberOfLines={1}>{conv.title}</Text>
-            </Pressable>
-          ))
+          conversations.map((conv) => {
+            const isActive = conv.id === conversationId;
+            return (
+              <Pressable
+                key={conv.id}
+                onPress={() => handleOpenChat(conv.id)}
+                style={({ pressed }) => [styles.convItem, (pressed || isActive) && styles.convItemActive]}
+              >
+                <MessageSquare size={16} color={isActive ? "#fff" : TEXT_SECONDARY} style={{ marginRight: 12 }} />
+                <Text style={[styles.convTitle, isActive && styles.convTitleActive]} numberOfLines={1}>{conv.title}</Text>
+              </Pressable>
+            );
+          })
         )}
 
       </DrawerContentScrollView>
@@ -173,13 +178,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 12,
   },
-  convItemPressed: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+  convItemActive: {
+    backgroundColor: "rgba(255,255,255,0.1)",
   },
   convTitle: {
     color: "#cbd5e1",
     fontSize: 14,
     flex: 1,
+  },
+  convTitleActive: {
+    color: "#fff",
+    fontWeight: "600",
   },
   emptyText: {
     color: "rgba(255,255,255,0.2)",
