@@ -23,6 +23,7 @@ import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProviderStore } from "../../store/provider-store";
 
@@ -347,7 +348,12 @@ export default function SettingsScreen() {
                 return (
                   <Pressable
                     key={tOpt}
-                    onPress={() => settingsStore.setTheme(tOpt)}
+                    onPress={() => {
+                      if (useSettingsStore.getState().hapticsEnabled) {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }
+                      settingsStore.setTheme(tOpt);
+                    }}
                     style={({ pressed }) => [
                       styles.iosRow, 
                       pressed && { opacity: 0.7 }
@@ -380,7 +386,12 @@ export default function SettingsScreen() {
                 return (
                   <Pressable
                     key={lOpt}
-                    onPress={() => settingsStore.setLanguage(lOpt)}
+                    onPress={() => {
+                      if (useSettingsStore.getState().hapticsEnabled) {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }
+                      settingsStore.setLanguage(lOpt);
+                    }}
                     style={({ pressed }) => [
                       styles.iosRow, 
                       pressed && { opacity: 0.7 }
@@ -418,7 +429,12 @@ export default function SettingsScreen() {
                 </View>
                 <Switch
                   value={settingsStore.hapticsEnabled}
-                  onValueChange={(val) => settingsStore.setHapticsEnabled(val)}
+                  onValueChange={(val) => {
+                    if (val || useSettingsStore.getState().hapticsEnabled) {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }
+                    settingsStore.setHapticsEnabled(val);
+                  }}
                   trackColor={{ false: theme.border, true: theme.indigo }}
                   thumbColor={Platform.OS === "android" ? "#fff" : undefined}
                 />
