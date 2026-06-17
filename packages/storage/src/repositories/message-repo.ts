@@ -27,7 +27,20 @@ export function createMessageRepo(db: SQLite.SQLiteDatabase) {
     /**
      * Get all messages for a conversation, ordered by timestamp ascending.
      */
-    listByConversation(conversationId: string): Message[] {
+    listByConversation(conversationId: string, limit?: number, offset?: number): Message[] {
+      let query = "SELECT * FROM messages WHERE conversation_id = ? ORDER BY timestamp ASC";
+      const params: any[] = [conversationId];
+
+      if (limit !== undefined) {
+        query += " LIMIT ?";
+        params.push(limit);
+        
+        if (offset !== undefined) {
+          query += " OFFSET ?";
+          params.push(offset);
+        }
+      }
+
       const rows = db.getAllSync<{
         id: string;
         conversation_id: string;
@@ -38,10 +51,7 @@ export function createMessageRepo(db: SQLite.SQLiteDatabase) {
         prompt_tokens: number | null;
         completion_tokens: number | null;
         timestamp: number;
-      }>(
-        "SELECT * FROM messages WHERE conversation_id = ? ORDER BY timestamp ASC;",
-        [conversationId]
-      );
+      }>(query, params);
 
       return rows.map((r) => ({
         id: r.id,
