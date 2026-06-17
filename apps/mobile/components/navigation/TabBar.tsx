@@ -12,7 +12,7 @@ export function TabBar({ state, descriptors, navigation }: any) {
   const isDark = theme.bg === "#05050f";
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]} pointerEvents="box-none">
+    <View style={[styles.container, { paddingBottom: Platform.OS === "android" ? insets.bottom + 16 : Math.max(insets.bottom, 16) }]} pointerEvents="box-none">
       <View style={styles.pillShadow}>
         <BlurView intensity={isDark ? 60 : 100} tint={isDark ? "dark" : "light"} style={[styles.blur, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}>
           
