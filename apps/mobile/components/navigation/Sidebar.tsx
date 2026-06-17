@@ -4,7 +4,7 @@ import {
   Animated, Modal, TouchableWithoutFeedback, Platform,
   StatusBar, TextInput, Alert, PanResponder, BackHandler,
 } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, usePathname } from "expo-router";
 import {
   MessageSquare, Plus, Settings, Sparkles, X,
   Pin, Pencil, Trash2, Search
@@ -95,6 +95,8 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   const sheetSlideAnim = useRef(new Animated.Value(400)).current;
   const sheetFadeAnim = useRef(new Animated.Value(0)).current;
   const renameRefs = useRef<Record<string, TextInput | null>>({});
+
+  const pathname = usePathname();
 
   const panResponder = useMemo(
     () =>
@@ -204,7 +206,11 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
   const handleOpenChat = (id: string) => {
     onClose();
-    router.replace(`/chat/${id}`);
+    if (pathname.startsWith("/chat/")) {
+      router.setParams({ conversationId: id });
+    } else {
+      router.replace(`/chat/${id}`);
+    }
   };
 
   const handleSettings = () => {
