@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, FlatList } from "react-native";
-import { Check } from "lucide-react-native";
+import { View, Text, Pressable, FlatList, Image } from "react-native";
+import { Check, Cpu } from "lucide-react-native";
 import { ThemePalette } from "../../lib/theme";
 
 interface ModelPickerSheetProps {
@@ -11,6 +11,29 @@ interface ModelPickerSheetProps {
   theme: ThemePalette;
   isDark: boolean;
 }
+
+const getModelIcon = (modelName: string) => {
+  const name = modelName.toLowerCase();
+  if (name.includes("gpt") || name.includes("openai")) {
+    return "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/512px-ChatGPT_logo.svg.png";
+  }
+  if (name.includes("llama") || name.includes("meta")) {
+    return "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Meta_Platforms_Inc._logo.svg/256px-Meta_Platforms_Inc._logo.svg.png";
+  }
+  if (name.includes("mistral") || name.includes("mixtral")) {
+    return "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Mistral_AI_logo.svg/256px-Mistral_AI_logo.svg.png";
+  }
+  if (name.includes("gemma") || name.includes("gemini") || name.includes("google")) {
+    return "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/256px-Google_%22G%22_logo.svg.png";
+  }
+  if (name.includes("claude") || name.includes("anthropic")) {
+    return "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Anthropic.png/256px-Anthropic.png";
+  }
+  if (name.includes("qwen")) {
+    return "https://images.opencollective.com/qwen/3cc2b6d/logo/256.png";
+  }
+  return null;
+};
 
 export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, isDark }: ModelPickerSheetProps) {
   const [search, setSearch] = useState("");
@@ -54,6 +77,17 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, i
                     : "transparent",
                 }, pressed && { opacity: 0.7 }]}
               >
+                <View style={{ 
+                  width: 32, height: 32, borderRadius: 16, backgroundColor: "#ffffff", 
+                  alignItems: "center", justifyContent: "center", marginRight: 12,
+                  shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2
+                }}>
+                  {getModelIcon(item) ? (
+                    <Image source={{ uri: getModelIcon(item) as string }} style={{ width: 20, height: 20 }} resizeMode="contain" />
+                  ) : (
+                    <Cpu size={18} color="#333" />
+                  )}
+                </View>
                 <Text
                   style={{
                     flex: 1,
