@@ -189,7 +189,7 @@ export default function SettingsScreen() {
             {activeTab === "openai" ? (
               <>
                 <View style={styles.inputHeader}>
-                  <KeySquare size={16} color={theme.indigo} />
+                  <KeySquare size={16} color={theme.indigo} style={styles.inputHeaderIcon} />
                   <Text style={styles.inputLabel}>OpenAI API Key</Text>
                 </View>
                 <Input
@@ -203,7 +203,7 @@ export default function SettingsScreen() {
             ) : (
               <>
                 <View style={styles.inputHeader}>
-                  <Network size={16} color={theme.indigo} />
+                  <Network size={16} color={theme.indigo} style={styles.inputHeaderIcon} />
                   <Text style={styles.inputLabel}>Server Base URL</Text>
                 </View>
                 <Input
@@ -214,7 +214,7 @@ export default function SettingsScreen() {
                 />
                 
                 <View style={styles.inputHeader}>
-                  <KeySquare size={16} color={theme.indigo} />
+                  <KeySquare size={16} color={theme.indigo} style={styles.inputHeaderIcon} />
                   <Text style={styles.inputLabel}>API Key (Optional)</Text>
                 </View>
                 <Input
