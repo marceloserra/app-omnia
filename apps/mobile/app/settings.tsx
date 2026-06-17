@@ -300,16 +300,24 @@ export default function SettingsScreen() {
           <View style={styles.dangerZone}>
             <Text style={styles.dangerTitle}>Danger Zone</Text>
             <View style={styles.dangerCard}>
-              <View style={{ flex: 1, paddingRight: 16 }}>
-                <Text style={styles.dangerItemTitle}>Clear All History</Text>
-                <Text style={styles.dangerItemSub}>Permanently delete all conversations and messages. This action cannot be undone.</Text>
+              <View style={styles.dangerHeaderRow}>
+                <View style={styles.dangerIconBox}>
+                  <AlertCircle size={20} color={ERROR} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.dangerItemTitle}>Clear All History</Text>
+                  <Text style={styles.dangerItemSub}>
+                    Permanently delete all conversations and messages. This action cannot be undone.
+                  </Text>
+                </View>
               </View>
+              
               <Pressable
                 onPress={handleClearAll}
                 style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
               >
-                <Trash2 size={16} color={ERROR} style={{ marginRight: 6 }} />
-                <Text style={styles.dangerButtonText}>Clear All</Text>
+                <Trash2 size={16} color={ERROR} style={{ marginRight: 8 }} />
+                <Text style={styles.dangerButtonText}>Delete All Data</Text>
               </Pressable>
             </View>
           </View>
@@ -488,13 +496,24 @@ const styles = StyleSheet.create({
     borderColor: "rgba(239, 68, 68, 0.15)",
     borderRadius: 16,
     padding: 16,
+  },
+  dangerHeaderRow: {
     flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 20,
+  },
+  dangerIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
+    marginRight: 12,
   },
   dangerItemTitle: {
     color: TEXT_PRIMARY,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "600",
     marginBottom: 4,
   },
@@ -506,16 +525,16 @@ const styles = StyleSheet.create({
   dangerButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
+    justifyContent: "center",
+    backgroundColor: "rgba(239, 68, 68, 0.12)",
     borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.2)",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    borderColor: "rgba(239, 68, 68, 0.25)",
+    paddingVertical: 14,
+    borderRadius: 12,
   },
   dangerButtonText: {
     color: ERROR,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "600",
   },
 });

@@ -55,8 +55,8 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const menuScaleAnim = useRef(new Animated.Value(0.88)).current;
-  const menuFadeAnim = useRef(new Animated.Value(0)).current;
+  const sheetSlideAnim = useRef(new Animated.Value(400)).current;
+  const sheetFadeAnim = useRef(new Animated.Value(0)).current;
   const renameRefs = useRef<Record<string, TextInput | null>>({});
 
   // Animate drawer open/close
@@ -74,16 +74,16 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
     }
   }, [visible]);
 
-  // Animate context menu open
+  // Animate bottom sheet open
   React.useEffect(() => {
     if (contextMenu.visible) {
       Animated.parallel([
-        Animated.spring(menuScaleAnim, { toValue: 1, useNativeDriver: true, tension: 100, friction: 10 }),
-        Animated.timing(menuFadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+        Animated.spring(sheetSlideAnim, { toValue: 0, useNativeDriver: true, tension: 70, friction: 10 }),
+        Animated.timing(sheetFadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
       ]).start();
     } else {
-      menuScaleAnim.setValue(0.88);
-      menuFadeAnim.setValue(0);
+      Animated.timing(sheetSlideAnim, { toValue: 400, duration: 200, useNativeDriver: true }).start();
+      Animated.timing(sheetFadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start();
     }
   }, [contextMenu.visible]);
 
@@ -370,61 +370,70 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
         statusBarTranslucent
       >
         <TouchableWithoutFeedback onPress={closeContextMenu}>
-          <View style={styles.menuBackdrop} />
+          <Animated.View style={[styles.menuBackdrop, { opacity: sheetFadeAnim }]} />
         </TouchableWithoutFeedback>
 
-        <Animated.View
-          style={[
-            styles.menuCard,
-            { opacity: menuFadeAnim, transform: [{ scale: menuScaleAnim }] },
-          ]}
-          pointerEvents="box-none"
-        >
-          {/* Title chip */}
-          <View style={styles.menuHeader}>
-            <MessageSquare size={14} color="#818cf8" style={{ marginRight: 8 }} />
-            <Text style={styles.menuTitle} numberOfLines={1}>
-              {contextMenu.conversation?.title}
-            </Text>
-          </View>
-
-          <View style={styles.menuDivider} />
-
-          {/* Pin */}
-          <Pressable
-            onPress={handlePin}
-            style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
+        <View style={styles.sheetContainer} pointerEvents="box-none">
+          <Animated.View
+            style={[
+              styles.bottomSheet,
+              { transform: [{ translateY: sheetSlideAnim }] },
+            ]}
           >
-            <Pin size={18} color={TEXT_PRIMARY} style={{ marginRight: 14 }} />
-            <Text style={styles.menuItemText}>
-              {contextMenu.conversation && pinnedIds.has(contextMenu.conversation.id)
-                ? "Unpin"
-                : "Pin"}
-            </Text>
-          </Pressable>
+            {/* Handle Pill */}
+            <View style={styles.sheetHandleContainer}>
+              <View style={styles.sheetHandle} />
+            </View>
 
-          <View style={styles.menuDivider} />
+            {/* Title chip */}
+            <View style={styles.menuHeader}>
+              <MessageSquare size={16} color="#a5b4fc" style={{ marginRight: 10 }} />
+              <Text style={styles.menuTitle} numberOfLines={1}>
+                {contextMenu.conversation?.title}
+              </Text>
+            </View>
 
-          {/* Rename */}
-          <Pressable
-            onPress={handleRenameStart}
-            style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
-          >
-            <Pencil size={18} color={TEXT_PRIMARY} style={{ marginRight: 14 }} />
-            <Text style={styles.menuItemText}>Rename</Text>
-          </Pressable>
+            <View style={styles.menuDivider} />
 
-          <View style={styles.menuDivider} />
+            {/* Pin */}
+            <Pressable
+              onPress={handlePin}
+              style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
+            >
+              <Pin size={20} color={TEXT_PRIMARY} style={{ marginRight: 16 }} />
+              <Text style={styles.menuItemText}>
+                {contextMenu.conversation && pinnedIds.has(contextMenu.conversation.id)
+                  ? "Unpin from top"
+                  : "Pin to top"}
+              </Text>
+            </Pressable>
 
-          {/* Delete */}
-          <Pressable
-            onPress={handleDelete}
-            style={({ pressed }) => [styles.menuItem, styles.menuItemDanger, pressed && styles.menuItemPressed]}
-          >
-            <Trash2 size={18} color={RED} style={{ marginRight: 14 }} />
-            <Text style={[styles.menuItemText, { color: RED }]}>Delete</Text>
-          </Pressable>
-        </Animated.View>
+            <View style={styles.menuDivider} />
+
+            {/* Rename */}
+            <Pressable
+              onPress={handleRenameStart}
+              style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
+            >
+              <Pencil size={20} color={TEXT_PRIMARY} style={{ marginRight: 16 }} />
+              <Text style={styles.menuItemText}>Rename conversation</Text>
+            </Pressable>
+
+            <View style={styles.menuDivider} />
+
+            {/* Delete */}
+            <Pressable
+              onPress={handleDelete}
+              style={({ pressed }) => [styles.menuItem, styles.menuItemDanger, pressed && styles.menuItemPressed]}
+            >
+              <Trash2 size={20} color={RED} style={{ marginRight: 16 }} />
+              <Text style={[styles.menuItemText, { color: RED }]}>Delete conversation</Text>
+            </Pressable>
+            
+            {/* Bottom Padding for SafeArea */}
+            <View style={{ height: Platform.OS === "ios" ? 34 : 20 }} />
+          </Animated.View>
+        </View>
       </Modal>
     </Modal>
   );
@@ -618,33 +627,44 @@ const styles = StyleSheet.create({
   // ─── Context Menu ──────────────────────────────────────────────────────────
   menuBackdrop: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
-  menuCard: {
-    position: "absolute",
-    left: DRAWER_WIDTH + 12,
-    top: "35%",
-    width: 220,
+  sheetContainer: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: "flex-end",
+  },
+  bottomSheet: {
     backgroundColor: SURFACE_2,
-    borderRadius: 16,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     borderWidth: 1,
     borderColor: BORDER,
-    overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.5,
     shadowRadius: 24,
-    elevation: 16,
+    elevation: 24,
+  },
+  sheetHandleContainer: {
+    alignItems: "center",
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "rgba(255,255,255,0.15)",
   },
   menuHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
   menuTitle: {
     color: TEXT_SECONDARY,
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: "600",
     letterSpacing: 0.2,
     flex: 1,
@@ -656,8 +676,8 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 15,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
   },
   menuItemDanger: {
     // highlight handled by text/icon color
@@ -667,7 +687,7 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     color: TEXT_PRIMARY,
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: "500",
   },
 });
