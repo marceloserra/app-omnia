@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
+  Modal,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +17,7 @@ import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../components/chat/MessageBubble";
 import { ChatInput } from "../components/chat/ChatInput";
 import { Sidebar } from "../components/navigation/Sidebar";
+import { ModelPickerSheet } from "../components/chat/ModelPickerSheet";
 import { useProviderStore } from "../store/provider-store";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
@@ -43,6 +45,7 @@ export default function HomeScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [modelPickerVisible, setModelPickerVisible] = useState(false);
   const isAbortedRef = useRef(false);
   const flatListRef = useRef<FlatList>(null);
 
@@ -125,7 +128,7 @@ export default function HomeScreen() {
 
           {store.activeProviderId ? (
             <Pressable
-              onPress={() => router.push("/settings")}
+              onPress={() => setModelPickerVisible(true)}
               accessibilityLabel="Change model"
               style={({ pressed }) => [styles.floatingChipContainer, pressed && { opacity: 0.7 }]}
             >
@@ -224,6 +227,31 @@ export default function HomeScreen() {
         visible={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
+
+      {/* ─── Model Picker Modal ─── */}
+      <Modal
+        visible={modelPickerVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModelPickerVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setModelPickerVisible(false)} />
+          <View style={{ height: "80%", backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" }}>
+            <ModelPickerSheet
+              models={store.availableModels}
+              selected={store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
+              theme={theme}
+              isDark={isDark}
+              onClose={() => setModelPickerVisible(false)}
+              onSelect={(m) => {
+                if (store.activeProviderId === "openai") store.setOpenaiModelId(m);
+                else store.setCompatibleModelId(m);
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
