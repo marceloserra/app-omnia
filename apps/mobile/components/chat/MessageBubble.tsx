@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { Message } from "@omnia/shared-types";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 
 const INDIGO = "#6366f1";
-const SURFACE = "#13112a";
-const TEXT_PRIMARY = "#f0efff";
-const TEXT_SECONDARY = "#9d9bcc";
+const TEXT_PRIMARY = "#f8fafc";
+const TEXT_SECONDARY = "#94a3b8";
 
 interface MessageBubbleProps {
   message: Message;
@@ -17,44 +18,104 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   if (isSystem) {
     return (
-      <View style={{ alignItems: "center", marginVertical: 8, paddingHorizontal: 24 }}>
-        <Text style={{ fontSize: 12, color: TEXT_SECONDARY, textAlign: "center", fontStyle: "italic" }}>
+      <View style={styles.systemContainer}>
+        <Text style={styles.systemText}>
           {message.content}
         </Text>
       </View>
     );
   }
 
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        justifyContent: isUser ? "flex-end" : "flex-start",
-        marginVertical: 4,
-        paddingHorizontal: 16,
-      }}
-    >
-      <View
-        style={{
-          maxWidth: "80%",
-          paddingHorizontal: 14,
-          paddingVertical: 10,
-          borderRadius: isUser ? 18 : 18,
-          borderBottomRightRadius: isUser ? 4 : 18,
-          borderBottomLeftRadius: isUser ? 18 : 4,
-          backgroundColor: isUser ? INDIGO : SURFACE,
-          borderWidth: isUser ? 0 : 1,
-          borderColor: "rgba(99,102,241,0.2)",
-        }}
-      >
-        <Text style={{ color: TEXT_PRIMARY, fontSize: 15, lineHeight: 22 }}>
-          {message.content}
-        </Text>
-        <Text style={{ color: TEXT_SECONDARY, fontSize: 11, marginTop: 4, textAlign: isUser ? "right" : "left" }}>
-          {new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          {message.modelId ? ` · ${message.modelId}` : ""}
-        </Text>
+  const timeString = new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  if (isUser) {
+    return (
+      <View style={[styles.container, styles.userContainer]}>
+        <LinearGradient
+          colors={["#4f46e5", "#6366f1"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.bubble, styles.userBubble]}
+        >
+          <Text style={styles.text}>{message.content}</Text>
+          <Text style={[styles.metaText, styles.userMetaText]}>
+            {timeString}
+          </Text>
+        </LinearGradient>
       </View>
+    );
+  }
+
+  // Assistant bubble
+  return (
+    <View style={[styles.container, styles.assistantContainer]}>
+      <BlurView intensity={20} tint="dark" style={[styles.bubble, styles.assistantBubble]}>
+        <Text style={styles.text}>{message.content}</Text>
+        <Text style={styles.metaText}>
+          {timeString} {message.modelId ? ` · ${message.modelId}` : ""}
+        </Text>
+      </BlurView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  systemContainer: {
+    alignItems: "center",
+    marginVertical: 12,
+    paddingHorizontal: 32,
+  },
+  systemText: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.4)",
+    textAlign: "center",
+    fontStyle: "italic",
+    letterSpacing: 0.5,
+  },
+  container: {
+    flexDirection: "row",
+    marginVertical: 6,
+    paddingHorizontal: 16,
+  },
+  userContainer: {
+    justifyContent: "flex-end",
+  },
+  assistantContainer: {
+    justifyContent: "flex-start",
+  },
+  bubble: {
+    maxWidth: "85%",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  userBubble: {
+    borderRadius: 20,
+    borderBottomRightRadius: 6,
+    shadowColor: INDIGO,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  assistantBubble: {
+    borderRadius: 20,
+    borderBottomLeftRadius: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+  },
+  text: {
+    color: TEXT_PRIMARY,
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  metaText: {
+    color: TEXT_SECONDARY,
+    fontSize: 11,
+    marginTop: 6,
+  },
+  userMetaText: {
+    color: "rgba(255,255,255,0.7)",
+    textAlign: "right",
+  },
+});

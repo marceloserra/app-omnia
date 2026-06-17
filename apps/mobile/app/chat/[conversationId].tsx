@@ -9,9 +9,11 @@ import { OpenAIProvider } from "@omnia/providers";
 import { OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
+import { BlurView } from "expo-blur";
 
-const BG = "#0a0918";
-const TEXT_SECONDARY = "#9d9bcc";
+const BG = "#05050f";
+const INDIGO = "#6366f1";
+const TEXT_SECONDARY = "#94a3b8";
 
 const db = openDatabase();
 const msgRepo = createMessageRepo(db);
@@ -151,16 +153,19 @@ export default function ChatScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: BG }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={90}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <Stack.Screen options={{ title: convTitle }} />
 
+      {/* Ambient Glow */}
+      <View style={{ position: "absolute", top: -100, right: -50, width: 300, height: 300, borderRadius: 150, backgroundColor: INDIGO, opacity: 0.1, filter: "blur(100px)", zIndex: -1 }} />
+
       {noProvider && (
-        <View style={{ padding: 16, backgroundColor: "rgba(99,102,241,0.1)", borderBottomWidth: 1, borderBottomColor: "rgba(99,102,241,0.2)" }}>
+        <BlurView intensity={20} tint="dark" style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" }}>
           <Text style={{ color: TEXT_SECONDARY, fontSize: 13, textAlign: "center" }}>
             No provider connected. Go to Settings to configure one.
           </Text>
-        </View>
+        </BlurView>
       )}
 
       <FlatList
@@ -171,13 +176,15 @@ export default function ChatScreen() {
         contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         ListEmptyComponent={
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 80 }}>
-            <Text style={{ fontSize: 32, marginBottom: 12 }}>✦</Text>
-            <Text style={{ fontSize: 17, fontWeight: "600", color: "#f0efff", marginBottom: 6 }}>Omnia</Text>
-            <Text style={{ fontSize: 14, color: TEXT_SECONDARY, textAlign: "center", paddingHorizontal: 40 }}>
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 120 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "rgba(99,102,241,0.15)", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+              <Text style={{ fontSize: 28, color: "#818cf8" }}>✦</Text>
+            </View>
+            <Text style={{ fontSize: 20, fontWeight: "600", color: "#f8fafc", marginBottom: 8, letterSpacing: 0.5 }}>Omnia</Text>
+            <Text style={{ fontSize: 15, color: TEXT_SECONDARY, textAlign: "center", paddingHorizontal: 40, lineHeight: 22 }}>
               {noProvider
                 ? "Configure a provider in Settings to start chatting."
-                : "Start a conversation below."}
+                : "What would you like to build today?"}
             </Text>
           </View>
         }
