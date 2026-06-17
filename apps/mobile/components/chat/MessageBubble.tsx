@@ -134,7 +134,7 @@ const renderRules = {
   ),
   // ─── Table support ────────────────────────────────────────────────────────
   table: (node: ASTNode, children: any) => (
-    <ScrollView key={node.key} horizontal showsHorizontalScrollIndicator={false} style={tableStyles.tableScroll}>
+    <ScrollView key={node.key} horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true} style={tableStyles.tableScroll}>
       <View style={tableStyles.table}>{children}</View>
     </ScrollView>
   ),

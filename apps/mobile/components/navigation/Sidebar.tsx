@@ -92,6 +92,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteConfirmTarget, setDeleteConfirmTarget] = useState<Conversation | null>(null);
+  const [modalVisible, setModalVisible] = useState(visible);
 
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -132,6 +133,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   // Animate drawer open/close
   React.useEffect(() => {
     if (visible) {
+      setModalVisible(true);
       Animated.parallel([
         Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 70, friction: 14 }),
         Animated.spring(drawerScaleAnim, { toValue: 1, useNativeDriver: true, tension: 70, friction: 14 }),
@@ -142,7 +144,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
         Animated.timing(slideAnim, { toValue: -DRAWER_WIDTH, duration: 220, useNativeDriver: true }),
         Animated.timing(drawerScaleAnim, { toValue: 0.98, duration: 220, useNativeDriver: true }),
         Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      ]).start();
+      ]).start(() => setModalVisible(false));
     }
   }, [visible, slideAnim, drawerScaleAnim, fadeAnim]);
 
@@ -295,7 +297,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
   return (
     <Modal
-      visible={visible}
+      visible={modalVisible}
       transparent
       animationType="none"
       onRequestClose={onClose}
