@@ -24,6 +24,8 @@ const en = {
   "settings.appearance.theme.light": "Light",
   "settings.appearance.language": "Language",
   "settings.appearance.language.system": "System Default",
+  "settings.appearance.haptics": "Chat Haptic Feedback",
+  "settings.appearance.haptics.desc": "Light vibration while generating response",
   
   // Chat
   "chat.empty.title": "What can I help with?",
@@ -94,6 +96,8 @@ const pt: typeof en = {
   "settings.appearance.theme.light": "Claro",
   "settings.appearance.language": "Idioma",
   "settings.appearance.language.system": "Padrão do Sistema",
+  "settings.appearance.haptics": "Vibração no Chat",
+  "settings.appearance.haptics.desc": "Vibração leve ao gerar respostas",
   
   "chat.empty.title": "Como posso ajudar?",
   "chat.input.placeholder": "Mensagem para Omnia...",
@@ -162,6 +166,8 @@ const es: typeof en = {
   "settings.appearance.theme.light": "Claro",
   "settings.appearance.language": "Idioma",
   "settings.appearance.language.system": "Predeterminado del Sistema",
+  "settings.appearance.haptics": "Vibración de Chat",
+  "settings.appearance.haptics.desc": "Vibración ligera al generar respuestas",
   
   "chat.empty.title": "¿En qué puedo ayudarte?",
   "chat.input.placeholder": "Mensaje para Omnia...",
@@ -179,6 +185,9 @@ const es: typeof en = {
   "home.suggestion.app.title": "Ideas de aplicaciones",
   "home.suggestion.app.prompt": "Dame 5 ideas innovadoras de aplicaciones móviles que combinen inteligencia artificial con productividad personal.",
 
+  "home.greeting.morning": "Buenos días",
+  "home.greeting.afternoon": "Buenas tardes",
+  "home.greeting.evening": "Buenas noches",
   "home.greeting.subtitle": "¿Cómo puedo ayudarte hoy?",
   "home.empty.subtitle": "Conecta un proveedor de IA para empezar a chatear",
   "home.empty.cta": "Configurar Proveedor de IA",

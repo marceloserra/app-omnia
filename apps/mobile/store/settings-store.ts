@@ -8,9 +8,11 @@ export type LanguageCode = "system" | "en" | "pt" | "es";
 interface SettingsState {
   theme: ThemeMode;
   language: LanguageCode;
+  hapticsEnabled: boolean;
   
   setTheme: (theme: ThemeMode) => void;
   setLanguage: (lang: LanguageCode) => void;
+  setHapticsEnabled: (enabled: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -18,9 +20,11 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       theme: "system",
       language: "system",
+      hapticsEnabled: true,
 
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
+      setHapticsEnabled: (hapticsEnabled) => set({ hapticsEnabled }),
     }),
     {
       name: "omnia-settings-storage",

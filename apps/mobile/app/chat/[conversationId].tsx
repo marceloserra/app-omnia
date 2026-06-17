@@ -17,6 +17,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
+import { useSettingsStore } from "../../store/settings-store";
+import * as Haptics from "expo-haptics";
 
 let _db: any;
 let _msgRepo: any;
@@ -159,10 +161,21 @@ export default function ChatScreen() {
           });
 
           let fullContent = "";
+          let lastHapticTime = Date.now();
+          
           for await (const chunk of stream) {
             if (isAbortedRef.current) break;
             if (chunk.done) break;
             fullContent += chunk.content;
+            
+            if (useSettingsStore.getState().hapticsEnabled) {
+              const now = Date.now();
+              if (now - lastHapticTime > 80) {
+                Haptics.selectionAsync();
+                lastHapticTime = now;
+              }
+            }
+
             setMessages((cur) =>
               cur.map((m) => m.id === assistantId ? { ...m, content: fullContent } : m)
             );

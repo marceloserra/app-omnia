@@ -12,12 +12,13 @@ import {
   Modal,
   TextInput,
   FlatList,
+  Switch,
 } from "react-native";
 import { router } from "expo-router";
 import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
 import { Input } from "../../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
-import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe } from "lucide-react-native";
+import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe, Vibrate } from "lucide-react-native";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
@@ -400,6 +401,28 @@ export default function SettingsScreen() {
                 }
                 return [...acc, curr] as any;
               }, [])}
+            </View>
+          </View>
+
+          {/* Chat Behavior */}
+          <View style={{ marginTop: 24 }}>
+            <Text style={styles.sectionTitle}>Chat Behavior</Text>
+            <View style={styles.iosGroup}>
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#f59e0b" }]}>
+                  <Vibrate size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>{t("settings.appearance.haptics")}</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{t("settings.appearance.haptics.desc")}</Text>
+                </View>
+                <Switch
+                  value={settingsStore.hapticsEnabled}
+                  onValueChange={(val) => settingsStore.setHapticsEnabled(val)}
+                  trackColor={{ false: theme.border, true: theme.indigo }}
+                  thumbColor={Platform.OS === "android" ? "#fff" : undefined}
+                />
+              </View>
             </View>
           </View>
 
