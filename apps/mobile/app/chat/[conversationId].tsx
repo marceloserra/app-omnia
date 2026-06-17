@@ -68,18 +68,8 @@ export default function ChatScreen() {
         flatListRef.current?.scrollToEnd({ animated: false });
       }
     });
-    // When keyboard closes: restore previous scroll position so content doesn't jump
-    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
-      setTimeout(() => {
-        flatListRef.current?.scrollToOffset({
-          offset: scrollOffsetRef.current,
-          animated: false,
-        });
-      }, 50);
-    });
     return () => {
       showSub.remove();
-      hideSub.remove();
     };
   }, [isScrolledUp]);
 
