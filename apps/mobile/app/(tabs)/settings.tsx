@@ -433,6 +433,22 @@ export default function SettingsScreen() {
         onCancel={() => setShowClearConfirm(false)}
         onConfirm={confirmClearAll}
       />
+
+      <Modal
+        visible={modelPickerVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setModelPickerVisible(false)}
+      >
+        <ModelPickerSheet
+          models={testResult ? testResult.models : store.availableModels}
+          selected={localModel}
+          theme={theme}
+          isDark={isDark}
+          onClose={() => setModelPickerVisible(false)}
+          onSelect={(m) => setLocalModel(m)}
+        />
+      </Modal>
     </View>
   );
 }
