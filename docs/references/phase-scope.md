@@ -44,13 +44,24 @@ Agents must not implement work from a later phase unless the user explicitly adv
 
 - Provider management
 
-## Phase 7 (UX Polish & Advanced Chat - Active)
+## Phase 7 (Completed — UX Polish & Advanced Chat)
 
-- Markdown parsing and Code block highlighting
-- Haptic feedback (Taptic Engine)
-- Copy to clipboard & Retry message actions
-- "Stop generating" functionality
-- Auto-scroll floating button
+- Markdown parsing and Code block highlighting (custom CodeBlock, no external crash-prone lib)
+- Haptic feedback (Taptic Engine) on all key interactions
+- Copy to clipboard & Retry message actions (long-press bubbles)
+- "Stop generating" functionality (square button aborts stream)
+- Auto-scroll floating FAB button
+- FAANG Drawer Navigation (hamburger → conversation history, home = new chat)
+- Android keyboard fix (pan mode + KeyboardAvoidingView padding)
+- NativeWind permanently removed; all styling via pure `StyleSheet.create`
+
+## Phase 8 (Conversation Management — Next)
+
+- Swipe-to-delete individual conversations (with undo toast)
+- Long-press context menu: Rename and Delete
+- Delete All History (Settings danger zone + Alert confirmation)
+- Sidebar search/filter by conversation title
+- Conversation date grouping: Today / Yesterday / Last 7 days / Older
 
 ## Non Goals
 

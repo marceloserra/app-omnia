@@ -44,6 +44,7 @@ export default function ChatScreen() {
   const [isScrolledUp, setIsScrolledUp] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const isAbortedRef = useRef(false);
+  const scrollOffsetRef = useRef(0); // track position to restore after keyboard hides
 
   // Load messages from SQLite on mount
   useEffect(() => {
@@ -59,14 +60,27 @@ export default function ChatScreen() {
     }
   }, [conversationId]);
 
-  // Scroll to bottom when keyboard opens (Android)
+  // Keyboard scroll behaviour (Android)
   useEffect(() => {
-    const sub = Keyboard.addListener("keyboardDidShow", () => {
+    // When keyboard opens: scroll to end if user hasn't scrolled up
+    const showSub = Keyboard.addListener("keyboardDidShow", () => {
       if (!isScrolledUp) {
         setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
       }
     });
-    return () => sub.remove();
+    // When keyboard closes: restore previous scroll position so content doesn't jump
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      setTimeout(() => {
+        flatListRef.current?.scrollToOffset({
+          offset: scrollOffsetRef.current,
+          animated: false,
+        });
+      }, 50);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
   }, [isScrolledUp]);
 
   const getProvider = useCallback(() => {
@@ -249,6 +263,7 @@ export default function ChatScreen() {
         }}
         onScroll={(e) => {
           const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
+          scrollOffsetRef.current = contentOffset.y; // always track position
           // Threshold of 100px to consider "scrolled up"
           const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 100;
           setIsScrolledUp(!isCloseToBottom);
