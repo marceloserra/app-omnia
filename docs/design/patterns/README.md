@@ -7,6 +7,7 @@ This directory contains design pattern documentation for Omnia's recurring UI co
 | Pattern | Category | Phase |
 |---|---|---|
 | [ProviderStatusChip](./provider-status-chip.md) | Navigation · Status Feedback | 8 |
+| [TypingIndicator](./typing-indicator.md) | Feedback · Animation | 8 |
 
 ## How to Add a Pattern
 

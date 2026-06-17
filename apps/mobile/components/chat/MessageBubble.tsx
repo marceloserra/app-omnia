@@ -13,6 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as Clipboard from "expo-clipboard";
 import Markdown, { ASTNode } from "react-native-markdown-display";
 import { CheckCircle2, Copy } from "lucide-react-native";
+import { TypingIndicator } from "../ui/TypingIndicator";
 
 const INDIGO = "#6366f1";
 const TEXT_PRIMARY = "#f8fafc";
@@ -25,69 +26,7 @@ interface MessageBubbleProps {
   isStreaming?: boolean;
 }
 
-// ─── Typing indicator (bouncing dots) ───────────────────────────────────────
-function TypingIndicator() {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [anim1] = useState(new Animated.Value(0));
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [anim2] = useState(new Animated.Value(0));
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [anim3] = useState(new Animated.Value(0));
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  React.useEffect(() => {
-    const createBounce = (anim: Animated.Value, delay: number) => {
-      return Animated.sequence([
-        Animated.delay(delay),
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(anim, {
-              toValue: -6,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-            Animated.timing(anim, {
-              toValue: 0,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-            Animated.delay(300), // Wait before bouncing again
-          ])
-        )
-      ]);
-    };
-
-    Animated.parallel([
-      createBounce(anim1, 0),
-      createBounce(anim2, 150),
-      createBounce(anim3, 300),
-    ]).start();
-  }, [anim1, anim2, anim3]);
-
-  return (
-    <View style={typingStyles.row}>
-      <Animated.View style={[typingStyles.dot, { transform: [{ translateY: anim1 }] }]} />
-      <Animated.View style={[typingStyles.dot, { transform: [{ translateY: anim2 }] }]} />
-      <Animated.View style={[typingStyles.dot, { transform: [{ translateY: anim3 }] }]} />
-    </View>
-  );
-}
-
-const typingStyles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 6,
-    gap: 4,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#818cf8",
-    opacity: 0.8,
-  },
-});
 
 // ─── Native code block (no external lib, zero crash risk) ───────────────────
 function CodeBlock({ content, language }: { content: string; language?: string }) {
