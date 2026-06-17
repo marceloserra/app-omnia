@@ -6,7 +6,7 @@ import { logger } from "@omnia/logger";
 import { useEffect } from "react";
 import "../assets/css/global.css";
 
-const HEADER_BG = "#0a0918";
+const HEADER_BG = "#05050f";
 const HEADER_TEXT = "#f0efff";
 
 // Catch global JS crashes
@@ -39,18 +39,14 @@ export default function RootLayout() {
         screenOptions={{
           headerStyle: { backgroundColor: HEADER_BG },
           headerTintColor: HEADER_TEXT,
-          headerTitleStyle: { fontWeight: "700", fontSize: 17 },
           headerShadowVisible: false,
           contentStyle: { backgroundColor: HEADER_BG },
-          headerTitleAlign: "center",
+          headerTitle: "", // Clear out titles to make it super clean
         }}
       >
         <Stack.Screen
           name="index"
           options={{
-            title: "Omnia",
-            headerLargeTitle: true,
-            headerLargeTitleStyle: { color: HEADER_TEXT, fontWeight: "700" },
             headerRight: () => (
               <Pressable
                 onPress={() => router.push("/settings")}
@@ -64,11 +60,11 @@ export default function RootLayout() {
         />
         <Stack.Screen
           name="settings"
-          options={{ title: "Settings" }}
+          options={{ title: "Settings" }} // Settings can still have its title
         />
         <Stack.Screen
           name="chat/[conversationId]"
-          options={{ title: "Chat", headerBackTitle: "Home" }}
+          options={{ headerBackTitle: "Home" }}
         />
       </Stack>
     </>
