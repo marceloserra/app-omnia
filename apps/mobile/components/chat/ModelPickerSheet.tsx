@@ -39,6 +39,7 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, i
   const [search, setSearch] = useState("");
   const filtered = models.filter((m) => m.toLowerCase().includes(search.toLowerCase()));
 
+  return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={{ flex: 1, backgroundColor: theme.bg }}

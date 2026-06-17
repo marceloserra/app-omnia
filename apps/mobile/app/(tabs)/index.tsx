@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Pressable, Platform, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Pressable, Platform, ScrollView, KeyboardAvoidingView } from "react-native";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronDown, Sparkles, MessageSquare, Zap, Compass, Lightbulb } from "lucide-react-native";
