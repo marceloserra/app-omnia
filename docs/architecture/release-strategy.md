@@ -102,3 +102,84 @@ A release is considered successful when:
 5.  Checksums match the binary.
 6.  Users can download and install the release on their device.
 **No manual intervention should be required.**
+
+---
+
+## Release Runbook
+
+This section documents the exact operational steps to cut a release. It exists so any team member can execute a release without prior context.
+
+### Pre-Release Checklist
+
+Before creating any tag, always verify the full quality gate passes locally:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm typecheck
+pnpm test
+```
+
+All four commands must exit with code 0. Do not tag if any of them fail.
+
+### Cutting a New Release
+
+```bash
+# 1. Ensure main is clean and pushed
+git status
+git push origin main
+
+# 2. Create an annotated tag with the release body inline
+git tag -a vX.Y.Z -m "Omnia vX.Y.Z — <Title>
+
+<Release body here>"
+
+# 3. Push the tag — this triggers the Release Pipeline automatically
+git push origin vX.Y.Z
+```
+
+The GitHub Actions Release Pipeline will then:
+1. Checkout the tagged commit
+2. Run `expo export --platform android` to generate the JS bundle
+3. Compile the Android APK (`omnia-android-vX.Y.Z-universal.apk`)
+4. Compute a SHA256 checksum (`omnia-android-vX.Y.Z-universal.apk.sha256`)
+5. Create the GitHub Release with the tag message as the body
+6. Attach the APK and checksum as downloadable assets
+
+No further action is required.
+
+### Moving a Tag (Re-releasing)
+
+If a tag was created pointing to the wrong commit, delete it and recreate:
+
+```bash
+# Delete locally and on remote
+git tag -d vX.Y.Z
+git push origin :refs/tags/vX.Y.Z
+
+# Recreate pointing to the correct commit (HEAD or a specific sha)
+git tag -a vX.Y.Z -m "<Release body>"
+git push origin vX.Y.Z
+```
+
+> Note: Moving a tag re-triggers the Release Pipeline and overwrites the previous GitHub Release assets.
+
+### Dependency Hygiene Rule
+
+Always verify the lockfile is clean before tagging. A common failure mode is a transitive dependency contaminating the Babel peer resolution graph and breaking the Expo export step. Specifically:
+
+- `@babel/core` must only exist at `^7.x` across the entire dependency tree.
+- No package in `apps/mobile/package.json` should declare `@babel/core` as a direct dependency — it is managed at the workspace root.
+- Check for contamination with: `pnpm list @babel/core --filter mobile`
+
+---
+
+## Release History
+
+Every release is a permanent, historical artifact. Tags are never deleted without a documented reason.
+
+| Tag | Commit | Title | Notes |
+| --- | --- | --- | --- |
+| `v0.9.0` | `68ca965` | Pre-stable Foundation | |
+| `v1.0.0` | `31a5302` | Stable MVP | First production-grade release |
+| `v1.0.1` | `e2cecc1` | Foundation Release | CI pipeline hardened; Babel peer contamination resolved |
