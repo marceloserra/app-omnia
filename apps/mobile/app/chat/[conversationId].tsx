@@ -71,6 +71,8 @@ export default function ChatScreen() {
   // UX States
   const [isScrolledUp, setIsScrolledUp] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+  const messagesRef = useRef<Message[]>([]);
+  messagesRef.current = messages;
   const isAbortedRef = useRef(false);
   const scrollOffsetRef = useRef(0); // track position to restore after keyboard hides
 
@@ -112,109 +114,105 @@ export default function ChatScreen() {
       timestamp: Date.now(),
     };
 
-    // Use functional update — no dependency on `messages` state
-    setMessages((prev) => {
-      // If it's the initial prompt from index.tsx, the user message was already
-      // saved to SQLite and loaded into `prev`. We don't want to duplicate it.
-      const userMessage: Message | null = isInitialPrompt ? null : {
-        id: generateId(),
-        conversationId: conversationId,
-        role: "user",
-        content: text,
-        timestamp: Date.now(),
-      };
-      
+    const userMessage: Message | null = isInitialPrompt ? null : {
+      id: generateId(),
+      conversationId: conversationId,
+      role: "user",
+      content: text,
+      timestamp: Date.now(),
+    };
 
-      // Build chat history for the API from the current snapshot
-      const snapshotForApi = isInitialPrompt ? [...prev] : [...prev, userMessage!];
-      const chatHistory = snapshotForApi.map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
+    const prev = messagesRef.current;
+    const snapshotForApi = isInitialPrompt ? [...prev] : [...prev, userMessage!];
+    const chatHistory = snapshotForApi.map((m) => ({
+      role: m.role as "user" | "assistant" | "system",
+      content: m.content,
+    }));
+    const isFirstMessage = prev.length === 0 && userMessage;
 
-      // Fire and forget the stream after we have the snapshot
-      (async () => {
-        try {
-          const { convRepo, msgRepo } = getDb();
-          if (isInitialPrompt && !convRepo.getById(conversationId)) {
-            convRepo.create({
-              id: conversationId,
-              title: "New Chat", // Will be updated by AI later
-              createdAt: Date.now(),
-            });
-          }
-          if (userMessage) msgRepo.create(userMessage);
-          msgRepo.create(assistantMessage);
-          if (prev.length === 0 && userMessage) {
-            convRepo.update(conversationId, { title: text.slice(0, 40) });
-            setConvTitle(text.slice(0, 40));
-          }
-        } catch (err) {
-          logger.error("SQLite", "Failed to save message", err);
-        }
-
-        try {
-          const stream = providerCtx.provider.streamChat(providerCtx.config, {
-            messages: chatHistory,
-            modelId: providerCtx.modelId,
-            stream: true,
-          });
-
-          let fullContent = "";
-          let lastHapticTime = Date.now();
-          let lastSqliteTime = Date.now();
-          
-          for await (const chunk of stream) {
-            if (isAbortedRef.current) break;
-            if (chunk.done) break;
-            fullContent += chunk.content;
-            
-            const now = Date.now();
-
-            if (useSettingsStore.getState().hapticsEnabled) {
-              if (now - lastHapticTime > 80) {
-                Haptics.selectionAsync();
-                lastHapticTime = now;
-              }
-            }
-
-            if (now - lastSqliteTime > 500) {
-              try {
-                getDb().msgRepo.updateContent(assistantId, fullContent);
-              } catch (err) {}
-              lastSqliteTime = now;
-            }
-
-            setMessages((cur) =>
-              cur.map((m) => m.id === assistantId ? { ...m, content: fullContent } : m)
-            );
-          }
-
-          try {
-            getDb().msgRepo.updateContent(assistantId, fullContent);
-          } catch (err) {
-            logger.error("SQLite", "Failed to update assistant message content", err);
-          }
-        } catch (e: any) {
-          if (isAbortedRef.current) return;
-          const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
-          setMessages((cur) =>
-            cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m)
-          );
-          try {
-            getDb().msgRepo.updateContent(assistantId, errorMsg);
-          } catch (err) {
-            logger.error("SQLite", "Failed to log assistant stream error", err);
-          }
-        } finally {
-          setIsStreaming(false);
-          isAbortedRef.current = false;
-        }
-      })();
-
-      const nextMessages = isInitialPrompt ? [...prev, assistantMessage] : [...prev, userMessage!, assistantMessage];
-      return nextMessages;
+    setMessages((currentPrev) => {
+      return isInitialPrompt ? [...currentPrev, assistantMessage] : [...currentPrev, userMessage!, assistantMessage];
     });
+
+    // Fire and forget the stream OUTSIDE the state updater to prevent React StrictMode duplicate side-effects
+    (async () => {
+      try {
+        const { convRepo, msgRepo } = getDb();
+        if (isInitialPrompt && !convRepo.getById(conversationId)) {
+          convRepo.create({
+            id: conversationId,
+            title: "New Chat", // Will be updated by AI later
+            createdAt: Date.now(),
+          });
+        }
+        if (userMessage) msgRepo.create(userMessage);
+        msgRepo.create(assistantMessage);
+        if (isFirstMessage) {
+          convRepo.update(conversationId, { title: text.slice(0, 40) });
+          setConvTitle(text.slice(0, 40));
+        }
+      } catch (err) {
+        logger.error("SQLite", "Failed to save message", err);
+      }
+
+      try {
+        const stream = providerCtx.provider.streamChat(providerCtx.config, {
+          messages: chatHistory,
+          modelId: providerCtx.modelId,
+          stream: true,
+        });
+
+        let fullContent = "";
+        let lastHapticTime = Date.now();
+        let lastSqliteTime = Date.now();
+        
+        for await (const chunk of stream) {
+          if (isAbortedRef.current) break;
+          if (chunk.done) break;
+          fullContent += chunk.content;
+          
+          const now = Date.now();
+
+          if (useSettingsStore.getState().hapticsEnabled) {
+            if (now - lastHapticTime > 80) {
+              Haptics.selectionAsync();
+              lastHapticTime = now;
+            }
+          }
+
+          if (now - lastSqliteTime > 500) {
+            try {
+              getDb().msgRepo.updateContent(assistantId, fullContent);
+            } catch (err) {}
+            lastSqliteTime = now;
+          }
+
+          setMessages((cur) =>
+            cur.map((m) => m.id === assistantId ? { ...m, content: fullContent } : m)
+          );
+        }
+
+        try {
+          getDb().msgRepo.updateContent(assistantId, fullContent);
+        } catch (err) {
+          logger.error("SQLite", "Failed to update assistant message content", err);
+        }
+      } catch (e: any) {
+        if (isAbortedRef.current) return;
+        const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
+        setMessages((cur) =>
+          cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m)
+        );
+        try {
+          getDb().msgRepo.updateContent(assistantId, errorMsg);
+        } catch (err) {
+          logger.error("SQLite", "Failed to log assistant stream error", err);
+        }
+      } finally {
+        setIsStreaming(false);
+        isAbortedRef.current = false;
+      }
+    })();
 
     setIsStreaming(true);
   }, [conversationId, store, getProvider]);
