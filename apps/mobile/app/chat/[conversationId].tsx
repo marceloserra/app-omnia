@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { View, FlatList, Text, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
+import { View, FlatList, Text, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable, StyleSheet } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
@@ -11,6 +11,7 @@ import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/
 import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { ArrowDown } from "lucide-react-native";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
@@ -29,8 +30,12 @@ export default function ChatScreen() {
   const store = useProviderStore();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
   const [convTitle, setConvTitle] = useState("Chat");
+  
+  // UX States
+  const [isScrolledUp, setIsScrolledUp] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
+  const isAbortedRef = useRef(false);
 
   // Load messages from SQLite on mount
   useEffect(() => {
@@ -68,6 +73,9 @@ export default function ChatScreen() {
     if (!providerCtx) return;
     if (!conversationId) return;
 
+    isAbortedRef.current = false;
+    setIsScrolledUp(false);
+
     const userMessage: Message = {
       id: generateId(),
       conversationId: conversationId,
@@ -87,7 +95,6 @@ export default function ChatScreen() {
       timestamp: Date.now(),
     };
 
-    // Update UI and SQLite for user message immediately
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
     setIsStreaming(true);
@@ -115,25 +122,34 @@ export default function ChatScreen() {
 
       let fullContent = "";
       for await (const chunk of stream) {
+        if (isAbortedRef.current) break; // User pressed Stop Generating
         if (chunk.done) break;
+        
         fullContent += chunk.content;
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId ? { ...m, content: fullContent } : m
           )
         );
-        flatListRef.current?.scrollToEnd({ animated: false });
+        
+        // Smart scroll: only auto-scroll if the user hasn't scrolled up
+        if (!isScrolledUp) {
+          flatListRef.current?.scrollToEnd({ animated: false });
+        }
       }
 
       // Finalize the assistant message in SQLite
       try {
         msgRepo.updateContent(assistantId, fullContent);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        if (!isAbortedRef.current) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
       } catch (err) {
         logger.error("SQLite", "Failed to update assistant message content", err);
       }
 
     } catch (e: any) {
+      if (isAbortedRef.current) return;
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
       setMessages((prev) =>
@@ -148,8 +164,19 @@ export default function ChatScreen() {
       }
     } finally {
       setIsStreaming(false);
+      isAbortedRef.current = false;
     }
-  }, [messages, conversationId, store, getProvider]);
+  }, [messages, conversationId, store, getProvider, isScrolledUp]);
+
+  const handleStop = () => {
+    isAbortedRef.current = true;
+    setIsStreaming(false);
+  };
+
+  const scrollToBottom = () => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+    setIsScrolledUp(false);
+  };
 
   const noProvider = !store.activeProviderId || !store.isConnected;
 
@@ -162,10 +189,10 @@ export default function ChatScreen() {
       <Stack.Screen options={{ title: convTitle }} />
 
       {/* Ambient Glow */}
-      <View style={{ position: "absolute", top: -100, right: -50, width: 300, height: 300, borderRadius: 150, backgroundColor: INDIGO, opacity: 0.1, filter: "blur(100px)", zIndex: -1 }} />
+      <View style={styles.ambientGlow} />
 
       {noProvider && (
-        <BlurView intensity={20} tint="dark" style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" }}>
+        <BlurView intensity={20} tint="dark" style={styles.noProviderBanner}>
           <Text style={{ color: TEXT_SECONDARY, fontSize: 13, textAlign: "center" }}>
             No provider connected. Go to Settings to configure one.
           </Text>
@@ -178,14 +205,23 @@ export default function ChatScreen() {
         keyExtractor={(m) => m.id}
         renderItem={({ item }) => <MessageBubble message={item} />}
         contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onContentSizeChange={() => {
+          if (!isScrolledUp) flatListRef.current?.scrollToEnd({ animated: true });
+        }}
+        onScroll={(e) => {
+          const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
+          // Threshold of 100px to consider "scrolled up"
+          const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 100;
+          setIsScrolledUp(!isCloseToBottom);
+        }}
+        scrollEventThrottle={16}
         ListEmptyComponent={
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 120 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "rgba(99,102,241,0.15)", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconWrapper}>
               <Text style={{ fontSize: 28, color: "#818cf8" }}>✦</Text>
             </View>
-            <Text style={{ fontSize: 20, fontWeight: "600", color: "#f8fafc", marginBottom: 8, letterSpacing: 0.5 }}>Omnia</Text>
-            <Text style={{ fontSize: 15, color: TEXT_SECONDARY, textAlign: "center", paddingHorizontal: 40, lineHeight: 22 }}>
+            <Text style={styles.emptyTitle}>Omnia</Text>
+            <Text style={styles.emptySubtitle}>
               {noProvider
                 ? "Configure a provider in Settings to start chatting."
                 : "What would you like to build today?"}
@@ -194,14 +230,106 @@ export default function ChatScreen() {
         }
       />
 
-      {isStreaming && (
-        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 6, gap: 8 }}>
-          <ActivityIndicator size="small" color="#6366f1" />
-          <Text style={{ color: TEXT_SECONDARY, fontSize: 13 }}>Thinking...</Text>
+      {/* Scroll to bottom FAB */}
+      {isScrolledUp && (
+        <View style={styles.fabContainer}>
+          <Pressable onPress={scrollToBottom} style={({ pressed }) => [styles.fab, pressed && { opacity: 0.8 }]}>
+            <ArrowDown size={20} color="#fff" />
+          </Pressable>
         </View>
       )}
 
-      <ChatInput onSend={handleSend} disabled={isStreaming || noProvider} />
+      {isStreaming && (
+        <View style={styles.streamingIndicator}>
+          <ActivityIndicator size="small" color="#818cf8" />
+          <Text style={{ color: TEXT_SECONDARY, fontSize: 13, fontWeight: "500" }}>Omnia is thinking...</Text>
+        </View>
+      )}
+
+      <ChatInput 
+        onSend={handleSend} 
+        onStop={handleStop}
+        isStreaming={isStreaming}
+        disabled={noProvider} 
+      />
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  ambientGlow: {
+    position: "absolute",
+    top: -100,
+    right: -50,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: INDIGO,
+    opacity: 0.1,
+    filter: "blur(100px)",
+    zIndex: -1,
+  },
+  noProviderBanner: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.05)",
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 120,
+  },
+  emptyIconWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(99,102,241,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#f8fafc",
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  emptySubtitle: {
+    fontSize: 15,
+    color: TEXT_SECONDARY,
+    textAlign: "center",
+    paddingHorizontal: 40,
+    lineHeight: 22,
+  },
+  streamingIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    gap: 10,
+    backgroundColor: "transparent",
+  },
+  fabContainer: {
+    position: "absolute",
+    bottom: 90, // Above the input
+    right: 20,
+    zIndex: 10,
+  },
+  fab: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(30, 27, 75, 0.8)",
+    borderWidth: 1,
+    borderColor: "rgba(99,102,241,0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+});

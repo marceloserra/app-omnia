@@ -14,7 +14,7 @@ The goal of **Phase 7** is to elevate the UX to the absolute pinnacle of FAANG s
 
 ---
 
-## Step 1 — Markdown Parsing & Syntax Highlighting
+## Step 1 — Markdown Parsing & Syntax Highlighting ✅ DONE (2026-06-16)
 
 **Goal:** The AI often returns code blocks, bold text, lists, and tables. Currently, this renders as plain text in the `MessageBubble`. We need to parse Markdown and highlight code elegantly.
 
@@ -26,7 +26,7 @@ The goal of **Phase 7** is to elevate the UX to the absolute pinnacle of FAANG s
 
 ---
 
-## Step 2 — Micro-Interactions (Haptics)
+## Step 2 — Micro-Interactions (Haptics) ✅ DONE (2026-06-16)
 
 **Goal:** Add tactile feedback to make the app feel "alive".
 
@@ -40,7 +40,7 @@ The goal of **Phase 7** is to elevate the UX to the absolute pinnacle of FAANG s
 
 ---
 
-## Step 3 — Contextual Chat Actions
+## Step 3 — Contextual Chat Actions ✅ DONE (2026-06-16)
 
 **Goal:** Allow users to manage their chat messages.
 
@@ -51,7 +51,7 @@ The goal of **Phase 7** is to elevate the UX to the absolute pinnacle of FAANG s
 
 ---
 
-## Step 4 — Scroll & Keyboard UX Polish
+## Step 4 — Scroll & Keyboard UX Polish ✅ DONE (2026-06-16)
 
 **Goal:** Ensure the user never loses context during long AI streams.
 
