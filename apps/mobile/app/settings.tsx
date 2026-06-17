@@ -285,8 +285,6 @@ export default function SettingsScreen() {
     } else if (isSameProvider && prevConnected) {
       store.setConnected(true, prevModels, undefined);
     }
-
-    Alert.alert("Success", "Provider settings saved and activated.");
   };
 
   const handleDisconnect = () => {
