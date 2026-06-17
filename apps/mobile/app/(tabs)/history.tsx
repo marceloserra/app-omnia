@@ -175,7 +175,9 @@ export default function HistoryScreen() {
                 style={{ flex: 1, backgroundColor: isPinned ? "#64748b" : "#f59e0b", justifyContent: "center", alignItems: "center", borderRadius: 16, marginBottom: 8 }}
                 onPress={() => togglePin(conv.id)}
               >
-                <Pin size={20} color="#fff" style={{ transform: isPinned ? [{ rotate: "45deg" }] : [] }} />
+                <View style={{ transform: isPinned ? [{ rotate: "45deg" }] : undefined }}>
+                  <Pin size={20} color="#fff" />
+                </View>
               </Pressable>
             </View>
           );
