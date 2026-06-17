@@ -112,13 +112,14 @@ export default function HomeDashboard() {
                 alignItems: "center",
                 shadowColor: theme.indigo,
                 shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 10,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 6 },
                 elevation: 6,
+                maxWidth: "90%",
               }, pressed && { opacity: 0.8 }]}
             >
-              <Zap size={18} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}>{t("home.empty.cta")}</Text>
+              <Zap size={18} color="#fff" style={{ marginRight: 8, flexShrink: 0 }} />
+              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600", flexShrink: 1, textAlign: "center" }} numberOfLines={2}>{t("home.empty.cta")}</Text>
             </Pressable>
           </View>
         )}

@@ -211,14 +211,14 @@ export default function HomeScreen() {
 
               {noProvider && (
                 <View style={{ alignItems: "center", marginTop: 24 }}>
-                  <Text style={styles.emptySubtitle}>
+                  <Text style={[styles.emptySubtitle, { maxWidth: "80%" }]}>
                     {t("chat.empty.noprovider")}
                   </Text>
                   <Pressable
                     onPress={() => router.push("/settings")}
-                    style={({ pressed }) => [styles.providerConfigBtn, pressed && { opacity: 0.8 }]}
+                    style={({ pressed }) => [styles.providerConfigBtn, pressed && { opacity: 0.8 }, { maxWidth: "90%" }]}
                   >
-                    <Text style={styles.providerConfigText}>{t("chat.empty.cta")}</Text>
+                    <Text style={[styles.providerConfigText, { textAlign: "center" }]} numberOfLines={2}>{t("chat.empty.cta")}</Text>
                   </Pressable>
                 </View>
               )}

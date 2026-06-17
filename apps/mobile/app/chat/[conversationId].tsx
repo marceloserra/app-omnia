@@ -291,10 +291,10 @@ export default function ChatScreen() {
         </View>
 
         {noProvider && messages.length > 0 && (
-          <View style={{ position: 'absolute', top: insets.top + 60, left: 0, right: 0, alignItems: 'center', zIndex: 5 }} pointerEvents="box-none">
-            <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: theme.red, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, shadowColor: theme.red, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
-              <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "600", marginRight: 12 }}>{t("chat.error.disconnected")}</Text>
-              <Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [{ backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }, pressed && { opacity: 0.7 }]}>
+          <View style={{ position: 'absolute', top: insets.top + 60, left: 16, right: 16, alignItems: 'center', zIndex: 5 }} pointerEvents="box-none">
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: theme.red, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, shadowColor: theme.red, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4, maxWidth: "100%" }}>
+              <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "600", marginRight: 12, flexShrink: 1 }} numberOfLines={2}>{t("chat.error.disconnected")}</Text>
+              <Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [{ backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, flexShrink: 0 }, pressed && { opacity: 0.7 }]}>
                 <Text style={{ color: "#ffffff", fontSize: 12, fontWeight: "700" }}>{t("chat.error.reconnect")}</Text>
               </Pressable>
             </View>
@@ -342,14 +342,14 @@ export default function ChatScreen() {
 
                 {noProvider && (
                   <View style={{ alignItems: "center", marginTop: 24 }}>
-                    <Text style={styles.emptySubtitle}>
+                    <Text style={[styles.emptySubtitle, { maxWidth: "80%" }]}>
                       {t("chat.empty.noprovider")}
                     </Text>
                     <Pressable
                       onPress={() => router.push("/settings")}
-                      style={({ pressed }) => [styles.providerConfigBtn, pressed && { opacity: 0.8 }]}
+                      style={({ pressed }) => [styles.providerConfigBtn, pressed && { opacity: 0.8 }, { maxWidth: "90%" }]}
                     >
-                      <Text style={styles.providerConfigText}>{t("chat.empty.cta")}</Text>
+                      <Text style={[styles.providerConfigText, { textAlign: "center" }]} numberOfLines={2}>{t("chat.empty.cta")}</Text>
                     </Pressable>
                   </View>
                 )}
