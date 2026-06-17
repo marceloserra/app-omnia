@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, FlatList, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, FlatList, TextInput, KeyboardAvoidingView, Platform, Image } from "react-native";
 import { Search, X, Check, Cpu, Brain, Bot, Sparkles, Zap, Wind, Globe } from "lucide-react-native";
 import { ThemePalette } from "../../lib/theme";
 
@@ -14,9 +14,12 @@ interface ModelPickerSheetProps {
 
 const getModelIcon = (name: string) => {
   const n = name.toLowerCase();
-  if (n.includes("gpt") || n.includes("openai")) return <Brain size={18} color="#10b981" />;
-  if (n.includes("claude") || n.includes("anthropic")) return <Sparkles size={18} color="#f59e0b" />;
-  if (n.includes("llama") || n.includes("meta")) return <Bot size={18} color="#3b82f6" />;
+  if (n.includes("gpt") || n.includes("openai")) return <Image source={require("../../assets/models/openai.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />;
+  if (n.includes("claude") || n.includes("anthropic")) return <Image source={require("../../assets/models/anthropic.png")} style={{ width: 18, height: 18, borderRadius: 4 }} resizeMode="contain" />;
+  if (n.includes("llama") || n.includes("meta")) return <Image source={require("../../assets/models/meta.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />;
+  if (n.includes("gemma") || n.includes("gemini") || n.includes("google")) return <Image source={require("../../assets/models/google.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />;
+  if (n.includes("mistral") || n.includes("mixtral")) return <Image source={require("../../assets/models/mistral.png")} style={{ width: 18, height: 18, borderRadius: 4 }} resizeMode="contain" />;
+  if (n.includes("qwen")) return <Image source={require("../../assets/models/qwen.png")} style={{ width: 18, height: 18, borderRadius: 9 }} resizeMode="contain" />;
   return <Cpu size={18} color="#64748b" />;
 };
 
