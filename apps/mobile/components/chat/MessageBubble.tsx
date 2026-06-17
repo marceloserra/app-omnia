@@ -395,6 +395,7 @@ const styles = StyleSheet.create({
   },
   userBubble: {
     maxWidth: "88%",
+    flexShrink: 1,
     borderRadius: 20,
     borderBottomRightRadius: 6,
     shadowColor: INDIGO,
@@ -405,6 +406,7 @@ const styles = StyleSheet.create({
   },
   assistantBubble: {
     maxWidth: "96%",
+    flexShrink: 1,
     borderRadius: 20,
     borderBottomLeftRadius: 6,
     borderWidth: 1,
