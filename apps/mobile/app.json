@@ -20,6 +20,10 @@
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize"
     },
+    "androidStatusBar": {
+      "backgroundColor": "#05050f",
+      "translucent": false
+    },
     "web": {
       "favicon": "./assets/favicon.png"
     },
