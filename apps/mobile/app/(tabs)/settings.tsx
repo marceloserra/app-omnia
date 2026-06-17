@@ -208,14 +208,14 @@ export default function SettingsScreen() {
                 <View style={[styles.iosIconContainer, { backgroundColor: "#3b82f6" }]}>
                   <KeySquare size={18} color="#fff" />
                 </View>
-                <Text style={[styles.iosRowLabel, { width: 85, fontSize: 16 }]}>API Key</Text>
+                <Text style={[styles.iosRowLabel, { width: 90, fontSize: 16 }]}>API Key</Text>
                 <TextInput
                   placeholder="sk-proj-..."
                   placeholderTextColor={theme.textSecondary}
                   value={localOpenaiKey}
                   onChangeText={(txt) => { setLocalOpenaiKey(txt); setTestResult(null); }}
                   secureTextEntry
-                  style={{ flex: 1, fontSize: 16, color: theme.textSecondary, textAlign: "right" }}
+                  style={{ flex: 1, fontSize: 16, color: theme.textSecondary, textAlign: "left" }}
                 />
               </View>
             ) : (
@@ -224,13 +224,13 @@ export default function SettingsScreen() {
                   <View style={[styles.iosIconContainer, { backgroundColor: "#8b5cf6" }]}>
                     <Network size={18} color="#fff" />
                   </View>
-                  <Text style={[styles.iosRowLabel, { width: 85, fontSize: 16 }]}>Base URL</Text>
+                  <Text style={[styles.iosRowLabel, { width: 90, fontSize: 16 }]}>Base URL</Text>
                   <TextInput
                     placeholder="http://192.168.1.X:1234/v1"
                     placeholderTextColor={theme.textSecondary}
                     value={localCompatibleUrl}
                     onChangeText={(txt) => { setLocalCompatibleUrl(txt); setTestResult(null); }}
-                    style={{ flex: 1, fontSize: 16, color: theme.textSecondary, textAlign: "right" }}
+                    style={{ flex: 1, fontSize: 16, color: theme.textSecondary, textAlign: "left" }}
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
@@ -240,14 +240,14 @@ export default function SettingsScreen() {
                   <View style={[styles.iosIconContainer, { backgroundColor: "#3b82f6" }]}>
                     <KeySquare size={18} color="#fff" />
                   </View>
-                  <Text style={[styles.iosRowLabel, { width: 85, fontSize: 16 }]}>API Key</Text>
+                  <Text style={[styles.iosRowLabel, { width: 90, fontSize: 16 }]}>API Key</Text>
                   <TextInput
                     placeholder="sk-..."
                     placeholderTextColor={theme.textSecondary}
                     value={localCompatibleKey}
                     onChangeText={(txt) => { setLocalCompatibleKey(txt); setTestResult(null); }}
                     secureTextEntry
-                    style={{ flex: 1, fontSize: 16, color: theme.textSecondary, textAlign: "right" }}
+                    style={{ flex: 1, fontSize: 16, color: theme.textSecondary, textAlign: "left" }}
                   />
                 </View>
               </>
