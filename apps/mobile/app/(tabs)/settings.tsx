@@ -97,7 +97,12 @@ export default function SettingsScreen() {
           setTestResult({ ok: true, models: models.map((m) => m.id) });
           if (!localModel || !models.find((m) => m.id === localModel)) {
             setLocalModel(models[0]?.id || "gpt-4o-mini");
+            store.setOpenaiModelId(models[0]?.id || "gpt-4o-mini");
           }
+          
+          store.setActiveProvider("openai");
+          store.setOpenaiApiKey(localOpenaiKey);
+          store.setConnected(true, models.map((m) => m.id), undefined);
         } else {
           setTestResult({ ok: false, msg: "Invalid API key or network error.", models: [] });
         }
@@ -115,7 +120,13 @@ export default function SettingsScreen() {
           setTestResult({ ok: true, models: models.map((m) => m.id) });
           if (!localModel || !models.find((m) => m.id === localModel)) {
             setLocalModel(models[0]?.id || "");
+            store.setCompatibleModelId(models[0]?.id || "");
           }
+          
+          store.setActiveProvider("openai-compatible");
+          store.setCompatibleBaseUrl(localCompatibleUrl);
+          store.setCompatibleApiKey(localCompatibleKey);
+          store.setConnected(true, models.map((m) => m.id), undefined);
         } else {
           setTestResult({ ok: false, msg: "Could not connect. Check the base URL.", models: [] });
         }
@@ -124,28 +135,6 @@ export default function SettingsScreen() {
       setTestResult({ ok: false, msg: e?.message ?? "Unknown error.", models: [] });
     } finally {
       setIsValidating(false);
-    }
-  };
-
-  const handleSave = () => {
-    const isSameProvider = store.activeProviderId === activeTab;
-    const prevModels = store.availableModels;
-    const prevConnected = store.isConnected;
-
-    store.setActiveProvider(activeTab);
-    if (activeTab === "openai") {
-      store.setOpenaiApiKey(localOpenaiKey);
-      store.setOpenaiModelId(localModel);
-    } else {
-      store.setCompatibleBaseUrl(localCompatibleUrl);
-      store.setCompatibleApiKey(localCompatibleKey);
-      store.setCompatibleModelId(localModel);
-    }
-
-    if (testResult?.ok) {
-      store.setConnected(true, testResult.models, undefined);
-    } else if (isSameProvider && prevConnected) {
-      store.setConnected(true, prevModels, undefined);
     }
   };
 
@@ -263,7 +252,7 @@ export default function SettingsScreen() {
               style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
             >
               <Text style={{ flex: 1, textAlign: "center", fontSize: 17, fontWeight: "600", color: !isFormValid ? theme.textSecondary : theme.indigo }}>
-                {isValidating ? "Validating..." : "Test Connection"}
+                {isValidating ? "Connecting..." : "Connect"}
               </Text>
             </Pressable>
           </View>
@@ -307,18 +296,6 @@ export default function SettingsScreen() {
                     <ChevronRight size={18} color={theme.textSecondary} style={{ marginLeft: 6 }} />
                   </Pressable>
                   
-                  <View style={styles.iosRowBorder} />
-
-                  {/* Action Buttons */}
-                  <Pressable
-                    onPress={handleSave}
-                    style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.8 }]}
-                  >
-                    <Text style={{ flex: 1, textAlign: "center", fontSize: 17, fontWeight: "600", color: "#10b981" }}>
-                      {isConnected ? t("settings.provider.update") : t("settings.provider.set")}
-                    </Text>
-                  </Pressable>
-
                   {isConnected && (
                     <>
                       <View style={styles.iosRowBorder} />
@@ -333,8 +310,6 @@ export default function SettingsScreen() {
                     </>
                   )}
                 </View>
-
-
               </View>
             );
           })()}
@@ -459,8 +434,6 @@ export default function SettingsScreen() {
           </View>
 
         </ScrollView>
-
-
       </KeyboardAvoidingView>
 
       <ConfirmDialog
@@ -481,6 +454,8 @@ export default function SettingsScreen() {
         onClose={() => setModelPickerVisible(false)}
         onSelect={(m) => {
           setLocalModel(m);
+          if (activeTab === "openai") store.setOpenaiModelId(m);
+          else store.setCompatibleModelId(m);
           setModelPickerVisible(false);
         }}
       />
