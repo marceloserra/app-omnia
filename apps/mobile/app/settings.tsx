@@ -16,6 +16,7 @@ import { Input } from "../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
 import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2 } from "lucide-react-native";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
@@ -43,30 +44,24 @@ export default function SettingsScreen() {
 
   const [isValidating, setIsValidating] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg?: string; models: string[] } | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleClearAll = () => {
-    Alert.alert(
-      "Clear All History",
-      "Are you sure you want to permanently delete all conversations and messages? This cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete All", 
-          style: "destructive", 
-          onPress: () => {
-            try {
-              const db = openDatabase();
-              createMessageRepo(db).deleteAll();
-              createConversationRepo(db).deleteAll();
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-              router.replace("/");
-            } catch (err) {
-              Alert.alert("Error", "Could not delete history.");
-            }
-          }
-        }
-      ]
-    );
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearAll = () => {
+    try {
+      const db = openDatabase();
+      createMessageRepo(db).deleteAll();
+      createConversationRepo(db).deleteAll();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      setShowClearConfirm(false);
+      router.replace("/");
+    } catch (err) {
+      Alert.alert("Error", "Could not delete history.");
+      setShowClearConfirm(false);
+    }
   };
 
   const handleTestConnection = async () => {
@@ -344,6 +339,15 @@ export default function SettingsScreen() {
           </Pressable>
         </BlurView>
       </KeyboardAvoidingView>
+
+      <ConfirmDialog
+        visible={showClearConfirm}
+        title="Clear All History"
+        message="Are you sure you want to permanently delete all conversations and messages? This cannot be undone."
+        confirmText="Delete All"
+        onCancel={() => setShowClearConfirm(false)}
+        onConfirm={confirmClearAll}
+      />
     </View>
   );
 }

@@ -14,6 +14,7 @@ import { Conversation } from "@omnia/shared-types";
 import { useProviderStore } from "../../store/provider-store";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 
 const BG = "#05050f";
 const SURFACE = "#0d0c1d";
@@ -52,6 +53,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   const [rename, setRename] = useState<RenameState>({ active: false, conversationId: null, value: "" });
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteConfirmTarget, setDeleteConfirmTarget] = useState<Conversation | null>(null);
 
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -179,26 +181,19 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
     const conv = contextMenu.conversation;
     closeContextMenu();
     setTimeout(() => {
-      Alert.alert(
-        "Delete Chat",
-        `"${conv.title}" will be permanently deleted.`,
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: () => {
-              try {
-                msgRepo.deleteByConversation(conv.id);
-                convRepo.delete(conv.id);
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-              } catch {}
-              refreshConversations();
-            },
-          },
-        ]
-      );
+      setDeleteConfirmTarget(conv);
     }, 300);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteConfirmTarget) return;
+    try {
+      msgRepo.deleteByConversation(deleteConfirmTarget.id);
+      convRepo.delete(deleteConfirmTarget.id);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    } catch {}
+    setDeleteConfirmTarget(null);
+    refreshConversations();
   };
 
   // Filter by search query
@@ -435,6 +430,15 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
           </Animated.View>
         </View>
       </Modal>
+
+      <ConfirmDialog
+        visible={!!deleteConfirmTarget}
+        title="Delete Chat"
+        message={`"${deleteConfirmTarget?.title}" will be permanently deleted. This cannot be undone.`}
+        confirmText="Delete"
+        onCancel={() => setDeleteConfirmTarget(null)}
+        onConfirm={confirmDelete}
+      />
     </Modal>
   );
 }
