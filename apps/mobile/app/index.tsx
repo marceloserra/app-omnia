@@ -19,8 +19,7 @@ import { Sidebar } from "../components/navigation/Sidebar";
 import { useProviderStore } from "../store/provider-store";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
-import { logger } from "@omnia/logger";
-import { AlignLeft, Settings, Sparkles } from "lucide-react-native";
+import { AlignLeft, Settings, Sparkles, ChevronDown } from "lucide-react-native";
 import { BlurView } from "expo-blur";
 
 import { useTheme, ThemePalette } from "../lib/theme";
@@ -124,12 +123,28 @@ export default function HomeScreen() {
             </BlurView>
           </Pressable>
 
-          <View style={styles.floatingChipContainer}>
-            <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingChipInner}>
-              <Sparkles size={14} color={theme.indigo} strokeWidth={2} />
-              <Text style={styles.dynamicIslandText} numberOfLines={1}>Omnia</Text>
-            </BlurView>
-          </View>
+          {store.activeProviderId ? (
+            <Pressable
+              onPress={() => router.push("/settings")}
+              accessibilityLabel="Change model"
+              style={({ pressed }) => [styles.floatingChipContainer, pressed && { opacity: 0.7 }]}
+            >
+              <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingChipInner}>
+                <View style={styles.modelChipDot} />
+                <Text style={styles.dynamicIslandText} numberOfLines={1}>
+                  {store.activeProviderId === "openai" ? "OpenAI" : "Local"} · {store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
+                </Text>
+                <ChevronDown size={14} color={theme.textSecondary} />
+              </BlurView>
+            </Pressable>
+          ) : (
+            <View style={styles.floatingChipContainer}>
+              <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingChipInner}>
+                <Sparkles size={14} color={theme.indigo} strokeWidth={2} />
+                <Text style={styles.dynamicIslandText} numberOfLines={1}>Omnia</Text>
+              </BlurView>
+            </View>
+          )}
 
           <Pressable
             onPress={() => router.push("/settings")}
@@ -257,6 +272,13 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.3,
     flexShrink: 1,
+  },
+  modelChipDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#10b981",
+    flexShrink: 0,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
