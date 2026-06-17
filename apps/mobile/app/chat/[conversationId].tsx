@@ -4,7 +4,7 @@ import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
 import { ChatInput } from "../../components/chat/ChatInput";
-import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
+import { ModelPickerSheet, getModelIcon } from "../../components/chat/ModelPickerSheet";
 import { useProviderStore } from "../../store/provider-store";
 import { OpenAIProvider } from "@omnia/providers";
 import { OpenAICompatibleProvider } from "@omnia/providers";
@@ -244,7 +244,9 @@ export default function ChatScreen() {
                 tint={isDark ? "dark" : "light"} 
                 style={[styles.floatingChipInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
               >
-                <View style={styles.modelChipDot} />
+                <View style={{ width: 14, height: 14, alignItems: 'center', justifyContent: 'center' }}>
+                  {getModelIcon(activeModelId, 14)}
+                </View>
                 <Text style={styles.dynamicIslandText} numberOfLines={1}>
                   {store.activeProviderId === "openai" ? "OpenAI" : "Local"} · {activeModelId}
                 </Text>

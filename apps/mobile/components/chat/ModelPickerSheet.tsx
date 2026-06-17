@@ -12,15 +12,16 @@ interface ModelPickerSheetProps {
   isDark: boolean;
 }
 
-const getModelIcon = (name: string) => {
+export const getModelIcon = (name: string, overrideSize?: number) => {
   const n = name.toLowerCase();
-  if (n.includes("gpt") || n.includes("openai")) return <Image source={require("../../assets/models/openai.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />;
-  if (n.includes("claude") || n.includes("anthropic")) return <Image source={require("../../assets/models/anthropic.png")} style={{ width: 18, height: 18, borderRadius: 4 }} resizeMode="contain" />;
-  if (n.includes("llama") || n.includes("meta")) return <Image source={require("../../assets/models/meta.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />;
-  if (n.includes("gemma") || n.includes("gemini") || n.includes("google")) return <Image source={require("../../assets/models/google.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />;
-  if (n.includes("mistral") || n.includes("mixtral")) return <Image source={require("../../assets/models/mistral.png")} style={{ width: 18, height: 18, borderRadius: 4 }} resizeMode="contain" />;
-  if (n.includes("qwen")) return <Image source={require("../../assets/models/qwen.png")} style={{ width: 18, height: 18, borderRadius: 9 }} resizeMode="contain" />;
-  return <Cpu size={18} color="#64748b" />;
+  const size = overrideSize || 18;
+  if (n.includes("gpt") || n.includes("openai")) return <Image source={require("../../assets/models/openai.png")} style={{ width: size, height: size }} resizeMode="contain" />;
+  if (n.includes("claude") || n.includes("anthropic")) return <Image source={require("../../assets/models/anthropic.png")} style={{ width: size, height: size, borderRadius: size/4 }} resizeMode="contain" />;
+  if (n.includes("llama") || n.includes("meta")) return <Image source={require("../../assets/models/meta.png")} style={{ width: size, height: size }} resizeMode="contain" />;
+  if (n.includes("gemma") || n.includes("gemini") || n.includes("google")) return <Image source={require("../../assets/models/google.png")} style={{ width: size, height: size }} resizeMode="contain" />;
+  if (n.includes("mistral") || n.includes("mixtral")) return <Image source={require("../../assets/models/mistral.png")} style={{ width: size, height: size, borderRadius: size/4 }} resizeMode="contain" />;
+  if (n.includes("qwen")) return <Image source={require("../../assets/models/qwen.png")} style={{ width: size, height: size, borderRadius: size/2 }} resizeMode="contain" />;
+  return <Cpu size={size} color="#64748b" />;
 };
 
 export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, isDark }: ModelPickerSheetProps) {
