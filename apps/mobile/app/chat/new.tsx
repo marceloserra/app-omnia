@@ -140,17 +140,20 @@ export default function HomeScreen() {
               accessibilityLabel="Change model"
               style={({ pressed }) => [styles.floatingChipContainer, pressed && { opacity: 0.7 }]}
             >
-              <BlurView 
-                intensity={isDark ? 60 : 100} 
-                tint={isDark ? "dark" : "light"} 
-                style={[styles.floatingChipInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
-              >
-                <View style={styles.modelChipDot} />
-                <Text style={styles.dynamicIslandText} numberOfLines={1}>
-                  {store.activeProviderId === "openai" ? "OpenAI" : "Local"} · {store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
+              <View style={[styles.floatingChipInner, { 
+                backgroundColor: isDark ? "rgba(20,20,40,0.85)" : "rgba(255,255,255,0.92)",
+                borderWidth: 1,
+                borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)",
+                borderRadius: 18,
+              }]}>
+                <View style={{ width: 18, height: 18, alignItems: 'center', justifyContent: 'center', marginRight: 2 }}>
+                  {getModelIcon(store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId, 16)}
+                </View>
+                <Text style={[styles.dynamicIslandText, { maxWidth: 140 }]} numberOfLines={1}>
+                  {(store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId) || (store.activeProviderId === "openai" ? "OpenAI" : "Local")}
                 </Text>
                 <ChevronDown size={14} color={theme.textSecondary} />
-              </BlurView>
+              </View>
             </Pressable>
           ) : (
             <View style={styles.floatingChipContainer}>
