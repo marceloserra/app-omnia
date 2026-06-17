@@ -45,7 +45,13 @@ export default function SettingsScreen() {
   );
 
   const [isValidating, setIsValidating] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; msg?: string; models: string[] } | null>(null);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg?: string; models: string[] } | null>(() => {
+    const isCurrentActive = store.activeProviderId === ((store.activeProviderId as Tab) ?? "openai");
+    if (isCurrentActive && store.isConnected) {
+      return { ok: true, msg: "Connection Established", models: store.availableModels };
+    }
+    return null;
+  });
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleClearAll = () => {
@@ -119,13 +125,12 @@ export default function SettingsScreen() {
       store.setCompatibleModelId(localModel);
     }
     if (testResult?.ok) store.setConnected(true, testResult.models, undefined);
-    router.back();
+    Alert.alert("Success", "Provider settings saved and activated.");
   };
 
   const handleDisconnect = () => {
     store.setActiveProvider(null);
     store.setConnected(false, [], undefined);
-    router.back();
   };
 
   const isFormValid = activeTab === "openai" ? !!localOpenaiKey.trim() : !!localCompatibleUrl.trim();
@@ -155,7 +160,11 @@ export default function SettingsScreen() {
                   key={tab}
                   onPress={() => {
                     setActiveTab(tab);
-                    setTestResult(null);
+                    if (store.activeProviderId === tab && store.isConnected) {
+                      setTestResult({ ok: true, msg: "Connection Established", models: store.availableModels });
+                    } else {
+                      setTestResult(null);
+                    }
                     setLocalModel(tab === "openai" ? store.openaiModelId : store.compatibleModelId);
                   }}
                   style={[styles.segmentButton, isActive && styles.segmentButtonActive]}
