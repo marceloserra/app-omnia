@@ -1,13 +1,16 @@
-import { Stack, router } from "expo-router";
+import { Drawer } from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
-import { Pressable } from "react-native";
-import { Settings } from "lucide-react-native";
 import { logger } from "@omnia/logger";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { CustomDrawer } from "../components/navigation/CustomDrawer";
+import { Menu } from "lucide-react-native";
+import { Pressable } from "react-native";
+import { DrawerToggleButton } from "@react-navigation/drawer";
 import "../assets/css/global.css";
 
-const HEADER_BG = "#0a0918";
-const HEADER_TEXT = "#f0efff";
+const HEADER_BG = "#05050f";
+const HEADER_TEXT = "#f8fafc";
 
 // Catch global JS crashes
 const originalHandler = global.ErrorUtils?.getGlobalHandler?.();
@@ -32,44 +35,44 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: HEADER_BG }}>
       <StatusBar style="light" />
-      <Stack
+      <Drawer
+        drawerContent={(props) => <CustomDrawer {...props} />}
         screenOptions={{
           headerStyle: { backgroundColor: HEADER_BG },
           headerTintColor: HEADER_TEXT,
           headerTitleStyle: { fontWeight: "700", fontSize: 17 },
           headerShadowVisible: false,
-          contentStyle: { backgroundColor: HEADER_BG },
+          drawerStyle: { width: "80%", backgroundColor: HEADER_BG },
+          sceneStyle: { backgroundColor: HEADER_BG },
           headerTitleAlign: "center",
+          headerLeft: () => (
+            <DrawerToggleButton tintColor={HEADER_TEXT} />
+          )
         }}
       >
-        <Stack.Screen
+        <Drawer.Screen
           name="index"
           options={{
             title: "Omnia",
-            headerLargeTitle: true,
-            headerLargeTitleStyle: { color: HEADER_TEXT, fontWeight: "700" },
-            headerRight: () => (
-              <Pressable
-                onPress={() => router.push("/settings")}
-                style={{ padding: 6 }}
-                accessibilityLabel="Open settings"
-              >
-                <Settings size={20} color={HEADER_TEXT} />
-              </Pressable>
-            ),
+            headerTitle: "Omnia",
           }}
         />
-        <Stack.Screen
-          name="settings"
-          options={{ title: "Settings" }}
-        />
-        <Stack.Screen
+        <Drawer.Screen
           name="chat/[conversationId]"
-          options={{ title: "Chat", headerBackTitle: "Chats" }}
+          options={{
+            title: "Chat",
+            headerTitle: "Omnia",
+          }}
         />
-      </Stack>
-    </>
+        <Drawer.Screen
+          name="settings"
+          options={{
+            title: "Settings",
+          }}
+        />
+      </Drawer>
+    </GestureHandlerRootView>
   );
 }

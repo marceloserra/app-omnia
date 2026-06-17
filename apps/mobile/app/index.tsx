@@ -1,307 +1,254 @@
-import React, { useState, useCallback } from "react";
-import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import React, { useState, useRef, useCallback } from "react";
+import { View, FlatList, Text, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable, StyleSheet } from "react-native";
+import { router } from "expo-router";
+import { Message } from "@omnia/shared-types";
+import { MessageBubble } from "../components/chat/MessageBubble";
+import { ChatInput } from "../components/chat/ChatInput";
 import { useProviderStore } from "../store/provider-store";
-import { MessageSquare, Plus, ArrowRight } from "lucide-react-native";
-import { openDatabase, createConversationRepo } from "@omnia/storage";
-import { Conversation } from "@omnia/shared-types";
+import { OpenAIProvider } from "@omnia/providers";
+import { OpenAICompatibleProvider } from "@omnia/providers";
+import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
+import * as Haptics from "expo-haptics";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
-const TEXT_PRIMARY = "#f8fafc";
 const TEXT_SECONDARY = "#94a3b8";
 
 const db = openDatabase();
+const msgRepo = createMessageRepo(db);
 const convRepo = createConversationRepo(db);
 
-export default function ConversationsScreen() {
+function generateId() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+export default function IndexChatScreen() {
   const store = useProviderStore();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const isAbortedRef = useRef(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      try {
-        const data = convRepo.listAll();
-        setConversations(data);
-      } catch (err) {
-        logger.error("SQLite", "Failed to list conversations", err);
-      }
-    }, [])
-  );
-
-  const startNewChat = () => {
-    try {
-      const newId = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      const newConv: Conversation = {
-        id: newId,
-        title: "New Conversation",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+  const getProvider = useCallback(() => {
+    if (store.activeProviderId === "openai") {
+      return {
+        provider: new OpenAIProvider(),
+        config: { apiKey: store.openaiApiKey },
+        modelId: store.openaiModelId,
       };
-      convRepo.create(newConv);
-      router.push(`/chat/${newId}`);
-    } catch (err) {
-      logger.error("SQLite", "Failed to create conversation", err);
+    } else if (store.activeProviderId === "openai-compatible") {
+      return {
+        provider: new OpenAICompatibleProvider(),
+        config: { baseUrl: store.compatibleBaseUrl, apiKey: store.compatibleApiKey || undefined },
+        modelId: store.compatibleModelId,
+      };
     }
+    return null;
+  }, [store]);
+
+  const handleSend = useCallback(async (text: string) => {
+    const providerCtx = getProvider();
+    if (!providerCtx) return;
+
+    isAbortedRef.current = false;
+    
+    // Create new conversation
+    const newConvId = generateId();
+    convRepo.create({
+      id: newConvId,
+      title: text.slice(0, 40),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    const userMessage: Message = {
+      id: generateId(),
+      conversationId: newConvId,
+      role: "user",
+      content: text,
+      timestamp: Date.now(),
+    };
+
+    const assistantId = generateId();
+    const assistantMessage: Message = {
+      id: assistantId,
+      conversationId: newConvId,
+      role: "assistant",
+      content: "",
+      providerId: store.activeProviderId ?? undefined,
+      modelId: providerCtx.modelId,
+      timestamp: Date.now(),
+    };
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setMessages([userMessage, assistantMessage]);
+    setIsStreaming(true);
+
+    try {
+      msgRepo.create(userMessage);
+      msgRepo.create(assistantMessage);
+    } catch (err) {
+      logger.error("SQLite", "Failed to save user message", err);
+    }
+
+    try {
+      const stream = providerCtx.provider.streamChat(providerCtx.config, {
+        messages: [{ role: "user", content: text }],
+        modelId: providerCtx.modelId,
+        stream: true,
+      });
+
+      let fullContent = "";
+      for await (const chunk of stream) {
+        if (isAbortedRef.current) break;
+        if (chunk.done) break;
+        
+        fullContent += chunk.content;
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, content: fullContent } : m
+          )
+        );
+      }
+
+      try {
+        msgRepo.updateContent(assistantId, fullContent);
+        if (!isAbortedRef.current) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+      } catch (err) {
+        logger.error("SQLite", "Failed to update assistant message", err);
+      }
+
+    } catch (e: any) {
+      if (isAbortedRef.current) return;
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
+      setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m));
+      try {
+        msgRepo.updateContent(assistantId, errorMsg);
+      } catch (err) {}
+    } finally {
+      setIsStreaming(false);
+      // Seamlessly transfer context to the chat route
+      router.replace(`/chat/${newConvId}`);
+    }
+  }, [store, getProvider]);
+
+  const handleStop = () => {
+    isAbortedRef.current = true;
+    setIsStreaming(false);
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Background ambient glow */}
-      <View style={styles.glowTop} />
-      <View style={styles.glowBottom} />
+  const noProvider = !store.activeProviderId || !store.isConnected;
 
-      {/* Provider status bar */}
-      {store.activeProviderId && store.isConnected && (
-        <BlurView intensity={20} tint="dark" style={styles.statusBar}>
-          <Text style={styles.statusText}>
-            ✦ {store.activeProviderId === "openai" ? "OpenAI" : "Local AI"} · {store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId}
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: BG }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <View style={styles.ambientGlow} />
+
+      {noProvider && (
+        <BlurView intensity={20} tint="dark" style={styles.noProviderBanner}>
+          <Text style={{ color: TEXT_SECONDARY, fontSize: 13, textAlign: "center" }}>
+            No provider connected. Go to Settings to configure one.
           </Text>
         </BlurView>
       )}
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
-        {/* New conversation button */}
-        <Pressable onPress={startNewChat} style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }, styles.newChatWrapper]}>
-          <LinearGradient
-            colors={["#4f46e5", "#6366f1", "#818cf8"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.newChatGradient}
-          >
-            <View style={styles.newChatContent}>
-              <View style={styles.newChatIcon}>
-                <Plus size={20} color={INDIGO} />
-              </View>
-              <Text style={styles.newChatText}>Start New Conversation</Text>
+      <FlatList
+        data={messages}
+        keyExtractor={(m) => m.id}
+        renderItem={({ item }) => <MessageBubble message={item} />}
+        contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconWrapper}>
+              <Text style={{ fontSize: 28, color: "#818cf8" }}>✦</Text>
             </View>
-          </LinearGradient>
-        </Pressable>
-
-        {!store.isConnected && (
-          <BlurView intensity={30} tint="dark" style={styles.glassCard}>
-            <Text style={styles.emptyText}>
-              No provider connected yet.
+            <Text style={styles.emptyTitle}>Omnia</Text>
+            <Text style={styles.emptySubtitle}>
+              {noProvider
+                ? "Configure a provider in Settings to start chatting."
+                : "What would you like to build today?"}
             </Text>
-            <Pressable onPress={() => router.push("/settings")} style={styles.linkButton}>
-              <Text style={styles.linkText}>Open Settings to configure</Text>
-              <ArrowRight size={14} color={INDIGO} />
-            </Pressable>
-          </BlurView>
-        )}
-
-        {/* Conversation list */}
-        {conversations.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Recent Chats</Text>
-            {conversations.map((conv) => (
-              <Pressable
-                key={conv.id}
-                onPress={() => router.push(`/chat/${conv.id}`)}
-                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }, styles.convWrapper]}
-              >
-                <BlurView intensity={20} tint="dark" style={styles.convCard}>
-                  <View style={styles.convIcon}>
-                    <MessageSquare size={16} color="#818cf8" />
-                  </View>
-                  <View style={styles.convTextContainer}>
-                    <Text style={styles.convTitle} numberOfLines={1}>
-                      {conv.title}
-                    </Text>
-                    {conv.systemPrompt && (
-                      <Text style={styles.convPreview} numberOfLines={1}>
-                        System: {conv.systemPrompt}
-                      </Text>
-                    )}
-                  </View>
-                  <Text style={styles.convTime}>
-                    {new Date(conv.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </Text>
-                </BlurView>
-              </Pressable>
-            ))}
-          </>
-        )}
-
-        {conversations.length === 0 && store.isConnected && (
-          <View style={styles.emptyState}>
-            <MessageSquare size={48} color="rgba(255,255,255,0.05)" />
-            <Text style={styles.emptyStateText}>Your conversations will appear here.</Text>
           </View>
-        )}
-      </ScrollView>
-    </View>
+        }
+      />
+
+      {isStreaming && (
+        <View style={styles.streamingIndicator}>
+          <ActivityIndicator size="small" color="#818cf8" />
+          <Text style={{ color: TEXT_SECONDARY, fontSize: 13, fontWeight: "500" }}>Omnia is thinking...</Text>
+        </View>
+      )}
+
+      <ChatInput 
+        onSend={handleSend} 
+        onStop={handleStop}
+        isStreaming={isStreaming}
+        disabled={noProvider} 
+      />
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: BG,
-  },
-  glowTop: {
+  ambientGlow: {
     position: "absolute",
-    top: -150,
+    top: -100,
     right: -50,
     width: 300,
     height: 300,
     borderRadius: 150,
     backgroundColor: INDIGO,
-    opacity: 0.15,
-    filter: "blur(100px)",
-  },
-  glowBottom: {
-    position: "absolute",
-    bottom: 0,
-    left: -100,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: "#c084fc",
     opacity: 0.1,
     filter: "blur(100px)",
+    zIndex: -1,
   },
-  statusBar: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+  noProviderBanner: {
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255,255,255,0.05)",
   },
-  statusText: {
-    fontSize: 12,
-    color: "#818cf8",
-    fontWeight: "600",
-    letterSpacing: 0.5,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 100,
-  },
-  newChatWrapper: {
-    marginBottom: 32,
-    borderRadius: 20,
-    shadowColor: INDIGO,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  newChatGradient: {
-    borderRadius: 20,
-    padding: 2,
-  },
-  newChatContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.2)",
-    borderRadius: 18,
-    padding: 16,
-  },
-  newChatIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#fff",
+  emptyContainer: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 14,
+    paddingTop: 120,
   },
-  newChatText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-  },
-  glassCard: {
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 32,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    alignItems: "center",
-    overflow: "hidden",
-  },
-  emptyText: {
-    color: TEXT_SECONDARY,
-    fontSize: 15,
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  linkButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: "rgba(99,102,241,0.1)",
-    borderRadius: 20,
-  },
-  linkText: {
-    color: "#818cf8",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: TEXT_SECONDARY,
-    textTransform: "uppercase",
-    letterSpacing: 1.2,
-    marginTop: 16,
-    marginBottom: 16,
-    marginLeft: 4,
-  },
-  convWrapper: {
-    marginBottom: 12,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  convCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
-    gap: 14,
-  },
-  convIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  emptyIconWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: "rgba(99,102,241,0.15)",
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 16,
   },
-  convTextContainer: {
-    flex: 1,
-  },
-  convTitle: {
-    color: TEXT_PRIMARY,
+  emptyTitle: {
+    fontSize: 20,
     fontWeight: "600",
+    color: "#f8fafc",
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  emptySubtitle: {
     fontSize: 15,
-    marginBottom: 4,
-  },
-  convPreview: {
     color: TEXT_SECONDARY,
-    fontSize: 13,
+    textAlign: "center",
+    paddingHorizontal: 40,
+    lineHeight: 22,
   },
-  convTime: {
-    color: "rgba(255,255,255,0.3)",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  emptyState: {
+  streamingIndicator: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 60,
-  },
-  emptyStateText: {
-    color: "rgba(255,255,255,0.3)",
-    fontSize: 14,
-    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    gap: 10,
+    backgroundColor: "transparent",
   },
 });
