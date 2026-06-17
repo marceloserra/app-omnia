@@ -7,19 +7,21 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from "react-native";
 import { router } from "expo-router";
 import { useProviderStore } from "../store/provider-store";
 import { Input } from "../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
-import { CheckCircle2, AlertCircle, Server, Check } from "lucide-react-native";
+import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network } from "lucide-react-native";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 
-const BG = "#0a0918";
-const SURFACE = "#13112a";
+const BG = "#05050f";
 const INDIGO = "#6366f1";
-const TEXT_PRIMARY = "#f0efff";
-const TEXT_SECONDARY = "#9d9bcc";
-const BORDER = "rgba(255,255,255,0.08)";
+const INDIGO_GLOW = "#818cf8";
+const TEXT_PRIMARY = "#f8fafc";
+const TEXT_SECONDARY = "#94a3b8";
 const SUCCESS = "#10b981";
 const ERROR = "#ef4444";
 
@@ -27,8 +29,7 @@ type Tab = "openai" | "openai-compatible";
 
 export default function SettingsScreen() {
   const store = useProviderStore();
-  
-  // Local state for the form so we don't save until "Save" is pressed
+
   const [activeTab, setActiveTab] = useState<Tab>((store.activeProviderId as Tab) ?? "openai");
   const [localOpenaiKey, setLocalOpenaiKey] = useState(store.openaiApiKey);
   const [localCompatibleUrl, setLocalCompatibleUrl] = useState(store.compatibleBaseUrl);
@@ -84,7 +85,6 @@ export default function SettingsScreen() {
   };
 
   const handleSave = () => {
-    // Only save to global store when user explicitly presses Save
     store.setActiveProvider(activeTab);
     if (activeTab === "openai") {
       store.setOpenaiApiKey(localOpenaiKey);
@@ -94,232 +94,321 @@ export default function SettingsScreen() {
       store.setCompatibleApiKey(localCompatibleKey);
       store.setCompatibleModelId(localModel);
     }
-    
-    // Mark globally as connected if they tested it successfully
-    if (testResult?.ok) {
-      store.setConnected(true, testResult.models, undefined);
-    }
-    
-    router.back(); // Return to previous screen
+    if (testResult?.ok) store.setConnected(true, testResult.models, undefined);
+    router.back();
   };
 
   const isFormValid = activeTab === "openai" ? !!localOpenaiKey.trim() : !!localCompatibleUrl.trim();
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: BG }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
-      <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 140 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <View style={{ flex: 1, backgroundColor: BG }}>
+      {/* Background ambient glow */}
+      <View style={{ position: "absolute", top: -100, left: -50, width: 300, height: 300, borderRadius: 150, backgroundColor: INDIGO, opacity: 0.1, filter: "blur(100px)" }} />
+      <View style={{ position: "absolute", top: 200, right: -100, width: 250, height: 250, borderRadius: 125, backgroundColor: "#c084fc", opacity: 0.08, filter: "blur(80px)" }} />
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        {/* Segmented Control */}
-        <View
-          style={{
-            flexDirection: "row",
-            backgroundColor: "rgba(255,255,255,0.03)",
-            borderRadius: 12,
-            padding: 4,
-            marginBottom: 24,
-            borderWidth: 1,
-            borderColor: BORDER,
-          }}
+        <ScrollView
+          contentContainerStyle={{ padding: 20, paddingBottom: 160 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {(["openai", "openai-compatible"] as Tab[]).map((tab) => {
-            const isActive = activeTab === tab;
-            return (
-              <Pressable
-                key={tab}
-                onPress={() => {
-                  setActiveTab(tab);
-                  setTestResult(null);
-                  setLocalModel(tab === "openai" ? store.openaiModelId : store.compatibleModelId);
-                }}
-                style={{
-                  flex: 1,
-                  paddingVertical: 10,
-                  borderRadius: 8,
-                  alignItems: "center",
-                  backgroundColor: isActive ? "rgba(99,102,241,0.15)" : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    color: isActive ? "#fff" : TEXT_SECONDARY,
-                    fontWeight: isActive ? "600" : "500",
-                    fontSize: 14,
+          <Text style={styles.sectionTitle}>Select Provider</Text>
+          
+          {/* Segmented Control */}
+          <BlurView intensity={20} tint="dark" style={styles.segmentedControl}>
+            {(["openai", "openai-compatible"] as Tab[]).map((tab) => {
+              const isActive = activeTab === tab;
+              return (
+                <Pressable
+                  key={tab}
+                  onPress={() => {
+                    setActiveTab(tab);
+                    setTestResult(null);
+                    setLocalModel(tab === "openai" ? store.openaiModelId : store.compatibleModelId);
                   }}
+                  style={[styles.segmentButton, isActive && styles.segmentButtonActive]}
                 >
-                  {tab === "openai" ? "OpenAI" : "Local Network"}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {/* Configuration Box */}
-        <View style={{ marginBottom: 24 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16 }}>
-            <Server size={18} color={INDIGO} />
-            <Text style={{ fontSize: 16, fontWeight: "600", color: TEXT_PRIMARY }}>
-              Connection Details
-            </Text>
-          </View>
-
-          {activeTab === "openai" ? (
-            <Input
-              label="Secret API Key"
-              placeholder="sk-proj-..."
-              value={localOpenaiKey}
-              onChangeText={(txt) => { setLocalOpenaiKey(txt); setTestResult(null); }}
-              secureTextEntry
-              containerStyle={{ marginBottom: 16 }}
-            />
-          ) : (
-            <>
-              <Input
-                label="Server URL"
-                placeholder="http://192.168.1.X:1234/v1"
-                value={localCompatibleUrl}
-                onChangeText={(txt) => { setLocalCompatibleUrl(txt); setTestResult(null); }}
-                containerStyle={{ marginBottom: 16 }}
-              />
-              <Input
-                label="API Key (Optional)"
-                placeholder="sk-..."
-                value={localCompatibleKey}
-                onChangeText={(txt) => { setLocalCompatibleKey(txt); setTestResult(null); }}
-                secureTextEntry
-                containerStyle={{ marginBottom: 16 }}
-              />
-            </>
-          )}
-
-          {/* Secondary Button: Test Connection */}
-          <Pressable
-            onPress={handleTestConnection}
-            disabled={isValidating || !isFormValid}
-            style={({ pressed }) => ({
-              backgroundColor: isValidating || !isFormValid ? "rgba(255,255,255,0.05)" : "rgba(99,102,241,0.15)",
-              borderWidth: 1,
-              borderColor: isValidating || !isFormValid ? "transparent" : "rgba(99,102,241,0.3)",
-              paddingVertical: 14,
-              borderRadius: 12,
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "row",
-              opacity: pressed ? 0.7 : 1,
+                  <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
+                    {tab === "openai" ? "OpenAI" : "Local Network"}
+                  </Text>
+                </Pressable>
+              );
             })}
-          >
-            {isValidating ? (
-              <ActivityIndicator color={INDIGO} size="small" />
-            ) : (
-              <Text style={{ color: !isFormValid ? TEXT_SECONDARY : INDIGO, fontWeight: "600", fontSize: 15 }}>
-                Test Connection
-              </Text>
-            )}
-          </Pressable>
-        </View>
+          </BlurView>
 
-        {/* Test Results & Model Selection */}
-        {testResult && (
-          <View
-            style={{
-              padding: 16,
-              backgroundColor: testResult.ok ? "rgba(16, 185, 129, 0.05)" : "rgba(239, 68, 68, 0.05)",
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: testResult.ok ? "rgba(16, 185, 129, 0.2)" : "rgba(239, 68, 68, 0.2)",
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: testResult.ok ? 16 : 0 }}>
-              {testResult.ok ? (
-                <CheckCircle2 size={18} color={SUCCESS} />
-              ) : (
-                <AlertCircle size={18} color={ERROR} />
-              )}
-              <Text style={{ color: testResult.ok ? SUCCESS : ERROR, fontWeight: "600", fontSize: 14 }}>
-                {testResult.ok ? "Connection Successful" : testResult.msg}
-              </Text>
-            </View>
+          <Text style={[styles.sectionTitle, { marginTop: 12 }]}>Connection Settings</Text>
 
-            {testResult.ok && testResult.models.length > 0 && (
+          {/* Configuration Box (Glassmorphism) */}
+          <BlurView intensity={30} tint="dark" style={styles.glassCard}>
+            {activeTab === "openai" ? (
               <>
-                <Text style={{ color: TEXT_SECONDARY, fontSize: 13, marginBottom: 12 }}>
-                  Select the default model to use for chats:
-                </Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                  {testResult.models.slice(0, 8).map((m) => {
-                    const isSelected = localModel === m;
-                    return (
-                      <Pressable
-                        key={m}
-                        onPress={() => setLocalModel(m)}
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 6,
-                          paddingVertical: 8,
-                          paddingHorizontal: 12,
-                          borderRadius: 8,
-                          backgroundColor: isSelected ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.03)",
-                          borderWidth: 1,
-                          borderColor: isSelected ? "rgba(255,255,255,0.2)" : "transparent",
-                        }}
-                      >
-                        {isSelected && <Check size={12} color="#fff" />}
-                        <Text style={{ color: isSelected ? "#fff" : TEXT_SECONDARY, fontSize: 13, fontWeight: isSelected ? "500" : "400" }}>
-                          {m}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
+                <View style={styles.inputHeader}>
+                  <KeySquare size={16} color={INDIGO_GLOW} />
+                  <Text style={styles.inputLabel}>OpenAI API Key</Text>
                 </View>
+                <Input
+                  placeholder="sk-proj-..."
+                  value={localOpenaiKey}
+                  onChangeText={(txt) => { setLocalOpenaiKey(txt); setTestResult(null); }}
+                  secureTextEntry
+                  containerStyle={{ marginBottom: 24 }}
+                />
+              </>
+            ) : (
+              <>
+                <View style={styles.inputHeader}>
+                  <Network size={16} color={INDIGO_GLOW} />
+                  <Text style={styles.inputLabel}>Server Base URL</Text>
+                </View>
+                <Input
+                  placeholder="http://192.168.1.X:1234/v1"
+                  value={localCompatibleUrl}
+                  onChangeText={(txt) => { setLocalCompatibleUrl(txt); setTestResult(null); }}
+                  containerStyle={{ marginBottom: 20 }}
+                />
+                
+                <View style={styles.inputHeader}>
+                  <KeySquare size={16} color={INDIGO_GLOW} />
+                  <Text style={styles.inputLabel}>API Key (Optional)</Text>
+                </View>
+                <Input
+                  placeholder="sk-..."
+                  value={localCompatibleKey}
+                  onChangeText={(txt) => { setLocalCompatibleKey(txt); setTestResult(null); }}
+                  secureTextEntry
+                  containerStyle={{ marginBottom: 24 }}
+                />
               </>
             )}
-          </View>
-        )}
-      </ScrollView>
 
-      {/* Floating Save Button */}
-      <View
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: 20,
-          paddingBottom: Platform.OS === "ios" ? 40 : 20,
-          backgroundColor: BG,
-          borderTopWidth: 1,
-          borderTopColor: BORDER,
-        }}
-      >
-        <Pressable
-          onPress={handleSave}
-          disabled={!testResult?.ok}
-          style={({ pressed }) => ({
-            backgroundColor: testResult?.ok ? INDIGO : SURFACE,
-            paddingVertical: 16,
-            borderRadius: 16,
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: pressed ? 0.8 : 1,
-            shadowColor: INDIGO,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: testResult?.ok ? 0.3 : 0,
-            shadowRadius: 8,
-            elevation: testResult?.ok ? 4 : 0,
-          })}
-        >
-          <Text style={{ color: testResult?.ok ? "#fff" : TEXT_SECONDARY, fontWeight: "700", fontSize: 16 }}>
-            Save Configuration
-          </Text>
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+            {/* Test Connection Button */}
+            <Pressable
+              onPress={handleTestConnection}
+              disabled={isValidating || !isFormValid}
+              style={({ pressed }) => [
+                styles.testButton,
+                (!isFormValid) && styles.testButtonDisabled,
+                pressed && { opacity: 0.8 }
+              ]}
+            >
+              {isValidating ? (
+                <ActivityIndicator color={INDIGO_GLOW} size="small" />
+              ) : (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Server size={18} color={!isFormValid ? TEXT_SECONDARY : INDIGO_GLOW} />
+                  <Text style={[styles.testButtonText, !isFormValid && { color: TEXT_SECONDARY }]}>
+                    Test Connection
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+          </BlurView>
+
+          {/* Test Results & Model Selection */}
+          {testResult && (
+            <BlurView
+              intensity={40}
+              tint="dark"
+              style={[
+                styles.resultCard,
+                { borderColor: testResult.ok ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)" }
+              ]}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: testResult.ok ? 16 : 0 }}>
+                {testResult.ok ? (
+                  <CheckCircle2 size={20} color={SUCCESS} />
+                ) : (
+                  <AlertCircle size={20} color={ERROR} />
+                )}
+                <Text style={{ color: testResult.ok ? SUCCESS : ERROR, fontWeight: "600", fontSize: 15 }}>
+                  {testResult.ok ? "Connection Established" : testResult.msg}
+                </Text>
+              </View>
+
+              {testResult.ok && testResult.models.length > 0 && (
+                <>
+                  <Text style={{ color: TEXT_SECONDARY, fontSize: 13, marginBottom: 12 }}>
+                    Available models ({testResult.models.length}). Tap to select default:
+                  </Text>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                    {testResult.models.slice(0, 8).map((m) => {
+                      const isSelected = localModel === m;
+                      return (
+                        <Pressable
+                          key={m}
+                          onPress={() => setLocalModel(m)}
+                          style={[
+                            styles.modelChip,
+                            isSelected && styles.modelChipSelected
+                          ]}
+                        >
+                          {isSelected && <Check size={12} color="#fff" />}
+                          <Text style={[styles.modelChipText, isSelected && styles.modelChipTextSelected]}>
+                            {m}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
+            </BlurView>
+          )}
+        </ScrollView>
+
+        {/* Floating Save Button - Premium Gradient */}
+        <BlurView intensity={80} tint="dark" style={styles.floatingBar}>
+          <Pressable
+            onPress={handleSave}
+            disabled={!testResult?.ok}
+            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+          >
+            <LinearGradient
+              colors={testResult?.ok ? ["#4f46e5", "#6366f1", "#818cf8"] : ["rgba(255,255,255,0.05)", "rgba(255,255,255,0.05)"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.saveButtonGradient}
+            >
+              <Text style={[styles.saveButtonText, !testResult?.ok && { color: TEXT_SECONDARY }]}>
+                {testResult?.ok ? "Save Configuration" : "Test connection to save"}
+              </Text>
+            </LinearGradient>
+          </Pressable>
+        </BlurView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: TEXT_SECONDARY,
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
+    marginBottom: 12,
+    marginLeft: 4,
+  },
+  segmentedControl: {
+    flexDirection: "row",
+    borderRadius: 16,
+    padding: 6,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  segmentButtonActive: {
+    backgroundColor: "rgba(99,102,241,0.25)",
+  },
+  segmentText: {
+    color: TEXT_SECONDARY,
+    fontWeight: "500",
+    fontSize: 14,
+  },
+  segmentTextActive: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  glassCard: {
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+    overflow: "hidden",
+  },
+  inputHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: TEXT_PRIMARY,
+  },
+  testButton: {
+    backgroundColor: "rgba(99,102,241,0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(99,102,241,0.3)",
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  testButtonDisabled: {
+    backgroundColor: "rgba(255,255,255,0.03)",
+    borderColor: "transparent",
+  },
+  testButtonText: {
+    color: INDIGO_GLOW,
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  resultCard: {
+    marginTop: 24,
+    padding: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  modelChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  modelChipSelected: {
+    backgroundColor: "rgba(99,102,241,0.25)",
+    borderColor: INDIGO,
+  },
+  modelChipText: {
+    color: TEXT_SECONDARY,
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  modelChipTextSelected: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  floatingBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: Platform.OS === "ios" ? 40 : 24,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.05)",
+  },
+  saveButtonGradient: {
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+    letterSpacing: 0.5,
+  },
+});
