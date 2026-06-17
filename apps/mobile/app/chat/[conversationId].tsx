@@ -232,7 +232,7 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: theme.bg }}
-      behavior="padding"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={0}
     >
       <View style={{ flex: 1 }}>
@@ -311,7 +311,7 @@ export default function ChatScreen() {
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => <MessageBubble message={item} />}
-            contentContainerStyle={{ paddingTop: 120, paddingBottom: insets.top + 80, paddingHorizontal: 0, flexGrow: 1 }}
+            contentContainerStyle={{ paddingBottom: 16, paddingTop: insets.top + 80, paddingHorizontal: 0, flexGrow: 1 }}
             onScroll={(e) => {
               const { contentOffset } = e.nativeEvent;
               setIsScrolledUp(contentOffset.y > 100);
@@ -368,14 +368,15 @@ export default function ChatScreen() {
           )}
         </View>
 
-        <ChatInput
-          onSend={handleSend}
-          onStop={handleStop}
-          isStreaming={isStreaming}
-          disabled={noProvider}
-          onPressDisabled={() => { if (noProvider) router.push("/settings"); }}
-        />
       </View>
+
+      <ChatInput
+        onSend={handleSend}
+        onStop={handleStop}
+        isStreaming={isStreaming}
+        disabled={noProvider}
+        onPressDisabled={() => { if (noProvider) router.push("/settings"); }}
+      />
 
       <ModelPickerSheet
         visible={modelPickerVisible}

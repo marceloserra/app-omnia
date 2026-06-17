@@ -195,7 +195,7 @@ export default function HomeScreen() {
             keyExtractor={(m) => m.id}
             maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
             renderItem={({ item }) => <MessageBubble message={item} />}
-            contentContainerStyle={{ paddingTop: 120, paddingBottom: insets.top + 80, paddingHorizontal: 0, flexGrow: 1 }}
+            contentContainerStyle={{ paddingBottom: 16, paddingTop: insets.top + 80, paddingHorizontal: 0, flexGrow: 1 }}
           />
         </View>
 

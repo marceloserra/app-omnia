@@ -133,14 +133,11 @@ export function ChatInput({
 
 const createStyles = (theme: ThemePalette) => StyleSheet.create({
   outerContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingTop: 12,
+    paddingTop: 8,
     paddingHorizontal: 16,
-    paddingBottom: Platform.select({ ios: 32, android: 20 }),
-    // Transparent — the inputCard provides its own pill background
+    paddingBottom: Platform.select({ ios: 28, android: 16 }),
+    backgroundColor: "transparent",
+    // Transparent — the pill inputCard provides its own background
   },
   inputCard: {
     flexDirection: "row",
