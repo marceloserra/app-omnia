@@ -45,14 +45,15 @@ export default function SettingsScreen() {
   );
 
   const [isValidating, setIsValidating] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; msg?: string; models: string[] } | null>(() => {
-    const isCurrentActive = store.activeProviderId === ((store.activeProviderId as Tab) ?? "openai");
-    if (isCurrentActive && store.isConnected) {
-      return { ok: true, msg: "Connection Established", models: store.availableModels };
-    }
-    return null;
-  });
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg?: string; models: string[] } | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // Sync testResult when store hydrates asynchronously
+  React.useEffect(() => {
+    if (store.activeProviderId === activeTab && store.isConnected && !testResult) {
+      setTestResult({ ok: true, msg: "Connection Established", models: store.availableModels });
+    }
+  }, [store.activeProviderId, activeTab, store.isConnected, store.availableModels]);
 
   const handleClearAll = () => {
     setShowClearConfirm(true);
@@ -131,6 +132,7 @@ export default function SettingsScreen() {
   const handleDisconnect = () => {
     store.setActiveProvider(null);
     store.setConnected(false, [], undefined);
+    setTestResult(null);
   };
 
   const isFormValid = activeTab === "openai" ? !!localOpenaiKey.trim() : !!localCompatibleUrl.trim();
