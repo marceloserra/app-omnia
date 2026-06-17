@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { View, FlatList, Text, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable, StyleSheet } from "react-native";
+import { View, FlatList, Text, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Pressable, StyleSheet } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
@@ -58,6 +58,16 @@ export default function ChatScreen() {
       logger.error("SQLite", "Failed to load chat history", err);
     }
   }, [conversationId]);
+
+  // Scroll to bottom when keyboard opens (Android)
+  useEffect(() => {
+    const sub = Keyboard.addListener("keyboardDidShow", () => {
+      if (!isScrolledUp) {
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      }
+    });
+    return () => sub.remove();
+  }, [isScrolledUp]);
 
   const getProvider = useCallback(() => {
     if (store.activeProviderId === "openai") {
@@ -191,8 +201,8 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: BG }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
+      behavior="padding"
+      keyboardVerticalOffset={headerHeight}
     >
       <Stack.Screen options={{ headerShown: false }} />
 

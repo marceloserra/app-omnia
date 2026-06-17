@@ -1,9 +1,10 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   FlatList,
   Text,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   ActivityIndicator,
   Pressable,
@@ -48,6 +49,14 @@ export default function HomeScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   const noProvider = !store.activeProviderId || !store.isConnected;
+
+  // Scroll to bottom when keyboard opens on Android
+  useEffect(() => {
+    const sub = Keyboard.addListener("keyboardDidShow", () => {
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    });
+    return () => sub.remove();
+  }, []);
 
   const getProvider = useCallback(() => {
     if (store.activeProviderId === "openai") {
@@ -160,8 +169,8 @@ export default function HomeScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: BG }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
+      behavior="padding"
+      keyboardVerticalOffset={headerHeight}
     >
       {/* ─── Custom Header ─── */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>

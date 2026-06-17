@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
   outerContainer: {
     paddingTop: 8,
     paddingHorizontal: 16,
-    paddingBottom: Platform.OS === "ios" ? 32 : 16,
-    backgroundColor: "transparent",
+    paddingBottom: Platform.select({ ios: 32, android: 20 }),
+    backgroundColor: BG,
   },
   inputCard: {
     flexDirection: "row",
