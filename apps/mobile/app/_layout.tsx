@@ -22,6 +22,7 @@ export function ErrorBoundary(props: { error: Error; retry: () => void }) {
 }
 
 import { ThemeProvider, DarkTheme, DefaultTheme } from "@react-navigation/native";
+import * as SystemUI from "expo-system-ui";
 import { useTheme } from "../lib/theme";
 
 export default function RootLayout() {
@@ -30,6 +31,12 @@ export default function RootLayout() {
   useEffect(() => {
     logger.info("App", "Omnia App Launched (Telemetry Active)");
   }, []);
+
+  useEffect(() => {
+    // Sync the native Android/iOS root view background with the current theme.
+    // This physically eliminates the "white flash" when navigating or opening the keyboard.
+    SystemUI.setBackgroundColorAsync(theme.bg);
+  }, [theme.bg]);
 
   const isDark = theme.bg === "#05050f";
   const navTheme = isDark ? DarkTheme : DefaultTheme;

@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#05050f",
     "scheme": "omnia-mobile",
     "ios": {
       "supportsTablet": true
@@ -18,7 +19,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "backgroundColor": "#05050f"
     },
     "androidStatusBar": {
       "translucent": false
