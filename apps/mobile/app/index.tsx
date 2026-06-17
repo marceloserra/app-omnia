@@ -21,6 +21,7 @@ import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
 import { AlignLeft, Settings, Sparkles } from "lucide-react-native";
+import { BlurView } from "expo-blur";
 
 import { useTheme, ThemePalette } from "../lib/theme";
 import { useTranslation } from "../lib/i18n";
@@ -47,6 +48,7 @@ export default function HomeScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   const noProvider = !store.activeProviderId;
+  const isDark = theme.bg === "#05050f";
 
   // No manual keyboard scroll listeners needed when using inverted FlatList
 
@@ -109,44 +111,51 @@ export default function HomeScreen() {
       behavior="padding"
       keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
     >
-      {/* ─── Custom Header ─── */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <Pressable
-          onPress={() => setSidebarOpen(true)}
-          style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
-          accessibilityLabel="Open menu"
-        >
-          <AlignLeft size={24} color={theme.textPrimary} strokeWidth={1.8} />
-        </Pressable>
+      <View style={{ flex: 1 }}>
+        {/* Floating Header (Dynamic Island vibe) */}
+        <View style={[styles.headerFloating, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
+          <Pressable
+            onPress={() => setSidebarOpen(true)}
+            accessibilityLabel="Open menu"
+            style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
+          >
+            <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingBtnInner}>
+              <AlignLeft size={22} color={theme.textPrimary} strokeWidth={2} />
+            </BlurView>
+          </Pressable>
 
-        {/* Logo / Title */}
-        <View style={styles.headerCenter}>
-          <Sparkles size={14} color={theme.indigo} strokeWidth={2} style={{ marginRight: 6 }} />
-          <Text style={styles.headerTitle}>Omnia</Text>
+          <View style={styles.floatingChipContainer}>
+            <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingChipInner}>
+              <Sparkles size={16} color={theme.indigo} strokeWidth={2} />
+              <Text style={styles.dynamicIslandText} numberOfLines={1}>Omnia</Text>
+            </BlurView>
+          </View>
+
+          <Pressable
+            onPress={() => router.push("/settings")}
+            accessibilityLabel="Settings"
+            style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
+          >
+            <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingBtnInner}>
+              <Settings size={22} color={theme.textPrimary} strokeWidth={2} />
+            </BlurView>
+          </Pressable>
         </View>
 
-        <Pressable
-          onPress={() => router.push("/settings")}
-          style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
-          accessibilityLabel="Settings"
-        >
-          <Settings size={24} color={theme.textPrimary} strokeWidth={1.8} />
-        </Pressable>
-      </View>
+        {/* ─── Divider Removed ─── */}
 
-      {/* ─── Divider Removed ─── */}
-
-      {/* ─── Message list + Empty State (scoped wrapper) ─── */}
-      <View style={{ flex: 1 }}>
-        <FlatList
-          ref={flatListRef}
-          data={[...messages].reverse()}
-          inverted
-          keyExtractor={(m) => m.id}
-          maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-          renderItem={({ item }) => <MessageBubble message={item} />}
-          contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
-        />
+        {/* ─── Message list + Empty State (scoped wrapper) ─── */}
+        <View style={{ flex: 1, zIndex: -1 }}>
+          <FlatList
+            ref={flatListRef}
+            data={[...messages].reverse()}
+            inverted
+            keyExtractor={(m) => m.id}
+            maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+            renderItem={({ item }) => <MessageBubble message={item} />}
+            contentContainerStyle={{ paddingVertical: 16, paddingBottom: insets.top + 80, flexGrow: 1 }}
+          />
+        </View>
 
         {/* Empty State: absolute within the list area only, not the whole screen */}
         {messages.length === 0 && (
@@ -205,33 +214,49 @@ export default function HomeScreen() {
 }
 
 const createStyles = (theme: ThemePalette) => StyleSheet.create({
-  header: {
+  headerFloating: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingBottom: 10,
-    backgroundColor: theme.bg,
+    alignItems: "flex-start",
+    paddingHorizontal: 16,
   },
-  headerBtn: {
+  floatingBtnContainer: {
+    borderRadius: 22,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  floatingBtnInner: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.surface,
-    borderWidth: 1,
-    borderColor: theme.border,
     alignItems: "center",
     justifyContent: "center",
   },
-  headerCenter: {
+  floatingChipContainer: {
+    borderRadius: 22,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+    maxWidth: 200,
+  },
+  floatingChipInner: {
     flexDirection: "row",
     alignItems: "center",
+    height: 44,
+    paddingHorizontal: 16,
+    gap: 8,
   },
-  headerTitle: {
+  dynamicIslandText: {
     color: theme.textPrimary,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.3,
+    flexShrink: 1,
   },
   divider: {
     height: StyleSheet.hairlineWidth,

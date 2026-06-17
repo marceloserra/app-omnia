@@ -212,6 +212,7 @@ export default function ChatScreen() {
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [modelPickerVisible, setModelPickerVisible] = useState(false);
+  const isDark = theme.bg === "#05050f";
 
   // UX States
   const [isScrolledUp, setIsScrolledUp] = useState(false);
@@ -374,42 +375,48 @@ export default function ChatScreen() {
       keyboardVerticalOffset={0}
     >
       <View style={{ flex: 1 }}>
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        {/* Floating Header (Dynamic Island vibe) */}
+        <View style={[styles.headerFloating, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
           <Pressable
             onPress={() => setSidebarOpen(true)}
-            style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
             accessibilityLabel="Open menu"
+            style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
           >
-            <AlignLeft size={24} color={theme.textPrimary} strokeWidth={1.8} />
+            <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingBtnInner}>
+              <AlignLeft size={22} color={theme.textPrimary} strokeWidth={2} />
+            </BlurView>
           </Pressable>
-
-          <Text style={styles.headerTitle} numberOfLines={1}>{convTitle}</Text>
 
           {store.activeProviderId && (
             <Pressable
               onPress={() => setModelPickerVisible(true)}
-              style={({ pressed }) => [styles.modelChipHeader, { marginRight: 4 }, pressed && { opacity: 0.7 }]}
               accessibilityLabel="Change model"
+              style={({ pressed }) => [styles.floatingChipContainer, pressed && { opacity: 0.7 }]}
             >
-              <View style={styles.modelChipDot} />
-              <Text style={styles.modelChipHeaderText} numberOfLines={1}>
-                {activeModelId}
-              </Text>
-              <ChevronDown size={12} color="#10b981" />
+              <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingChipInner}>
+                <View style={styles.modelChipDot} />
+                <Text style={styles.dynamicIslandText} numberOfLines={1}>
+                  {store.activeProviderId === "openai" ? "OpenAI" : "Local"} · {activeModelId}
+                </Text>
+                <ChevronDown size={14} color={theme.textSecondary} />
+              </BlurView>
             </Pressable>
           )}
+          {!store.activeProviderId && <View style={{ flex: 1 }} pointerEvents="none" />}
 
           <Pressable
             onPress={() => router.push("/settings")}
-            style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
             accessibilityLabel="Settings"
+            style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
           >
-            <Settings size={24} color={theme.textPrimary} strokeWidth={1.8} />
+            <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.floatingBtnInner}>
+              <Settings size={22} color={theme.textPrimary} strokeWidth={2} />
+            </BlurView>
           </Pressable>
         </View>
 
         {noProvider && messages.length > 0 && (
-          <View style={styles.noProviderInline}>
+          <View style={[styles.noProviderInline, { marginTop: insets.top + 60 }]}>
             <Text style={{ color: "#f8fafc", fontSize: 13, fontWeight: "500" }}>Provider Disconnected</Text>
             <Pressable onPress={() => router.push("/settings")}>
               <Text style={{ color: "#a5b4fc", fontSize: 13, fontWeight: "600" }}>Settings</Text>
@@ -417,7 +424,7 @@ export default function ChatScreen() {
           </View>
         )}
 
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, zIndex: -1 }}>
           <FlatList
             ref={flatListRef}
             data={[...messages].reverse()}
@@ -427,7 +434,7 @@ export default function ChatScreen() {
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => <MessageBubble message={item} />}
-            contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
+            contentContainerStyle={{ paddingVertical: 16, paddingBottom: insets.top + 80, flexGrow: 1 }}
             onScroll={(e) => {
               const { contentOffset } = e.nativeEvent;
               setIsScrolledUp(contentOffset.y > 100);
@@ -510,48 +517,53 @@ export default function ChatScreen() {
 }
 
 const createStyles = (theme: ThemePalette) => StyleSheet.create({
-  header: {
+  headerFloating: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingBottom: 10,
+    alignItems: "flex-start",
+    paddingHorizontal: 16,
   },
-  headerBtn: {
+  floatingBtnContainer: {
+    borderRadius: 22,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  floatingBtnInner: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.surface,
-    borderWidth: 1,
-    borderColor: theme.border,
     alignItems: "center",
     justifyContent: "center",
   },
-  headerTitle: {
-    color: theme.textPrimary,
-    fontSize: 15,
-    fontWeight: "600",
-    letterSpacing: 0.2,
-    flex: 1,
-    textAlign: "center",
-    marginHorizontal: 8,
+  floatingChipContainer: {
+    borderRadius: 22,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+    maxWidth: 200,
   },
-  modelChipHeader: {
+  floatingChipInner: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(16, 185, 129, 0.12)",
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.3)",
-    gap: 5,
-    maxWidth: 160,
+    height: 44,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  dynamicIslandText: {
+    color: theme.textPrimary,
+    fontSize: 14,
+    fontWeight: "600",
+    flexShrink: 1,
   },
   modelChipDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: "#10b981",
     flexShrink: 0,
   },
