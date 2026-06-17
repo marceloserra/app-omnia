@@ -13,19 +13,11 @@ import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/
 import { Conversation } from "@omnia/shared-types";
 import { useProviderStore } from "../../store/provider-store";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTheme } from "../../lib/theme";
+import { useTranslation } from "../../lib/i18n";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 
-const BG = "#05050f";
-const SURFACE = "#0d0c1d";
-const SURFACE_2 = "#13122a";
-const BORDER = "rgba(255,255,255,0.07)";
-const INDIGO = "#6366f1";
-const TEXT_PRIMARY = "#f8fafc";
-const TEXT_SECONDARY = "#94a3b8";
-const TEXT_MUTED = "rgba(148,163,184,0.6)";
 const DRAWER_WIDTH = 300;
-const RED = "#ef4444";
-const ACTIVE_BG = "rgba(255,255,255,0.08)";
 
 // ─── Date Helpers ──────────────────────────────────────────────────────────
 function getDateGroup(timestamp: number): string {
@@ -85,6 +77,9 @@ interface RenameState {
 }
 
 export function Sidebar({ visible, onClose }: SidebarProps) {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
   const store = useProviderStore();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({ visible: false, conversation: null });
@@ -350,7 +345,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
             </View>
           </View>
           <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
-            <X size={20} color={TEXT_SECONDARY} />
+            <X size={20} color={theme.textSecondary} />
           </Pressable>
         </View>
 
@@ -372,7 +367,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Search size={16} color={TEXT_SECONDARY} style={styles.searchIcon} />
+          <Search size={16} color={theme.textSecondary} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search chats..."
@@ -383,7 +378,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={() => setSearchQuery("")} hitSlop={8} style={styles.clearSearchBtn}>
-              <X size={14} color={TEXT_SECONDARY} />
+              <X size={14} color={theme.textSecondary} />
             </Pressable>
           )}
         </View>
@@ -420,7 +415,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
                       {isPinned ? (
                         <Pin size={14} color="#a5b4fc" style={{ marginRight: 10, flexShrink: 0 }} />
                       ) : (
-                        <MessageSquare size={14} color={TEXT_SECONDARY} style={{ marginRight: 10, flexShrink: 0 }} />
+                        <MessageSquare size={14} color={theme.textSecondary} style={{ marginRight: 10, flexShrink: 0 }} />
                       )}
 
                       {isRenaming ? (
@@ -439,7 +434,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
                             <Text style={styles.renameConfirmText}>✓</Text>
                           </Pressable>
                           <Pressable onPress={handleRenameCancel} hitSlop={8} style={{ paddingLeft: 6 }}>
-                            <X size={14} color={TEXT_SECONDARY} />
+                            <X size={14} color={theme.textSecondary} />
                           </Pressable>
                         </View>
                       ) : (
@@ -465,7 +460,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
           onPress={handleSettings}
           style={({ pressed }) => [styles.footer, pressed && { opacity: 0.7 }]}
         >
-          <Settings size={19} color={TEXT_SECONDARY} style={{ marginRight: 12 }} />
+          <Settings size={19} color={theme.textSecondary} style={{ marginRight: 12 }} />
           <Text style={styles.footerTitle}>Settings</Text>
         </Pressable>
       </Animated.View>
@@ -509,7 +504,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
               onPress={handlePin}
               style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
             >
-              <Pin size={20} color={TEXT_PRIMARY} style={{ marginRight: 16 }} />
+              <Pin size={20} color={theme.textPrimary} style={{ marginRight: 16 }} />
               <Text style={styles.menuItemText}>
                 {contextMenu.conversation && pinnedIds.has(contextMenu.conversation.id)
                   ? "Unpin from top"
@@ -524,7 +519,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
               onPress={handleRenameStart}
               style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
             >
-              <Pencil size={20} color={TEXT_PRIMARY} style={{ marginRight: 16 }} />
+              <Pencil size={20} color={theme.textPrimary} style={{ marginRight: 16 }} />
               <Text style={styles.menuItemText}>Rename conversation</Text>
             </Pressable>
 
@@ -535,8 +530,8 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
               onPress={handleDelete}
               style={({ pressed }) => [styles.menuItem, styles.menuItemDanger, pressed && styles.menuItemPressed]}
             >
-              <Trash2 size={20} color={RED} style={{ marginRight: 16 }} />
-              <Text style={[styles.menuItemText, { color: RED }]}>Delete conversation</Text>
+              <Trash2 size={20} color={theme.red} style={{ marginRight: 16 }} />
+              <Text style={[styles.menuItemText, { color: theme.red }]}>Delete conversation</Text>
             </Pressable>
             
             {/* Bottom Padding for SafeArea */}
@@ -557,7 +552,7 @@ export function Sidebar({ visible, onClose }: SidebarProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.65)",
@@ -568,7 +563,7 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     width: DRAWER_WIDTH,
-    backgroundColor: SURFACE,
+    backgroundColor: theme.surface,
     borderTopRightRadius: 32,
     borderBottomRightRadius: 32,
     borderRightWidth: 1,
@@ -607,7 +602,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   logoText: {
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -618,7 +613,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   providerChipText: {
-    color: TEXT_SECONDARY,
+    color: theme.textSecondary,
     fontSize: 11,
     fontWeight: "500",
     letterSpacing: 0.2,
@@ -667,7 +662,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 40,
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 14,
   },
   clearSearchBtn: {
@@ -681,7 +676,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   groupTitle: {
-    color: TEXT_MUTED,
+    color: theme.textMuted,
     fontSize: 11,
     fontWeight: "600",
     textTransform: "uppercase",
@@ -702,7 +697,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(99,102,241,0.08)",
   },
   convItemPressed: {
-    backgroundColor: ACTIVE_BG,
+    backgroundColor: theme.activeBg,
   },
   convTitle: {
     color: "#94a3b8",
@@ -726,7 +721,7 @@ const styles = StyleSheet.create({
   },
   renameInput: {
     flex: 1,
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 14,
     backgroundColor: "rgba(255,255,255,0.07)",
     borderRadius: 6,
@@ -755,15 +750,15 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: Platform.OS === "ios" ? 36 : 24,
     borderTopWidth: 1,
-    borderTopColor: BORDER,
+    borderTopColor: theme.border,
   },
   footerTitle: {
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 14,
     fontWeight: "600",
   },
   footerSub: {
-    color: TEXT_SECONDARY,
+    color: theme.textSecondary,
     fontSize: 12,
     marginTop: 2,
   },
@@ -800,11 +795,11 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   bottomSheet: {
-    backgroundColor: SURFACE_2,
+    backgroundColor: theme.surface2,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: theme.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.5,
@@ -829,7 +824,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   menuTitle: {
-    color: TEXT_SECONDARY,
+    color: theme.textSecondary,
     fontSize: 15,
     fontWeight: "600",
     letterSpacing: 0.2,
@@ -837,7 +832,7 @@ const styles = StyleSheet.create({
   },
   menuDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: BORDER,
+    backgroundColor: theme.border,
   },
   menuItem: {
     flexDirection: "row",
@@ -852,7 +847,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.05)",
   },
   menuItemText: {
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 17,
     fontWeight: "500",
   },

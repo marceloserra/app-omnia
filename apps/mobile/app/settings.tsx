@@ -20,11 +20,10 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useProviderStore } from "../store/provider-store";
 
-const BG = "#05050f";
-const INDIGO = "#6366f1";
-const INDIGO_GLOW = "#818cf8";
-const TEXT_PRIMARY = "#f8fafc";
-const TEXT_SECONDARY = "#94a3b8";
+import { useTheme, ThemePalette } from "../lib/theme";
+import { useTranslation } from "../lib/i18n";
+import { useSettingsStore } from "../store/settings-store";
+
 const SUCCESS = "#10b981";
 const ERROR = "#ef4444";
 
@@ -32,6 +31,10 @@ type Tab = "openai" | "openai-compatible";
 
 export default function SettingsScreen() {
   const store = useProviderStore();
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
+  const settingsStore = useSettingsStore();
 
   const [activeTab, setActiveTab] = useState<Tab>((store.activeProviderId as Tab) ?? "openai");
   const [localOpenaiKey, setLocalOpenaiKey] = useState(store.openaiApiKey);
@@ -128,10 +131,10 @@ export default function SettingsScreen() {
   const isFormValid = activeTab === "openai" ? !!localOpenaiKey.trim() : !!localCompatibleUrl.trim();
 
   return (
-    <View style={{ flex: 1, backgroundColor: BG }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Background ambient glow */}
-      <View style={{ position: "absolute", top: -100, left: -50, width: 300, height: 300, borderRadius: 150, backgroundColor: INDIGO, opacity: 0.1, filter: "blur(100px)" }} />
-      <View style={{ position: "absolute", top: 200, right: -100, width: 250, height: 250, borderRadius: 125, backgroundColor: "#c084fc", opacity: 0.08, filter: "blur(80px)" }} />
+      <View style={{ position: "absolute", top: -100, left: -50, width: 300, height: 300, borderRadius: 150, backgroundColor: theme.indigo, opacity: 0.1, filter: "blur(100px)" }} />
+      <View style={{ position: "absolute", top: 200, right: -100, width: 250, height: 250, borderRadius: 125, backgroundColor: theme.purple, opacity: 0.08, filter: "blur(80px)" }} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -179,7 +182,7 @@ export default function SettingsScreen() {
             {activeTab === "openai" ? (
               <>
                 <View style={styles.inputHeader}>
-                  <KeySquare size={16} color={INDIGO_GLOW} />
+                  <KeySquare size={16} color={theme.indigo} />
                   <Text style={styles.inputLabel}>OpenAI API Key</Text>
                 </View>
                 <Input
@@ -193,7 +196,7 @@ export default function SettingsScreen() {
             ) : (
               <>
                 <View style={styles.inputHeader}>
-                  <Network size={16} color={INDIGO_GLOW} />
+                  <Network size={16} color={theme.indigo} />
                   <Text style={styles.inputLabel}>Server Base URL</Text>
                 </View>
                 <Input
@@ -204,7 +207,7 @@ export default function SettingsScreen() {
                 />
                 
                 <View style={styles.inputHeader}>
-                  <KeySquare size={16} color={INDIGO_GLOW} />
+                  <KeySquare size={16} color={theme.indigo} />
                   <Text style={styles.inputLabel}>API Key (Optional)</Text>
                 </View>
                 <Input
@@ -228,11 +231,11 @@ export default function SettingsScreen() {
               ]}
             >
               {isValidating ? (
-                <ActivityIndicator color={INDIGO_GLOW} size="small" />
+                <ActivityIndicator color={theme.indigo} size="small" />
               ) : (
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Server size={18} color={!isFormValid ? TEXT_SECONDARY : INDIGO_GLOW} style={{ marginRight: 8 }} />
-                  <Text style={[styles.testButtonText, !isFormValid && { color: TEXT_SECONDARY }]}>
+                  <Server size={18} color={!isFormValid ? theme.textSecondary : theme.indigo} style={{ marginRight: 8 }} />
+                  <Text style={[styles.testButtonText, !isFormValid && { color: theme.textSecondary }]}>
                     Test Connection
                   </Text>
                 </View>
@@ -253,19 +256,19 @@ export default function SettingsScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", marginBottom: testResult.ok ? 16 : 0 }}>
                 <View style={{ marginRight: 10 }}>
                   {testResult.ok ? (
-                    <CheckCircle2 size={20} color={SUCCESS} />
+                    <CheckCircle2 size={20} color="#10b981" />
                   ) : (
-                    <AlertCircle size={20} color={ERROR} />
+                    <AlertCircle size={20} color="#ef4444" />
                   )}
                 </View>
-                <Text style={{ color: testResult.ok ? SUCCESS : ERROR, fontWeight: "600", fontSize: 15, flex: 1 }}>
+                <Text style={{ color: testResult.ok ? "#10b981" : "#ef4444", fontWeight: "600", fontSize: 15, flex: 1 }}>
                   {testResult.ok ? "Connection Established" : testResult.msg}
                 </Text>
               </View>
 
               {testResult.ok && testResult.models.length > 0 && (
                 <>
-                  <Text style={{ color: TEXT_SECONDARY, fontSize: 13, marginBottom: 12 }}>
+                  <Text style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 12 }}>
                     Available models ({testResult.models.length}). Tap to select default:
                   </Text>
                   <View style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}>
@@ -277,12 +280,12 @@ export default function SettingsScreen() {
                           onPress={() => setLocalModel(m)}
                           style={[
                             styles.modelChip,
-                            { borderColor: isSelected ? INDIGO_GLOW : "rgba(255,255,255,0.08)" },
+                            { borderColor: isSelected ? theme.indigo : "rgba(255,255,255,0.08)" },
                             { margin: 4 }
                           ]}
                         >
                           {isSelected && <Check size={14} color="#fff" style={{ marginRight: 6 }} />}
-                          <Text style={{ color: isSelected ? "#fff" : TEXT_SECONDARY, fontSize: 13, fontWeight: "500" }}>
+                          <Text style={{ color: isSelected ? "#fff" : theme.textSecondary, fontSize: 13, fontWeight: "500" }}>
                             {m}
                           </Text>
                         </Pressable>
@@ -293,6 +296,52 @@ export default function SettingsScreen() {
               )}
             </BlurView>
           )}
+          
+          {/* Appearance Section */}
+          <View style={{ marginTop: 24, marginBottom: 12 }}>
+            <Text style={styles.sectionTitle}>{t("settings.appearance.title")}</Text>
+            <BlurView intensity={30} tint="dark" style={[styles.glassCard, { padding: 16 }]}>
+              {/* Theme Picker */}
+              <Text style={styles.inputLabel}>{t("settings.appearance.theme")}</Text>
+              <View style={[styles.segmentedControl, { marginTop: 12 }]}>
+                {(["system", "dark", "light"] as const).map((tOpt) => {
+                  const isActive = settingsStore.theme === tOpt;
+                  return (
+                    <Pressable
+                      key={tOpt}
+                      onPress={() => settingsStore.setTheme(tOpt)}
+                      style={[styles.segmentButton, isActive && styles.segmentButtonActive, { paddingVertical: 8 }]}
+                    >
+                      <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
+                        {tOpt === "system" ? t("settings.appearance.theme.system") : 
+                         tOpt === "dark" ? t("settings.appearance.theme.dark") : 
+                         t("settings.appearance.theme.light")}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              {/* Language Picker */}
+              <Text style={[styles.inputLabel, { marginTop: 12 }]}>{t("settings.appearance.language")}</Text>
+              <View style={[styles.segmentedControl, { marginTop: 12, marginBottom: 0 }]}>
+                {(["system", "en", "pt", "es"] as const).map((lOpt) => {
+                  const isActive = settingsStore.language === lOpt;
+                  return (
+                    <Pressable
+                      key={lOpt}
+                      onPress={() => settingsStore.setLanguage(lOpt)}
+                      style={[styles.segmentButton, isActive && styles.segmentButtonActive, { paddingVertical: 8 }]}
+                    >
+                      <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
+                        {lOpt === "system" ? "OS" : lOpt.toUpperCase()}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </BlurView>
+          </View>
 
           {/* Danger Zone */}
           <View style={styles.dangerZone}>
@@ -300,7 +349,7 @@ export default function SettingsScreen() {
             <View style={styles.dangerCard}>
               <View style={styles.dangerHeaderRow}>
                 <View style={styles.dangerIconBox}>
-                  <AlertCircle size={20} color={ERROR} />
+                  <AlertCircle size={20} color={theme.red} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.dangerItemTitle}>Clear All History</Text>
@@ -314,7 +363,7 @@ export default function SettingsScreen() {
                 onPress={handleClearAll}
                 style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.7 }]}
               >
-                <Trash2 size={16} color={ERROR} style={{ marginRight: 8 }} />
+                <Trash2 size={16} color={theme.red} style={{ marginRight: 8 }} />
                 <Text style={styles.dangerButtonText}>Delete All Data</Text>
               </Pressable>
             </View>
@@ -359,7 +408,7 @@ export default function SettingsScreen() {
                   !testResult?.ok && { borderWidth: 1, borderColor: "rgba(99,102,241,0.3)" }
                 ]}
               >
-                <Text style={[styles.saveButtonText, !testResult?.ok && { color: TEXT_SECONDARY }]}>
+                <Text style={[styles.saveButtonText, !testResult?.ok && { color: theme.textSecondary }]}>
                   {store.activeProviderId === activeTab ? "Update Provider" : "Set Active"}
                 </Text>
               </LinearGradient>
@@ -380,11 +429,11 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemePalette) => StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
-    color: TEXT_SECONDARY,
+    color: theme.textSecondary,
     textTransform: "uppercase",
     letterSpacing: 1.2,
     marginBottom: 12,
@@ -396,7 +445,7 @@ const styles = StyleSheet.create({
     padding: 6,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: theme.border,
     overflow: "hidden",
   },
   segmentButton: {
@@ -406,22 +455,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   segmentButtonActive: {
-    backgroundColor: "rgba(99,102,241,0.25)",
+    backgroundColor: theme.activeBg,
   },
   segmentText: {
-    color: TEXT_SECONDARY,
+    color: theme.textSecondary,
     fontWeight: "500",
     fontSize: 14,
   },
   segmentTextActive: {
-    color: "#fff",
+    color: theme.textPrimary,
     fontWeight: "700",
   },
   glassCard: {
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
+    borderColor: theme.border,
     overflow: "hidden",
   },
   inputHeader: {
@@ -435,138 +484,126 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: "500",
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
   },
   testButton: {
-    backgroundColor: "rgba(99,102,241,0.15)",
+    backgroundColor: theme.activeBg,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.3)",
+    borderColor: theme.border,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
   },
   testButtonDisabled: {
-    backgroundColor: "rgba(255,255,255,0.03)",
+    backgroundColor: theme.activeBg,
     borderColor: "transparent",
   },
   testButtonText: {
-    color: INDIGO_GLOW,
-    fontWeight: "600",
+    color: theme.indigo,
+    fontWeight: "700",
     fontSize: 15,
   },
   resultCard: {
-    marginTop: 24,
+    marginTop: 16,
     padding: 20,
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
     overflow: "hidden",
   },
   modelChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
-  },
-  modelChipSelected: {
-    backgroundColor: "rgba(99,102,241,0.25)",
-    borderColor: INDIGO,
-  },
-  modelChipText: {
-    color: TEXT_SECONDARY,
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  modelChipTextSelected: {
-    color: "#fff",
-    fontWeight: "700",
   },
   floatingBar: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: Platform.OS === "ios" ? 40 : 24,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.05)",
+    bottom: 32,
+    left: 20,
+    right: 20,
+    padding: 16,
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: theme.border,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
   saveButton: {
-    paddingVertical: 18,
-    borderRadius: 16,
+    paddingVertical: 16,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
   saveButtonText: {
-    color: "#fff",
+    color: "#ffffff",
     fontWeight: "700",
     fontSize: 16,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   dangerZone: {
     marginTop: 40,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(239, 68, 68, 0.2)",
-    paddingTop: 24,
+    marginBottom: 40,
   },
   dangerTitle: {
-    color: ERROR,
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 13,
+    fontWeight: "600",
+    color: theme.red,
     textTransform: "uppercase",
     letterSpacing: 1.2,
     marginBottom: 12,
+    marginLeft: 4,
   },
   dangerCard: {
     backgroundColor: "rgba(239, 68, 68, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.15)",
-    borderRadius: 16,
-    padding: 16,
+    borderColor: "rgba(239, 68, 68, 0.2)",
+    borderRadius: 24,
+    padding: 20,
   },
   dangerHeaderRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
     marginBottom: 20,
   },
   dangerIconBox: {
     width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: 20,
     backgroundColor: "rgba(239, 68, 68, 0.1)",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 16,
   },
   dangerItemTitle: {
-    color: TEXT_PRIMARY,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
+    color: theme.textPrimary,
     marginBottom: 4,
   },
   dangerItemSub: {
-    color: TEXT_SECONDARY,
     fontSize: 13,
     lineHeight: 18,
+    color: theme.textSecondary,
   },
   dangerButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(239, 68, 68, 0.12)",
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.25)",
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.3)",
   },
   dangerButtonText: {
-    color: ERROR,
-    fontSize: 15,
+    color: theme.red,
     fontWeight: "600",
+    fontSize: 15,
   },
 });
