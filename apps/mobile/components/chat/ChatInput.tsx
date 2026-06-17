@@ -20,6 +20,7 @@ const INPUT_BG = "#131320"; // clean surface color without borders
 interface ChatInputProps {
   onSend: (text: string) => void;
   onStop?: () => void;
+  onPressDisabled?: () => void;
   isStreaming?: boolean;
   disabled?: boolean;
 }
@@ -27,6 +28,7 @@ interface ChatInputProps {
 export function ChatInput({
   onSend,
   onStop,
+  onPressDisabled,
   isStreaming = false,
   disabled = false,
 }: ChatInputProps) {
@@ -35,9 +37,13 @@ export function ChatInput({
 
   const canSend = text.trim().length > 0 && !disabled;
 
-  const handleSend = () => {
+  const handleSendPress = () => {
+    if (disabled && onPressDisabled) {
+      onPressDisabled();
+      return;
+    }
     const trimmed = text.trim();
-    if (!trimmed || disabled) return;
+    if (!trimmed) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onSend(trimmed);
     setText("");
@@ -60,14 +66,14 @@ export function ChatInput({
           ref={inputRef}
           value={text}
           onChangeText={setText}
-          placeholder={disabled ? "Connect a provider in Settings…" : "Message Omnia…"}
+          placeholder="Message Omnia…"
           placeholderTextColor={TEXT_MUTED}
           multiline
           maxLength={4000}
           style={styles.textInput}
-          onSubmitEditing={Platform.OS !== "ios" ? handleSend : undefined}
+          onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
           blurOnSubmit={false}
-          editable={!disabled}
+          editable={true} // Always editable so it doesn't feel broken
           returnKeyType="send"
           enablesReturnKeyAutomatically
           scrollEnabled
@@ -82,23 +88,23 @@ export function ChatInput({
               style={({ pressed }) => [styles.sendBtn, styles.stopBtn, pressed && { opacity: 0.75 }]}
               accessibilityLabel="Stop generating"
             >
-              <Square size={16} color="#fff" fill="#fff" />
+              <Square size={16} color="#05050f" fill="#05050f" />
             </Pressable>
           ) : (
             // Send button — lights up when there's text
             <Pressable
-              onPress={handleSend}
-              disabled={!canSend}
+              onPress={handleSendPress}
+              disabled={text.trim().length === 0}
               style={({ pressed }) => [
                 styles.sendBtn,
-                canSend ? styles.sendBtnActive : styles.sendBtnIdle,
-                pressed && canSend && { opacity: 0.8 },
+                text.trim().length > 0 ? styles.sendBtnActive : styles.sendBtnIdle,
+                pressed && text.trim().length > 0 && { opacity: 0.8 },
               ]}
               accessibilityLabel="Send message"
             >
               <ArrowUp
-                size={18}
-                color={canSend ? "#fff" : "rgba(255,255,255,0.25)"}
+                size={22}
+                color={text.trim().length > 0 ? "#05050f" : "rgba(255,255,255,0.25)"}
                 strokeWidth={2.5}
               />
             </Pressable>
@@ -147,17 +153,17 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   sendBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
   sendBtnActive: {
-    backgroundColor: INDIGO,
-    shadowColor: INDIGO,
+    backgroundColor: "#a5b4fc", // Light purple as requested
+    shadowColor: "#a5b4fc",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.4,
     shadowRadius: 6,
     elevation: 4,
   },
@@ -165,8 +171,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.06)",
   },
   stopBtn: {
-    backgroundColor: "#ef4444",
-    shadowColor: "#ef4444",
+    backgroundColor: "#fca5a5", // Light red to match the aesthetic
+    shadowColor: "#fca5a5",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,
     shadowRadius: 6,

@@ -198,7 +198,8 @@ export default function IndexChatScreen() {
         onSend={handleSend} 
         onStop={handleStop}
         isStreaming={isStreaming}
-        disabled={noProvider} 
+        disabled={noProvider}
+        onPressDisabled={() => router.push("/settings")}
       />
     </KeyboardAvoidingView>
   );
