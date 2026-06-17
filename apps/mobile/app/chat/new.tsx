@@ -162,8 +162,6 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* ─── Divider Removed ─── */}
-
         {/* ─── Message list + Empty State (scoped wrapper) ─── */}
         <View style={{ flex: 1 }}>
           <FlatList
@@ -175,12 +173,10 @@ export default function HomeScreen() {
             renderItem={({ item }) => <MessageBubble message={item} />}
             contentContainerStyle={{ paddingBottom: 16, paddingTop: insets.top + 80, paddingHorizontal: 0, flexGrow: 1 }}
           />
-        </View>
 
-        {/* Empty State: absolute within the list area only, not the whole screen */}
-        {messages.length === 0 && (
-          <View style={styles.emptyOverlay} pointerEvents="box-none">
-            <View style={styles.emptyContainer}>
+          {/* Empty State — sits inside the same flex:1 wrapper as the FlatList */}
+          {messages.length === 0 && (
+            <View style={styles.emptyOverlay} pointerEvents="box-none">
               <View style={styles.emptyIconWrapper}>
                 {getModelIcon(store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId, 48)}
               </View>
@@ -201,8 +197,8 @@ export default function HomeScreen() {
                 </View>
               )}
             </View>
-          </View>
-        )}
+          )}
+        </View>
       </View>
 
       {/* ─── Streaming indicator ─── */}
@@ -303,7 +299,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: -1,
+    paddingHorizontal: 32,
   },
   emptyContainer: {
     flex: 1,
