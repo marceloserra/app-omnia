@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { View, Text, Pressable, FlatList, TextInput, KeyboardAvoidingView, Platform, Image, PanResponder, Animated, Modal, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Search, X, Check, Cpu } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
+import { useSettingsStore } from "../../store/settings-store";
 
 interface ModelPickerSheetProps {
   models: string[];
@@ -109,7 +111,13 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, visible,
             const isSelected = item === selected;
             return (
               <Pressable
-                onPress={() => { onSelect(item); onClose(); }}
+                onPress={() => { 
+                  if (useSettingsStore.getState().hapticsEnabled) {
+                    Haptics.selectionAsync();
+                  }
+                  onSelect(item); 
+                  onClose(); 
+                }}
                 style={({ pressed }) => [{
                   flexDirection: "row",
                   alignItems: "center",

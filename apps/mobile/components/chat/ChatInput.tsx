@@ -10,9 +10,11 @@ import {
   Alert,
 } from "react-native";
 import { ArrowUp, Square, Plus } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
+import { useSettingsStore } from "../../store/settings-store";
 
 export interface ChatInputProps {
   onSend: (text: string) => void;
@@ -47,12 +49,20 @@ export function ChatInput({
     }
     const trimmed = text.trim();
     if (!trimmed) return;
+    
+    if (useSettingsStore.getState().hapticsEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    
     onSend(trimmed);
     setText("");
     inputRef.current?.clear();
   };
 
   const handleStop = () => {
+    if (useSettingsStore.getState().hapticsEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     if (onStop) {
       onStop();
     }

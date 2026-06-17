@@ -10,6 +10,8 @@ import { ModelChip } from "../../components/chat/ModelChip";
 import { Modal } from "react-native";
 import { router } from "expo-router";
 import { useTranslation } from "../../lib/i18n";
+import * as Haptics from "expo-haptics";
+import { useSettingsStore } from "../../store/settings-store";
 
 export default function HomeDashboard() {
   const theme = useTheme();
@@ -66,7 +68,12 @@ export default function HomeDashboard() {
             {suggestions.map((s, i) => (
               <Pressable 
                 key={i} 
-                onPress={() => router.push({ pathname: "/chat/new", params: { initialPrompt: s.prompt } })}
+                onPress={() => {
+                  if (useSettingsStore.getState().hapticsEnabled) {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  router.push({ pathname: "/chat/new", params: { initialPrompt: s.prompt } });
+                }}
                 style={({ pressed }) => [styles.suggestionCard, pressed && { opacity: 0.7 }]}
               >
                 <View style={styles.suggestionIconWrapper}>

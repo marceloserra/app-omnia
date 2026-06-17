@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { MessageSquare, Pin, Pencil, Trash2, Search, X } from "lucide-react-native";
 import { useTheme, ThemePalette } from "../../lib/theme";
+import { useTranslation } from "../../lib/i18n";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { Conversation } from "@omnia/shared-types";
 import { router, useFocusEffect } from "expo-router";
@@ -29,6 +30,7 @@ function getDb() {
 
 export default function HistoryScreen() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
   
@@ -122,17 +124,17 @@ export default function HistoryScreen() {
     const last30 = new Date(today);
     last30.setDate(last30.getDate() - 30);
 
-    if (date >= today) return "Today";
-    if (date >= yesterday) return "Yesterday";
-    if (date >= last7) return "Previous 7 Days";
-    if (date >= last30) return "Previous 30 Days";
+    if (date >= today) return t("history.buckets.today");
+    if (date >= yesterday) return t("history.buckets.yesterday");
+    if (date >= last7) return t("history.buckets.previous7");
+    if (date >= last30) return t("history.buckets.previous30");
     return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   };
 
   const sections: { title: string, data: Conversation[] }[] = [];
   
   if (pinned.length > 0) {
-    sections.push({ title: "Pinned", data: pinned });
+    sections.push({ title: t("history.buckets.pinned"), data: pinned });
   }
 
   const buckets: Record<string, Conversation[]> = {};
