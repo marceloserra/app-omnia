@@ -7,8 +7,9 @@ import {
   Platform,
   Keyboard,
   Text,
+  Alert,
 } from "react-native";
-import { ArrowUp, Square } from "lucide-react-native";
+import { ArrowUp, Square, Plus } from "lucide-react-native";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 
@@ -30,6 +31,7 @@ export function ChatInput({
   onFocus,
 }: ChatInputProps) {
   const [text, setText] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
@@ -57,7 +59,14 @@ export function ChatInput({
   return (
     <View style={styles.outerContainer}>
       {/* The pill-shaped input card */}
-      <View style={styles.inputCard}>
+      <View style={[styles.inputCard, isFocused && styles.inputCardFocused]}>
+        <Pressable 
+          onPress={() => Alert.alert("Coming Soon", "File attachments will be available in Phase 11.")}
+          style={({ pressed }) => [styles.attachBtn, pressed && { opacity: 0.6 }]}
+        >
+          <Plus size={24} color={theme.textSecondary} />
+        </Pressable>
+
         {/* Text field */}
         <TextInput
           ref={inputRef}
@@ -74,7 +83,11 @@ export function ChatInput({
           returnKeyType="send"
           enablesReturnKeyAutomatically
           scrollEnabled
-          onFocus={onFocus}
+          onFocus={() => {
+            setIsFocused(true);
+            if (onFocus) onFocus();
+          }}
+          onBlur={() => setIsFocused(false)}
         />
 
         {/* Action button column */}
@@ -131,10 +144,22 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.border,
     paddingTop: 8,
-    paddingLeft: 18,
+    paddingLeft: 8,
     paddingRight: 6,
     paddingBottom: 6,
     minHeight: 52,
+  },
+  inputCardFocused: {
+    borderColor: theme.indigo,
+  },
+  attachBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 4,
+    marginBottom: 0,
   },
   textInput: {
     flex: 1,

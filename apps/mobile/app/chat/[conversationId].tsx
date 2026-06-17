@@ -296,6 +296,18 @@ export default function ChatScreen() {
               setIsScrolledUp(contentOffset.y > 100);
             }}
             scrollEventThrottle={16}
+            ListFooterComponent={
+              messages.length > 0 ? (
+                <View style={{ alignItems: "center", marginTop: 40, marginBottom: 20, paddingHorizontal: 32 }}>
+                  <Text style={{ fontSize: 26, fontWeight: "800", color: theme.textPrimary, textAlign: "center", letterSpacing: -0.5 }}>
+                    {convTitle}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 8, fontWeight: "600" }}>
+                    {store.activeProviderId === "openai" ? "OpenAI" : "Local"} · {activeModelId}
+                  </Text>
+                </View>
+              ) : null
+            }
           />
 
           {messages.length === 0 && (
