@@ -2,7 +2,7 @@
 
 <p align="center">
   <img
-    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/GitHub_Invertocat_Logo.svg/100px-GitHub_Invertocat_Logo.svg.png"
+    src="apps/mobile/assets/icon.png"
     alt="Omnia icon"
     width="96"
     height="96"
