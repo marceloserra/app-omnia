@@ -51,7 +51,14 @@ function CodeBlock({ content, language, theme }: { content: string; language?: s
           </Text>
         </Pressable>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={codeStyles.scroll} contentContainerStyle={{ padding: 16 }}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        style={codeStyles.scroll} 
+        contentContainerStyle={{ padding: 16 }}
+        onStartShouldSetResponder={() => true}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
         <Text style={codeStyles.content} selectable>
           {content.trimEnd()}
         </Text>
@@ -122,7 +129,16 @@ const renderRules = (theme: ThemePalette, tableStyles: any) => ({
     </Text>
   ),
   table: (node: ASTNode, children: any) => (
-    <ScrollView key={node.key} horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true} style={tableStyles.tableScroll} contentContainerStyle={{ flexGrow: 1, minWidth: "100%", paddingBottom: 8 }}>
+    <ScrollView 
+      key={node.key} 
+      horizontal 
+      showsHorizontalScrollIndicator={false} 
+      nestedScrollEnabled={true} 
+      style={tableStyles.tableScroll} 
+      contentContainerStyle={{ flexGrow: 1, minWidth: "100%", paddingBottom: 8 }}
+      onStartShouldSetResponder={() => true}
+      onTouchStart={(e) => e.stopPropagation()}
+    >
       <View style={tableStyles.table}>{children}</View>
     </ScrollView>
   ),
