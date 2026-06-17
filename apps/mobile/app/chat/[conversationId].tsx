@@ -228,7 +228,7 @@ export default function ChatScreen() {
           }
           
           // Auto-switch to local model
-          store.setActiveProviderId("openai-compatible");
+          store.setActiveProvider("openai-compatible");
         } else {
           const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
           setMessages((cur) =>

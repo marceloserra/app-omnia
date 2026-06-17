@@ -51,4 +51,11 @@ function runMigrations(db: SQLite.SQLiteDatabase) {
       INSERT INTO schema_version (version) VALUES (1);
     `);
   }
+
+  if (currentVersion < 2) {
+    db.execSync(`
+      ALTER TABLE conversations ADD COLUMN is_pinned INTEGER DEFAULT 0;
+      UPDATE schema_version SET version = 2;
+    `);
+  }
 }

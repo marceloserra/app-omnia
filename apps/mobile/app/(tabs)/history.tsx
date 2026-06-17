@@ -11,7 +11,6 @@ import { Conversation } from "@omnia/shared-types";
 import { router, useFocusEffect } from "expo-router";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Swipeable } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
 import { useSettingsStore } from "../../store/settings-store";
@@ -37,7 +36,6 @@ export default function HistoryScreen() {
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   
   const [renameConv, setRenameConv] = useState<Conversation | null>(null);
   const [renameTitle, setRenameTitle] = useState("");
@@ -51,28 +49,17 @@ export default function HistoryScreen() {
     }, [])
   );
 
-  useEffect(() => {
-    AsyncStorage.getItem('pinnedIds').then(val => {
-      if (val) setPinnedIds(new Set(JSON.parse(val)));
-    });
-  }, []);
-
   const loadConvs = () => {
     try {
       setConversations(getDb().convRepo.listAll());
     } catch (e) {}
   };
 
-  const togglePin = (id: string) => {
-    // Do not call close() here because the item changes sections and unmounts,
-    // which causes react-native-gesture-handler to crash if animating.
-    setPinnedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      AsyncStorage.setItem('pinnedIds', JSON.stringify(Array.from(next)));
-      return next;
-    });
+  const togglePin = (conv: Conversation) => {
+    try {
+      getDb().convRepo.update(conv.id, { isPinned: !conv.isPinned });
+      loadConvs();
+    } catch (e) {}
   };
 
   const handleRename = () => {
@@ -91,15 +78,6 @@ export default function HistoryScreen() {
         const { msgRepo, convRepo } = getDb();
         msgRepo.deleteByConversation(deleteConv.id);
         convRepo.delete(deleteConv.id);
-        setPinnedIds(prev => {
-          if (prev.has(deleteConv.id)) {
-            const next = new Set(prev);
-            next.delete(deleteConv.id);
-            AsyncStorage.setItem('pinnedIds', JSON.stringify(Array.from(next)));
-            return next;
-          }
-          return prev;
-        });
         loadConvs();
       } catch (e) {}
     }
@@ -110,9 +88,10 @@ export default function HistoryScreen() {
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const sorted = [...filtered].sort((a, b) => b.updatedAt - a.updatedAt);
-  const pinned = sorted.filter(c => pinnedIds.has(c.id));
-  const unpinned = sorted.filter(c => !pinnedIds.has(c.id));
+  // We don't need to manually sort because SQLite already returns ORDER BY is_pinned DESC, updated_at DESC
+  // But we might need to resort after filtering if we wanted, however filtered retains array order.
+  const pinned = filtered.filter(c => c.isPinned);
+  const unpinned = filtered.filter(c => !c.isPinned);
 
   const getBucket = (dateMs: number) => {
     const date = new Date(dateMs);
@@ -187,7 +166,6 @@ export default function HistoryScreen() {
         )}
         renderItem={({ item }) => {
           const conv = item as Conversation;
-          const isPinned = pinnedIds.has(conv.id);
           
           const renderLeftActions = (progress: any, dragX: any) => {
             const trans = dragX.interpolate({
@@ -198,15 +176,15 @@ export default function HistoryScreen() {
             return (
               <Animated.View style={{ justifyContent: "center", width: 80, transform: [{ translateX: trans }] }}>
                 <Pressable
-                  style={{ flex: 1, backgroundColor: isPinned ? "#64748b" : "#f59e0b", justifyContent: "center", alignItems: "center" }}
+                  style={{ flex: 1, backgroundColor: conv.isPinned ? "#64748b" : "#f59e0b", justifyContent: "center", alignItems: "center" }}
                   onPress={() => {
                     if (useSettingsStore.getState().hapticsEnabled) {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                     }
-                    togglePin(conv.id);
+                    togglePin(conv);
                   }}
                 >
-                  <View style={{ transform: isPinned ? [{ rotate: "45deg" }] : undefined }}>
+                  <View style={{ transform: conv.isPinned ? [{ rotate: "45deg" }] : undefined }}>
                     <Pin size={20} color="#fff" />
                   </View>
                 </Pressable>
@@ -284,7 +262,7 @@ export default function HistoryScreen() {
                 style={styles.convItem}
                 android_ripple={{ color: theme.activeBg }}
               >
-                {isPinned ? (
+                {conv.isPinned ? (
                   <Pin size={16} color={theme.indigo} style={{ marginRight: 12 }} />
                 ) : (
                   <MessageSquare size={16} color={theme.textSecondary} style={{ marginRight: 12 }} />

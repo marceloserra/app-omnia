@@ -23,4 +23,5 @@ export interface Conversation {
   createdAt: number;
   updatedAt: number;
   systemPrompt?: string;
+  isPinned?: boolean;
 }

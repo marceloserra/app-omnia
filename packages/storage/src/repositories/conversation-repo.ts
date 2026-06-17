@@ -8,14 +8,15 @@ export function createConversationRepo(db: SQLite.SQLiteDatabase) {
      */
     create(conversation: Conversation): void {
       db.runSync(
-        `INSERT INTO conversations (id, title, system_prompt, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?);`,
+        `INSERT INTO conversations (id, title, system_prompt, created_at, updated_at, is_pinned)
+         VALUES (?, ?, ?, ?, ?, ?);`,
         [
           conversation.id,
           conversation.title,
           conversation.systemPrompt ?? null,
           conversation.createdAt,
-          conversation.updatedAt
+          conversation.updatedAt,
+          conversation.isPinned ? 1 : 0
         ]
       );
     },
@@ -30,7 +31,8 @@ export function createConversationRepo(db: SQLite.SQLiteDatabase) {
         system_prompt: string | null;
         created_at: number;
         updated_at: number;
-      }>("SELECT * FROM conversations ORDER BY updated_at DESC;");
+        is_pinned: number;
+      }>("SELECT * FROM conversations ORDER BY is_pinned DESC, updated_at DESC;");
 
       return rows.map((r) => ({
         id: r.id,
@@ -38,6 +40,7 @@ export function createConversationRepo(db: SQLite.SQLiteDatabase) {
         systemPrompt: r.system_prompt ?? undefined,
         createdAt: r.created_at,
         updatedAt: r.updated_at,
+        isPinned: r.is_pinned === 1,
       }));
     },
 
@@ -51,6 +54,7 @@ export function createConversationRepo(db: SQLite.SQLiteDatabase) {
         system_prompt: string | null;
         created_at: number;
         updated_at: number;
+        is_pinned: number;
       }>("SELECT * FROM conversations WHERE id = ?;", [id]);
 
       if (!row) return null;
@@ -61,13 +65,14 @@ export function createConversationRepo(db: SQLite.SQLiteDatabase) {
         systemPrompt: row.system_prompt ?? undefined,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
+        isPinned: row.is_pinned === 1,
       };
     },
 
     /**
      * Update conversation title or system prompt.
      */
-    update(id: string, patch: { title?: string; systemPrompt?: string }): void {
+    update(id: string, patch: { title?: string; systemPrompt?: string; isPinned?: boolean }): void {
       const now = Date.now();
       if (patch.title !== undefined) {
         db.runSync(
@@ -79,6 +84,12 @@ export function createConversationRepo(db: SQLite.SQLiteDatabase) {
         db.runSync(
           "UPDATE conversations SET system_prompt = ?, updated_at = ? WHERE id = ?;",
           [patch.systemPrompt, now, id]
+        );
+      }
+      if (patch.isPinned !== undefined) {
+        db.runSync(
+          "UPDATE conversations SET is_pinned = ?, updated_at = ? WHERE id = ?;",
+          [patch.isPinned ? 1 : 0, now, id]
         );
       }
     },
