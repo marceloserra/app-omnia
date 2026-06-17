@@ -50,13 +50,7 @@ export default function HomeScreen() {
 
   const noProvider = !store.activeProviderId;
 
-  // Keyboard scroll behaviour (Android)
-  useEffect(() => {
-    const showSub = Keyboard.addListener("keyboardDidShow", () => {
-      flatListRef.current?.scrollToEnd({ animated: false });
-    });
-    return () => showSub.remove();
-  }, []);
+  // No manual keyboard scroll listeners needed when using inverted FlatList
 
   const getProvider = useCallback(() => {
     if (store.activeProviderId === "openai") {
@@ -204,18 +198,13 @@ export default function HomeScreen() {
       {/* ─── Message list ─── */}
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={[...messages].reverse()}
+        inverted
         keyExtractor={(m) => m.id}
         renderItem={({ item }) => <MessageBubble message={item} />}
         contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
-        onContentSizeChange={() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }}
-        onLayout={() => {
-          flatListRef.current?.scrollToEnd({ animated: false });
-        }}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
+          <View style={[styles.emptyContainer, { transform: [{ scaleY: -1 }] }]}>
             <View style={styles.emptyGlyph}>
               <Text style={{ fontSize: 32, color: "#818cf8" }}>✦</Text>
             </View>

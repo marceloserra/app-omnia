@@ -60,18 +60,7 @@ export default function ChatScreen() {
     }
   }, [conversationId]);
 
-  // Keyboard scroll behaviour (Android)
-  useEffect(() => {
-    // When keyboard opens: scroll to end if user hasn't scrolled up
-    const showSub = Keyboard.addListener("keyboardDidShow", () => {
-      if (!isScrolledUp) {
-        flatListRef.current?.scrollToEnd({ animated: false });
-      }
-    });
-    return () => {
-      showSub.remove();
-    };
-  }, [isScrolledUp]);
+  // No manual keyboard scroll listeners needed when using inverted FlatList
 
   const getProvider = useCallback(() => {
     if (store.activeProviderId === "openai") {
@@ -196,7 +185,7 @@ export default function ChatScreen() {
   };
 
   const scrollToBottom = () => {
-    flatListRef.current?.scrollToEnd({ animated: true });
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     setIsScrolledUp(false);
   };
 
@@ -244,26 +233,20 @@ export default function ChatScreen() {
 
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={[...messages].reverse()}
+        inverted
         keyExtractor={(m) => m.id}
         renderItem={({ item }) => <MessageBubble message={item} />}
         contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
-        onContentSizeChange={() => {
-          if (!isScrolledUp) flatListRef.current?.scrollToEnd({ animated: true });
-        }}
-        onLayout={() => {
-          if (!isScrolledUp) flatListRef.current?.scrollToEnd({ animated: false });
-        }}
         onScroll={(e) => {
-          const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
-          scrollOffsetRef.current = contentOffset.y; // always track position
-          // Threshold of 100px to consider "scrolled up"
-          const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 100;
-          setIsScrolledUp(!isCloseToBottom);
+          const { contentOffset } = e.nativeEvent;
+          scrollOffsetRef.current = contentOffset.y; // track position
+          // Inverted list: 0 is the bottom. If y > 100, we are scrolled up.
+          setIsScrolledUp(contentOffset.y > 100);
         }}
         scrollEventThrottle={16}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
+          <View style={[styles.emptyContainer, { transform: [{ scaleY: -1 }] }]}>
             <View style={styles.emptyIconWrapper}>
               <Text style={{ fontSize: 28, color: "#818cf8" }}>✦</Text>
             </View>
