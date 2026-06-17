@@ -86,7 +86,7 @@ export default function HistoryScreen() {
   });
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
       <Text style={styles.headerTitle}>Chat History</Text>
       
       <View style={styles.searchContainer}>
@@ -108,7 +108,7 @@ export default function HistoryScreen() {
       <SectionList
         sections={sections}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({ section: { title } }) => (
           <Text style={styles.groupTitle}>{title}</Text>
@@ -146,18 +146,19 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     backgroundColor: theme.bg,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: "700",
+    fontSize: 34,
+    fontWeight: "800",
     color: theme.textPrimary,
+    letterSpacing: 0.5,
     paddingHorizontal: 20,
-    marginTop: 12,
-    marginBottom: 16,
+    marginTop: 8,
+    marginBottom: 32,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: theme.surface2,
-    marginHorizontal: 16,
+    marginHorizontal: 20,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: theme.border,
