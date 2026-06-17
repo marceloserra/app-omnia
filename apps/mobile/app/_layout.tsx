@@ -54,10 +54,10 @@ export default function RootLayout() {
             headerRight: () => (
               <Pressable
                 onPress={() => router.push("/settings")}
-                style={{ padding: 6 }}
+                style={({ pressed }) => [{ padding: 8, marginRight: 4, opacity: pressed ? 0.7 : 1 }]}
                 accessibilityLabel="Open settings"
               >
-                <Settings size={20} color={HEADER_TEXT} />
+                <Settings size={26} color={HEADER_TEXT} />
               </Pressable>
             ),
           }}

@@ -151,14 +151,6 @@ export default function IndexChatScreen() {
     >
       <View style={styles.ambientGlow} />
 
-      {noProvider && (
-        <BlurView intensity={20} tint="dark" style={styles.noProviderBanner}>
-          <Text style={{ color: TEXT_SECONDARY, fontSize: 13, textAlign: "center" }}>
-            No provider connected. Go to Settings to configure one.
-          </Text>
-        </BlurView>
-      )}
-
       <FlatList
         data={messages}
         keyExtractor={(m) => m.id}
@@ -170,11 +162,27 @@ export default function IndexChatScreen() {
               <Text style={{ fontSize: 28, color: "#818cf8" }}>✦</Text>
             </View>
             <Text style={styles.emptyTitle}>Omnia</Text>
-            <Text style={styles.emptySubtitle}>
-              {noProvider
-                ? "Configure a provider in Settings to start chatting."
-                : "What would you like to build today?"}
-            </Text>
+            
+            {noProvider ? (
+              <View style={{ alignItems: "center", marginTop: 8 }}>
+                <Text style={[styles.emptySubtitle, { marginBottom: 20 }]}>
+                  You need an AI provider to start chatting.
+                </Text>
+                <Pressable
+                  onPress={() => router.push("/settings")}
+                  style={({ pressed }) => [
+                    styles.providerConfigBtn,
+                    pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
+                  ]}
+                >
+                  <Text style={styles.providerConfigText}>Configure Provider</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Text style={styles.emptySubtitle}>
+                What would you like to build today?
+              </Text>
+            )}
           </View>
         }
       />
@@ -242,6 +250,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 40,
     lineHeight: 22,
+  },
+  providerConfigBtn: {
+    backgroundColor: "rgba(99,102,241,0.15)",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(99,102,241,0.3)",
+  },
+  providerConfigText: {
+    color: "#a5b4fc",
+    fontWeight: "600",
+    fontSize: 15,
+    letterSpacing: 0.3,
   },
   streamingIndicator: {
     flexDirection: "row",

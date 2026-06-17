@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { View, FlatList, Text, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable, StyleSheet } from "react-native";
-import { useLocalSearchParams, Stack } from "expo-router";
+import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
 import { ChatInput } from "../../components/chat/ChatInput";
@@ -191,12 +191,13 @@ export default function ChatScreen() {
       {/* Ambient Glow */}
       <View style={styles.ambientGlow} />
 
-      {noProvider && (
-        <BlurView intensity={20} tint="dark" style={styles.noProviderBanner}>
-          <Text style={{ color: TEXT_SECONDARY, fontSize: 13, textAlign: "center" }}>
-            No provider connected. Go to Settings to configure one.
-          </Text>
-        </BlurView>
+      {noProvider && messages.length > 0 && (
+        <View style={styles.noProviderInline}>
+          <Text style={{ color: "#f8fafc", fontSize: 13, fontWeight: "500" }}>Provider Disconnected</Text>
+          <Pressable onPress={() => router.push("/settings")}>
+            <Text style={{ color: "#a5b4fc", fontSize: 13, fontWeight: "600" }}>Settings</Text>
+          </Pressable>
+        </View>
       )}
 
       <FlatList
@@ -221,11 +222,27 @@ export default function ChatScreen() {
               <Text style={{ fontSize: 28, color: "#818cf8" }}>✦</Text>
             </View>
             <Text style={styles.emptyTitle}>Omnia</Text>
-            <Text style={styles.emptySubtitle}>
-              {noProvider
-                ? "Configure a provider in Settings to start chatting."
-                : "What would you like to build today?"}
-            </Text>
+            
+            {noProvider ? (
+              <View style={{ alignItems: "center", marginTop: 8 }}>
+                <Text style={[styles.emptySubtitle, { marginBottom: 20 }]}>
+                  You need an AI provider to continue chatting.
+                </Text>
+                <Pressable
+                  onPress={() => router.push("/settings")}
+                  style={({ pressed }) => [
+                    styles.providerConfigBtn,
+                    pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
+                  ]}
+                >
+                  <Text style={styles.providerConfigText}>Configure Provider</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Text style={styles.emptySubtitle}>
+                Loading conversation...
+              </Text>
+            )}
           </View>
         }
       />
@@ -269,10 +286,18 @@ const styles = StyleSheet.create({
     filter: "blur(100px)",
     zIndex: -1,
   },
-  noProviderBanner: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.05)",
+  noProviderInline: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(239,68,68,0.2)",
+    borderWidth: 1,
+    borderColor: "rgba(239,68,68,0.3)",
+    marginHorizontal: 16,
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
   emptyContainer: {
     flex: 1,
@@ -302,6 +327,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 40,
     lineHeight: 22,
+  },
+  providerConfigBtn: {
+    backgroundColor: "rgba(99,102,241,0.15)",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(99,102,241,0.3)",
+  },
+  providerConfigText: {
+    color: "#a5b4fc",
+    fontWeight: "600",
+    fontSize: 15,
+    letterSpacing: 0.3,
   },
   streamingIndicator: {
     flexDirection: "row",
