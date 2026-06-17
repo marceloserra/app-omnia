@@ -4,7 +4,6 @@ import { Pressable } from "react-native";
 import { Settings } from "lucide-react-native";
 import { logger } from "@omnia/logger";
 import { useEffect } from "react";
-import "../assets/css/global.css";
 
 const HEADER_BG = "#05050f";
 const HEADER_TEXT = "#f0efff";
