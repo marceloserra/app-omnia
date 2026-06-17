@@ -11,7 +11,8 @@
     "typecheck": "turbo run typecheck",
     "typecheck:all": "turbo run typecheck",
     "test": "turbo run test",
-    "test:all": "turbo run test"
+    "test:all": "turbo run test",
+    "telemetry": "pnpm --filter @omnia/logger telemetry"
   },
   "devDependencies": {
     "typescript": "^5.7.2",

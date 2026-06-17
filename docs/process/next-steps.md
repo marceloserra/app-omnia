@@ -96,18 +96,16 @@ CREATE TABLE messages (
 
 **Goal:** A functional chat screen where the user can send messages and receive streaming AI responses.
 
-### What to build
-- `apps/mobile/app/chat/[conversationId].tsx` — Chat screen (dynamic route)
-- `apps/mobile/components/chat/MessageBubble.tsx` — User/Assistant message bubbles
-- `apps/mobile/components/chat/ChatInput.tsx` — Bottom input bar with send button
-- `apps/mobile/components/chat/ConversationList.tsx` — List on the index screen
+(Implementation completed and verified).
 
-### UI Design Notes
-- MessageBubble: user messages right-aligned with indigo background, assistant messages left-aligned with `SURFACE=#13112a` background
-- ChatInput: fixed bottom bar with the `Input` component + `IconButton(Send)`
-- ConversationList: each item is an interactive `Card` with last message preview and timestamp
+---
 
-### Notes for agents
-- Wire `OpenAIProvider.streamChat()` to update the assistant message in real-time via `useState`
-- Use the `MessageRepo` from Phase 4 to persist each message after it's fully streamed
-- Load provider config from the Zustand store created in Step 1
+## Step 4 — AI Dev Telemetry (Highest Priority)
+
+**Goal:** An abstract, reusable logging system that catches errors on the device (simulator/physical) and streams them to a local JSONL file on the host machine. This allows the AI agent to read `omnia-telemetry.jsonl` and proactively fix bugs without the user needing to copy-paste logs.
+
+### Architecture
+- `packages/logger`: A universal logger. In production, it can map to Sentry/Crashlytics. In `__DEV__`, it sends POST requests to the host machine.
+- `Telemetry Server`: A lightweight Node server running on port 8082, appending logs to `omnia-telemetry.jsonl`.
+- `Global Error Boundary`: Wraps the Expo root layout to catch unhandled JS exceptions and send them to the telemetry server.
+

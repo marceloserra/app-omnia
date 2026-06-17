@@ -39,6 +39,9 @@ importers:
       '@expo/metro-runtime':
         specifier: ^56.0.15
         version: 56.0.15(@expo/log-box@56.0.13)(expo@56.0.12)(react-dom@19.2.7(react@19.2.3))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
+      '@omnia/logger':
+        specifier: workspace:*
+        version: link:../../packages/logger
       '@omnia/providers':
         specifier: workspace:*
         version: link:../../packages/providers
@@ -151,6 +154,12 @@ importers:
       vitest:
         specifier: ^3.1.0
         version: 3.2.6(@types/node@25.9.3)(jiti@1.21.7)(jsdom@20.0.3)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0)
+
+  packages/logger:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
   packages/providers:
     dependencies:
