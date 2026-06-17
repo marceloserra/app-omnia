@@ -205,10 +205,7 @@ export default function SettingsScreen() {
           <View style={styles.iosGroup}>
             {activeTab === "openai" ? (
               <View style={styles.iosRow}>
-                <View style={[styles.iosIconContainer, { backgroundColor: theme.indigo }]}>
-                  <KeySquare size={16} color="#fff" />
-                </View>
-                <Text style={styles.iosRowLabel}>API Key</Text>
+                <Text style={[styles.iosRowLabel, { flex: 0.8 }]}>API Key</Text>
                 <TextInput
                   placeholder="sk-proj-..."
                   placeholderTextColor={theme.textSecondary}
@@ -221,10 +218,7 @@ export default function SettingsScreen() {
             ) : (
               <>
                 <View style={[styles.iosRow, styles.iosRowBorder]}>
-                  <View style={[styles.iosIconContainer, { backgroundColor: "#3b82f6" }]}>
-                    <Network size={16} color="#fff" />
-                  </View>
-                  <Text style={styles.iosRowLabel}>Base URL</Text>
+                  <Text style={[styles.iosRowLabel, { flex: 0.8 }]}>Base URL</Text>
                   <TextInput
                     placeholder="http://192.168.1.X:1234/v1"
                     placeholderTextColor={theme.textSecondary}
@@ -236,17 +230,14 @@ export default function SettingsScreen() {
                   />
                 </View>
                 <View style={styles.iosRow}>
-                  <View style={[styles.iosIconContainer, { backgroundColor: theme.indigo }]}>
-                    <KeySquare size={16} color="#fff" />
-                  </View>
-                  <Text style={styles.iosRowLabel}>API Key (Opt)</Text>
+                  <Text style={[styles.iosRowLabel, { flex: 0.8 }]}>API Key (Opt)</Text>
                   <TextInput
                     placeholder="sk-..."
                     placeholderTextColor={theme.textSecondary}
                     value={localCompatibleKey}
                     onChangeText={(txt) => { setLocalCompatibleKey(txt); setTestResult(null); }}
                     secureTextEntry
-                    style={{ flex: 1, fontSize: 17, color: theme.textSecondary, textAlign: "right" }}
+                    style={{ flex: 1.5, fontSize: 17, color: theme.textSecondary, textAlign: "right" }}
                   />
                 </View>
               </>
@@ -281,11 +272,7 @@ export default function SettingsScreen() {
                 <Text style={styles.sectionTitle}>Provider Status</Text>
 
                 <View style={styles.iosGroup}>
-                  {/* Status banner */}
                   <View style={[styles.iosRow, styles.iosRowBorder]}>
-                    <View style={[styles.iosIconContainer, { backgroundColor: isConnected ? "#10b981" : "#f59e0b" }]}>
-                      <Server size={16} color="#fff" />
-                    </View>
                     <Text style={[styles.iosRowLabel, { color: isConnected ? "#10b981" : "#f59e0b" }]}>
                       {isConnected ? "Connected & Active" : "Tested — Tap to activate"}
                     </Text>
@@ -296,9 +283,6 @@ export default function SettingsScreen() {
                     onPress={() => setModelPickerVisible(true)}
                     style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
                   >
-                    <View style={[styles.iosIconContainer, { backgroundColor: "#8b5cf6" }]}>
-                      <CheckCircle2 size={16} color="#fff" />
-                    </View>
                     <Text style={styles.iosRowLabel}>Select Model</Text>
                     <Text style={styles.iosRowValue}>{localModel || "None"}</Text>
                     <ChevronRight size={18} color={theme.textSecondary} style={{ marginLeft: 6 }} />
@@ -352,9 +336,6 @@ export default function SettingsScreen() {
                       pressed && { opacity: 0.7 }
                     ]}
                   >
-                    <View style={[styles.iosIconContainer, { backgroundColor: tOpt === "dark" ? "#000" : tOpt === "light" ? "#fff" : "#8e8e93", borderWidth: tOpt === "light" ? 1 : 0, borderColor: "#ccc" }]}>
-                      <CheckCircle2 size={16} color={tOpt === "light" ? "#000" : "#fff"} />
-                    </View>
                     <Text style={styles.iosRowLabel}>
                       {tOpt === "system" ? "System" : tOpt === "dark" ? "Dark" : "Light"}
                     </Text>
@@ -381,9 +362,6 @@ export default function SettingsScreen() {
                       pressed && { opacity: 0.7 }
                     ]}
                   >
-                    <View style={[styles.iosIconContainer, { backgroundColor: "#34d399" }]}>
-                      <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>{lOpt === "system" ? "OS" : lOpt.toUpperCase()}</Text>
-                    </View>
                     <Text style={styles.iosRowLabel}>
                       {lOpt === "system" ? "System Default" : lOpt === "en" ? "English" : lOpt === "pt" ? "Português" : "Español"}
                     </Text>
@@ -402,11 +380,7 @@ export default function SettingsScreen() {
                 onPress={handleClearAll}
                 style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.7 }]}
               >
-                <View style={[styles.iosIconContainer, { backgroundColor: "#ef4444" }]}>
-                  <Trash2 size={16} color="#fff" />
-                </View>
-                <Text style={styles.iosRowLabel}>Delete All History</Text>
-                <ChevronRight size={18} color={theme.textSecondary} />
+                <Text style={[styles.iosRowLabel, { color: "#ef4444", textAlign: "center" }]}>Delete All History</Text>
               </Pressable>
             </View>
           </View>
@@ -652,7 +626,7 @@ const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create
   iosRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.border,
-    marginLeft: 58, // icon (28) + margin (14) + padding (16)
+    marginLeft: 16,
   },
   iosIconContainer: {
     width: 28,
