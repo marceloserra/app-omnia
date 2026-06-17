@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Swipeable } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
+import { useSettingsStore } from "../../store/settings-store";
 
 let _db: any;
 let _convRepo: any;
@@ -199,7 +200,9 @@ export default function HistoryScreen() {
                 <Pressable
                   style={{ flex: 1, backgroundColor: isPinned ? "#64748b" : "#f59e0b", justifyContent: "center", alignItems: "center" }}
                   onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    if (useSettingsStore.getState().hapticsEnabled) {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    }
                     togglePin(conv.id);
                   }}
                 >
@@ -222,7 +225,9 @@ export default function HistoryScreen() {
                 <Pressable
                   style={{ flex: 1, backgroundColor: "#3b82f6", justifyContent: "center", alignItems: "center" }}
                   onPress={() => { 
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    if (useSettingsStore.getState().hapticsEnabled) {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    }
                     rowRefs.current.get(conv.id)?.close(); 
                     setRenameTitle(conv.title); 
                     setRenameConv(conv); 
@@ -233,7 +238,9 @@ export default function HistoryScreen() {
                 <Pressable
                   style={{ flex: 1, backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center" }}
                   onPress={() => { 
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    if (useSettingsStore.getState().hapticsEnabled) {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    }
                     rowRefs.current.get(conv.id)?.close(); 
                     setDeleteConv(conv); 
                   }}
