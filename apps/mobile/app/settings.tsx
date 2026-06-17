@@ -134,10 +134,6 @@ export default function SettingsScreen() {
   
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Background ambient glow */}
-      <View style={{ position: "absolute", top: -100, left: -50, width: 300, height: 300, borderRadius: 150, backgroundColor: theme.indigo, opacity: isDark ? 0.1 : 0.05, filter: "blur(100px)" }} />
-      <View style={{ position: "absolute", top: 200, right: -100, width: 250, height: 250, borderRadius: 125, backgroundColor: theme.purple, opacity: isDark ? 0.08 : 0.04, filter: "blur(80px)" }} />
-
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
