@@ -300,19 +300,17 @@ export default function SettingsScreen() {
           )}
           
           {/* Appearance Section */}
-          <View style={{ marginTop: 24, marginBottom: 12 }}>
+          <View style={{ marginTop: 24 }}>
             <Text style={styles.sectionTitle}>{t("settings.appearance.title")}</Text>
             <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={[styles.glassCard, { padding: 16 }]}>
-              {/* Theme Picker */}
-              <Text style={styles.inputLabel}>{t("settings.appearance.theme")}</Text>
-              <View style={[styles.segmentedControl, { marginTop: 12 }]}>
+              <View style={styles.segmentedControl}>
                 {(["system", "dark", "light"] as const).map((tOpt) => {
                   const isActive = settingsStore.theme === tOpt;
                   return (
                     <Pressable
                       key={tOpt}
                       onPress={() => settingsStore.setTheme(tOpt)}
-                      style={[styles.segmentButton, isActive && styles.segmentButtonActive, { paddingVertical: 8 }]}
+                      style={[styles.segmentButton, isActive && styles.segmentButtonActive, { paddingVertical: 10 }]}
                     >
                       <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
                         {tOpt === "system" ? t("settings.appearance.theme.system") : 
@@ -323,17 +321,21 @@ export default function SettingsScreen() {
                   );
                 })}
               </View>
+            </BlurView>
+          </View>
 
-              {/* Language Picker */}
-              <Text style={[styles.inputLabel, { marginTop: 12 }]}>{t("settings.appearance.language")}</Text>
-              <View style={[styles.segmentedControl, { marginTop: 12, marginBottom: 0 }]}>
+          {/* Language Section */}
+          <View style={{ marginTop: 24, marginBottom: 12 }}>
+            <Text style={styles.sectionTitle}>{t("settings.appearance.language")}</Text>
+            <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={[styles.glassCard, { padding: 16 }]}>
+              <View style={[styles.segmentedControl, { marginBottom: 0 }]}>
                 {(["system", "en", "pt", "es"] as const).map((lOpt) => {
                   const isActive = settingsStore.language === lOpt;
                   return (
                     <Pressable
                       key={lOpt}
                       onPress={() => settingsStore.setLanguage(lOpt)}
-                      style={[styles.segmentButton, isActive && styles.segmentButtonActive, { paddingVertical: 8 }]}
+                      style={[styles.segmentButton, isActive && styles.segmentButtonActive, { paddingVertical: 10 }]}
                     >
                       <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
                         {lOpt === "system" ? "OS" : lOpt.toUpperCase()}
@@ -457,7 +459,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     alignItems: "center",
   },
   segmentButtonActive: {
-    backgroundColor: theme.activeBg,
+    backgroundColor: theme.indigo,
   },
   segmentText: {
     color: theme.textSecondary,
@@ -465,7 +467,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: 14,
   },
   segmentTextActive: {
-    color: theme.textPrimary,
+    color: "#ffffff",
     fontWeight: "700",
   },
   glassCard: {
