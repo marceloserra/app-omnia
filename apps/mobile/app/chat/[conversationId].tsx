@@ -241,13 +241,15 @@ export default function ChatScreen() {
         </View>
       )}
 
-      <FlatList
-        ref={flatListRef}
-        data={[...messages].reverse()}
-        inverted
-        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-        keyExtractor={(m) => m.id}
-        renderItem={({ item }) => <MessageBubble message={item} />}
+      {/* ─── Scrollable List Area ─── */}
+      <View style={{ flex: 1 }}>
+        <FlatList
+          ref={flatListRef}
+          data={[...messages].reverse()}
+          inverted
+          maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+          keyExtractor={(m) => m.id}
+          renderItem={({ item }) => <MessageBubble message={item} />}
         contentContainerStyle={{ paddingVertical: 16, flexGrow: 1 }}
         onScroll={(e) => {
           const { contentOffset } = e.nativeEvent;
@@ -298,8 +300,7 @@ export default function ChatScreen() {
           </Pressable>
         </View>
       )}
-
-
+      </View>
 
       <ChatInput 
         onSend={handleSend} 
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
 
   fabContainer: {
     position: "absolute",
-    bottom: 90, // Above the input
+    bottom: 16, // Tied to the bottom of the list area, above the input
     right: 20,
     zIndex: 10,
   },
