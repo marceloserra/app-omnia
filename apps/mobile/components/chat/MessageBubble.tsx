@@ -196,9 +196,10 @@ const createMarkdownStyles = (theme: ThemePalette) => StyleSheet.create({
   body: {
     color: theme.textPrimary,
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 26,
+    letterSpacing: -0.1,
   },
-  paragraph: { marginTop: 0, marginBottom: 8 },
+  paragraph: { marginTop: 0, marginBottom: 12 },
   code_inline: {
     backgroundColor: theme.activeBg,
     color: theme.indigo,
@@ -214,13 +215,13 @@ const createMarkdownStyles = (theme: ThemePalette) => StyleSheet.create({
   heading3: { fontSize: 16, fontWeight: "600", color: theme.textPrimary, marginTop: 8, marginBottom: 4 },
   list_item: { marginBottom: 4 },
   bullet_list: { marginBottom: 8 },
-  ordered_list: { marginBottom: 8 },
+  ordered_list: { marginBottom: 12 },
   blockquote: {
-    borderLeftWidth: 3,
+    borderLeftWidth: 4,
     borderLeftColor: theme.indigo,
-    paddingLeft: 12,
-    marginVertical: 8,
-    opacity: 0.85,
+    paddingLeft: 14,
+    marginVertical: 10,
+    opacity: 0.9,
   },
   strong: { fontWeight: "700", color: theme.textPrimary },
   em: { fontStyle: "italic" },
@@ -314,7 +315,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
   },
   container: {
     flexDirection: "row",
-    marginVertical: 6,
+    marginVertical: 8,
     paddingHorizontal: 12,
   },
   userContainer: {
@@ -324,8 +325,8 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     justifyContent: "flex-start",
   },
   bubble: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
   },
   userBubble: {
     maxWidth: "88%",
@@ -352,6 +353,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     color: theme.textPrimary,
     fontSize: 16,
     lineHeight: 24,
+    letterSpacing: -0.2,
   },
   metaRow: {
     flexDirection: "row",
