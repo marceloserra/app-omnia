@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, FlatList, TextInput, KeyboardAvoidingView, Platform, Image } from "react-native";
+import { View, Text, Pressable, FlatList, TextInput, KeyboardAvoidingView, Platform, Image, PanResponder } from "react-native";
 import { Search, X, Check, Cpu, Brain, Bot, Sparkles, Zap, Wind, Globe } from "lucide-react-native";
 import { ThemePalette } from "../../lib/theme";
 
@@ -26,13 +26,26 @@ const getModelIcon = (name: string) => {
 export function ModelPickerSheet({ models, selected, onSelect, onClose, theme, isDark }: ModelPickerSheetProps) {
   const [search, setSearch] = useState("");
   const filtered = models.filter((m) => m.toLowerCase().includes(search.toLowerCase()));
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderRelease: (e, gestureState) => {
+        if (gestureState.dy > 50) {
+          onClose();
+        }
+      },
+    })
+  ).current;
 
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={{ flex: 1, backgroundColor: theme.bg }}
     >
-      <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
+      <View 
+        style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}
+        {...panResponder.panHandlers}
+      >
         <View style={{ width: 40, height: 4, backgroundColor: theme.border, borderRadius: 2, alignSelf: "center", marginBottom: 16 }} />
         <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: "700" }}>Select Model</Text>
       </View>
