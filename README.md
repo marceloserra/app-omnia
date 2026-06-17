@@ -2,10 +2,11 @@
 
 <p align="center">
   <img
-    src="./apps/mobile/assets/icon.png"
+    src="./apps/mobile/assets/omnia-logo.jpg"
     alt="Omnia icon"
     width="96"
     height="96"
+    style="border-radius: 22px;"
   />
 </p>
 
