@@ -10,11 +10,7 @@ import {
 } from "react-native";
 import { ArrowUp, Square } from "lucide-react-native";
 
-const BG = "#05050f";
-const INDIGO = "#6366f1";
-const TEXT_PRIMARY = "#f8fafc";
-const TEXT_MUTED = "rgba(148, 163, 184, 0.4)";
-const INPUT_BG = "#131320"; // clean surface color without borders
+import { useTheme, ThemePalette } from "../../lib/theme";
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -35,6 +31,8 @@ export function ChatInput({
 }: ChatInputProps) {
   const [text, setText] = useState("");
   const inputRef = useRef<TextInput>(null);
+  const theme = useTheme();
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
 
   const canSend = text.trim().length > 0 && !disabled;
 
@@ -66,7 +64,7 @@ export function ChatInput({
           value={text}
           onChangeText={setText}
           placeholder="Message Omnia…"
-          placeholderTextColor={TEXT_MUTED}
+          placeholderTextColor={theme.textMuted}
           multiline
           maxLength={4000}
           style={styles.textInput}
@@ -87,22 +85,22 @@ export function ChatInput({
               style={({ pressed }) => [styles.sendBtn, styles.stopBtn, pressed && { opacity: 0.75 }]}
               accessibilityLabel="Stop generating"
             >
-              <Square size={16} color="#f8fafc" fill="#f8fafc" />
+              <Square size={16} color={theme.textPrimary} fill={theme.textPrimary} />
             </Pressable>
           ) : (
             <Pressable
               onPress={handleSendPress}
-              disabled={text.trim().length === 0}
+              disabled={!canSend}
               style={({ pressed }) => [
                 styles.sendBtn,
-                text.trim().length > 0 ? styles.sendBtnActive : styles.sendBtnIdle,
-                pressed && text.trim().length > 0 && { opacity: 0.8 },
+                canSend ? styles.sendBtnActive : styles.sendBtnIdle,
+                pressed && canSend && { opacity: 0.8 },
               ]}
               accessibilityLabel="Send message"
             >
               <ArrowUp
                 size={20}
-                color={text.trim().length > 0 ? "#ffffff" : "rgba(255,255,255,0.4)"}
+                color={canSend ? "#ffffff" : theme.textMuted}
                 strokeWidth={3}
               />
             </Pressable>
@@ -118,18 +116,20 @@ export function ChatInput({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemePalette) => StyleSheet.create({
   outerContainer: {
     paddingTop: 8,
     paddingHorizontal: 16,
     paddingBottom: Platform.select({ ios: 32, android: 20 }),
-    backgroundColor: BG,
+    backgroundColor: theme.bg,
   },
   inputCard: {
     flexDirection: "row",
     alignItems: "flex-end",
-    backgroundColor: INPUT_BG,
+    backgroundColor: theme.surface2,
     borderRadius: 26,
+    borderWidth: 1,
+    borderColor: theme.border,
     paddingTop: 8,
     paddingLeft: 18,
     paddingRight: 6,
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 16,
     lineHeight: 22,
     maxHeight: 140,
@@ -160,20 +160,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   sendBtnActive: {
-    backgroundColor: INDIGO, // #6366f1
-    shadowColor: INDIGO,
+    backgroundColor: theme.indigo,
+    shadowColor: theme.indigo,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 6,
   },
   sendBtnIdle: {
-    backgroundColor: "rgba(255,255,255,0.12)", // Now it has a visible, solid grey background even when empty
+    backgroundColor: theme.activeBg,
   },
   stopBtn: {
-    backgroundColor: "#1e1e2e",
+    backgroundColor: theme.surface,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    borderColor: theme.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   hint: {
-    color: "rgba(148,163,184,0.35)",
+    color: theme.textMuted,
     fontSize: 11,
     textAlign: "center",
     marginTop: 8,

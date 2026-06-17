@@ -30,17 +30,17 @@ export const DarkPalette: ThemePalette = {
 };
 
 export const LightPalette: ThemePalette = {
-  bg: "#f8fafc",
-  surface: "#ffffff",
-  surface2: "#f1f5f9",
-  border: "rgba(0,0,0,0.07)",
-  indigo: "#4f46e5",
-  textPrimary: "#0f172a",
-  textSecondary: "#475569",
-  textMuted: "rgba(15,23,42,0.5)",
-  red: "#dc2626",
-  activeBg: "rgba(0,0,0,0.05)",
-  purple: "#9333ea",
+  bg: "#F2F2F7",
+  surface: "#FFFFFF",
+  surface2: "#FFFFFF",
+  border: "rgba(60, 60, 67, 0.12)",
+  indigo: "#007AFF", // iOS Blue
+  textPrimary: "#000000",
+  textSecondary: "#8E8E93", // iOS Gray
+  textMuted: "#C7C7CC",
+  red: "#FF3B30", // iOS Red
+  activeBg: "rgba(0,0,0,0.04)",
+  purple: "#AF52DE", // iOS Purple
 };
 
 export function useTheme(): ThemePalette {

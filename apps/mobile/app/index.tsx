@@ -22,12 +22,8 @@ import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/
 import { logger } from "@omnia/logger";
 import { AlignLeft, Settings, Sparkles } from "lucide-react-native";
 
-const BG = "#05050f";
-const INDIGO = "#6366f1";
-const SURFACE = "#0e0e1f";
-const BORDER = "rgba(255,255,255,0.07)";
-const TEXT_PRIMARY = "#f0efff";
-const TEXT_SECONDARY = "#94a3b8";
+import { useTheme, ThemePalette } from "../lib/theme";
+import { useTranslation } from "../lib/i18n";
 
 const db = openDatabase();
 const msgRepo = createMessageRepo(db);
@@ -39,6 +35,9 @@ function generateId() {
 
 export default function HomeScreen() {
   const store = useProviderStore();
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const headerHeight = insets.top + 44;
   const [messages, setMessages] = useState<Message[]>([]);
@@ -106,7 +105,7 @@ export default function HomeScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: BG }}
+      style={{ flex: 1, backgroundColor: theme.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
     >
@@ -117,12 +116,12 @@ export default function HomeScreen() {
           style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
           accessibilityLabel="Open menu"
         >
-          <AlignLeft size={24} color={TEXT_PRIMARY} strokeWidth={1.8} />
+          <AlignLeft size={24} color={theme.textPrimary} strokeWidth={1.8} />
         </Pressable>
 
         {/* Logo / Title */}
         <View style={styles.headerCenter}>
-          <Sparkles size={14} color="#818cf8" strokeWidth={2} style={{ marginRight: 6 }} />
+          <Sparkles size={14} color={theme.indigo} strokeWidth={2} style={{ marginRight: 6 }} />
           <Text style={styles.headerTitle}>Omnia</Text>
         </View>
 
@@ -131,7 +130,7 @@ export default function HomeScreen() {
           style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
           accessibilityLabel="Settings"
         >
-          <Settings size={24} color={TEXT_PRIMARY} strokeWidth={1.8} />
+          <Settings size={24} color={theme.textPrimary} strokeWidth={1.8} />
         </Pressable>
       </View>
 
@@ -154,9 +153,9 @@ export default function HomeScreen() {
         {messages.length === 0 && (
           <View style={styles.emptyOverlay} pointerEvents="box-none">
             <View style={styles.emptyGlyph}>
-              <Text style={{ fontSize: 32, color: "#818cf8" }}>✦</Text>
+              <Text style={{ fontSize: 32, color: theme.indigo }}>✦</Text>
             </View>
-            <Text style={styles.emptyTitle}>What can I help with?</Text>
+            <Text style={styles.emptyTitle}>{t("chat.empty.title")}</Text>
             {noProvider ? (
               <View style={{ alignItems: "center" }}>
                 <Text style={styles.emptySubtitle}>
@@ -166,7 +165,7 @@ export default function HomeScreen() {
                   onPress={() => router.push("/settings")}
                   style={({ pressed }) => [styles.providerBtn, pressed && { opacity: 0.8 }]}
                 >
-                  <Text style={styles.providerBtnText}>Configure Provider</Text>
+                  <Text style={styles.providerBtnText}>{t("settings.connect")}</Text>
                 </Pressable>
               </View>
             ) : (
@@ -181,8 +180,8 @@ export default function HomeScreen() {
       {/* ─── Streaming indicator ─── */}
       {isStreaming && (
         <View style={styles.streamingIndicator}>
-          <ActivityIndicator size="small" color="#818cf8" />
-          <Text style={{ color: TEXT_SECONDARY, fontSize: 13, fontWeight: "500", marginLeft: 8 }}>
+          <ActivityIndicator size="small" color={theme.indigo} />
+          <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: "500", marginLeft: 8 }}>
             Omnia is thinking…
           </Text>
         </View>
@@ -206,22 +205,22 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemePalette) => StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingBottom: 10,
-    backgroundColor: BG,
+    backgroundColor: theme.bg,
   },
   headerBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: SURFACE,
+    backgroundColor: theme.surface,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: theme.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -230,34 +229,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerTitle: {
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.3,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: BORDER,
+    backgroundColor: theme.border,
   },
   emptyOverlay: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFill as any,
     justifyContent: "center",
     alignItems: "center",
     paddingBottom: 60,
     paddingHorizontal: 32,
   },
-
   emptyGlyph: {
     width: 72,
     height: 72,
     borderRadius: 24,
-    backgroundColor: "rgba(99,102,241,0.1)",
+    backgroundColor: theme.activeBg,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
   },
   emptyTitle: {
-    color: TEXT_PRIMARY,
+    color: theme.textPrimary,
     fontSize: 22,
     fontWeight: "700",
     letterSpacing: 0.2,
@@ -265,22 +263,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   emptySubtitle: {
-    color: "rgba(148,163,184,0.6)",
+    color: theme.textMuted,
     fontSize: 15,
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 20,
   },
   providerBtn: {
-    backgroundColor: "rgba(99,102,241,0.15)",
+    backgroundColor: theme.activeBg,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.3)",
+    borderColor: theme.border,
   },
   providerBtnText: {
-    color: "#a5b4fc",
+    color: theme.indigo,
     fontWeight: "600",
     fontSize: 15,
     letterSpacing: 0.3,

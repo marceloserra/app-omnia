@@ -130,11 +130,13 @@ export default function SettingsScreen() {
 
   const isFormValid = activeTab === "openai" ? !!localOpenaiKey.trim() : !!localCompatibleUrl.trim();
 
+  const isDark = theme.bg === "#05050f";
+  
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Background ambient glow */}
-      <View style={{ position: "absolute", top: -100, left: -50, width: 300, height: 300, borderRadius: 150, backgroundColor: theme.indigo, opacity: 0.1, filter: "blur(100px)" }} />
-      <View style={{ position: "absolute", top: 200, right: -100, width: 250, height: 250, borderRadius: 125, backgroundColor: theme.purple, opacity: 0.08, filter: "blur(80px)" }} />
+      <View style={{ position: "absolute", top: -100, left: -50, width: 300, height: 300, borderRadius: 150, backgroundColor: theme.indigo, opacity: isDark ? 0.1 : 0.05, filter: "blur(100px)" }} />
+      <View style={{ position: "absolute", top: 200, right: -100, width: 250, height: 250, borderRadius: 125, backgroundColor: theme.purple, opacity: isDark ? 0.08 : 0.04, filter: "blur(80px)" }} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -149,7 +151,7 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Select Provider</Text>
           
           {/* Segmented Control */}
-          <BlurView intensity={20} tint="dark" style={styles.segmentedControl}>
+          <BlurView intensity={isDark ? 20 : 60} tint={isDark ? "dark" : "light"} style={styles.segmentedControl}>
             {(["openai", "openai-compatible"] as Tab[]).map((tab) => {
               const isActive = activeTab === tab;
               return (
@@ -178,7 +180,7 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { marginTop: 12 }]}>Connection Settings</Text>
 
           {/* Configuration Box (Glassmorphism) */}
-          <BlurView intensity={30} tint="dark" style={styles.glassCard}>
+          <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={styles.glassCard}>
             {activeTab === "openai" ? (
               <>
                 <View style={styles.inputHeader}>
@@ -246,8 +248,8 @@ export default function SettingsScreen() {
           {/* Test Results & Model Selection */}
           {testResult && (
             <BlurView
-              intensity={40}
-              tint="dark"
+              intensity={isDark ? 40 : 80}
+              tint={isDark ? "dark" : "light"}
               style={[
                 styles.resultCard,
                 { borderColor: testResult.ok ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)" }
@@ -300,7 +302,7 @@ export default function SettingsScreen() {
           {/* Appearance Section */}
           <View style={{ marginTop: 24, marginBottom: 12 }}>
             <Text style={styles.sectionTitle}>{t("settings.appearance.title")}</Text>
-            <BlurView intensity={30} tint="dark" style={[styles.glassCard, { padding: 16 }]}>
+            <BlurView intensity={isDark ? 30 : 80} tint={isDark ? "dark" : "light"} style={[styles.glassCard, { padding: 16 }]}>
               {/* Theme Picker */}
               <Text style={styles.inputLabel}>{t("settings.appearance.theme")}</Text>
               <View style={[styles.segmentedControl, { marginTop: 12 }]}>
@@ -372,7 +374,7 @@ export default function SettingsScreen() {
         </ScrollView>
 
         {/* Floating Actions - Premium Gradient */}
-        <BlurView intensity={80} tint="dark" style={styles.floatingBar}>
+        <BlurView intensity={isDark ? 80 : 100} tint={isDark ? "dark" : "light"} style={styles.floatingBar}>
           <View style={{ flexDirection: "row", gap: 12 }}>
             {store.activeProviderId === activeTab && (
               <Pressable
