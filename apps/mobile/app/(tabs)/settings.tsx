@@ -317,29 +317,21 @@ export default function SettingsScreen() {
                   </Pressable>
 
                   {isConnected && (
-                    >
-                      <AlertCircle size={16} color={theme.red} style={{ marginRight: 8 }} />
-                      <Text style={styles.deleteActionBtnText}>Disconnect Provider</Text>
-                    </Pressable>
+                    <>
+                      <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: theme.border, marginLeft: 16 }} />
+                      <Pressable
+                        onPress={handleDisconnect}
+                        style={({ pressed }) => [styles.iosRow, pressed && { opacity: 0.8 }]}
+                      >
+                        <Text style={{ flex: 1, textAlign: "center", fontSize: 17, color: "#ef4444" }}>
+                          Disconnect Provider
+                        </Text>
+                      </Pressable>
+                    </>
                   )}
                 </View>
 
-                {/* Model Picker Modal */}
-                <Modal
-                  visible={modelPickerVisible}
-                  animationType="slide"
-                  presentationStyle="pageSheet"
-                  onRequestClose={() => setModelPickerVisible(false)}
-                >
-                  <ModelPickerSheet
-                    models={models}
-                    selected={localModel}
-                    onSelect={(m) => { setLocalModel(m); setModelPickerVisible(false); }}
-                    onClose={() => setModelPickerVisible(false)}
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                </Modal>
+
               </View>
             );
           })()}
