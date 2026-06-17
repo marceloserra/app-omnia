@@ -205,8 +205,8 @@ export default function SettingsScreen() {
               {isValidating ? (
                 <ActivityIndicator color={INDIGO_GLOW} size="small" />
               ) : (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <Server size={18} color={!isFormValid ? TEXT_SECONDARY : INDIGO_GLOW} />
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Server size={18} color={!isFormValid ? TEXT_SECONDARY : INDIGO_GLOW} style={{ marginRight: 8 }} />
                   <Text style={[styles.testButtonText, !isFormValid && { color: TEXT_SECONDARY }]}>
                     Test Connection
                   </Text>
@@ -225,13 +225,15 @@ export default function SettingsScreen() {
                 { borderColor: testResult.ok ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)" }
               ]}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: testResult.ok ? 16 : 0 }}>
-                {testResult.ok ? (
-                  <CheckCircle2 size={20} color={SUCCESS} />
-                ) : (
-                  <AlertCircle size={20} color={ERROR} />
-                )}
-                <Text style={{ color: testResult.ok ? SUCCESS : ERROR, fontWeight: "600", fontSize: 15 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: testResult.ok ? 16 : 0 }}>
+                <View style={{ marginRight: 10 }}>
+                  {testResult.ok ? (
+                    <CheckCircle2 size={20} color={SUCCESS} />
+                  ) : (
+                    <AlertCircle size={20} color={ERROR} />
+                  )}
+                </View>
+                <Text style={{ color: testResult.ok ? SUCCESS : ERROR, fontWeight: "600", fontSize: 15, flex: 1 }}>
                   {testResult.ok ? "Connection Established" : testResult.msg}
                 </Text>
               </View>
@@ -241,7 +243,7 @@ export default function SettingsScreen() {
                   <Text style={{ color: TEXT_SECONDARY, fontSize: 13, marginBottom: 12 }}>
                     Available models ({testResult.models.length}). Tap to select default:
                   </Text>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}>
                     {testResult.models.slice(0, 8).map((m) => {
                       const isSelected = localModel === m;
                       return (
@@ -250,11 +252,12 @@ export default function SettingsScreen() {
                           onPress={() => setLocalModel(m)}
                           style={[
                             styles.modelChip,
-                            isSelected && styles.modelChipSelected
+                            { borderColor: isSelected ? INDIGO_GLOW : "rgba(255,255,255,0.08)" },
+                            { margin: 4 }
                           ]}
                         >
-                          {isSelected && <Check size={12} color="#fff" />}
-                          <Text style={[styles.modelChipText, isSelected && styles.modelChipTextSelected]}>
+                          {isSelected && <Check size={14} color="#fff" style={{ marginRight: 6 }} />}
+                          <Text style={{ color: isSelected ? "#fff" : TEXT_SECONDARY, fontSize: 13, fontWeight: "500" }}>
                             {m}
                           </Text>
                         </Pressable>
@@ -338,8 +341,10 @@ const styles = StyleSheet.create({
   inputHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
     marginBottom: 8,
+  },
+  inputHeaderIcon: {
+    marginRight: 8,
   },
   inputLabel: {
     fontSize: 14,
@@ -374,7 +379,6 @@ const styles = StyleSheet.create({
   modelChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
