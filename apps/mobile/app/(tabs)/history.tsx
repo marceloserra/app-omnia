@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { 
   View, Text, SectionList, Pressable, StyleSheet, TextInput, Modal, 
-  TouchableWithoutFeedback, Animated, Platform, KeyboardAvoidingView 
+  Platform, KeyboardAvoidingView 
 } from "react-native";
 import { MessageSquare, Pin, Pencil, Trash2, Search, X } from "lucide-react-native";
 import { useTheme, ThemePalette } from "../../lib/theme";
-import { openDatabase, createConversationRepo } from "@omnia/storage";
+import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { Conversation } from "@omnia/shared-types";
 import { router } from "expo-router";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Swipeable } from "react-native-gesture-handler";
 
 const db = openDatabase();
 const convRepo = createConversationRepo(db);
+const msgRepo = createMessageRepo(db);
 
 export default function HistoryScreen() {
   const theme = useTheme();
@@ -23,15 +26,64 @@ export default function HistoryScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   
-  // Refresh on focus logic can be added, for now fetch on mount
+  const [renameConv, setRenameConv] = useState<Conversation | null>(null);
+  const [renameTitle, setRenameTitle] = useState("");
+  const [deleteConv, setDeleteConv] = useState<Conversation | null>(null);
+  
+  const rowRefs = useRef<Map<string, Swipeable>>(new Map());
+  
   useEffect(() => {
     loadConvs();
+    AsyncStorage.getItem('pinnedIds').then(val => {
+      if (val) setPinnedIds(new Set(JSON.parse(val)));
+    });
   }, []);
 
   const loadConvs = () => {
     try {
       setConversations(convRepo.listAll());
     } catch (e) {}
+  };
+
+  const togglePin = (id: string) => {
+    rowRefs.current.get(id)?.close();
+    setPinnedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      AsyncStorage.setItem('pinnedIds', JSON.stringify(Array.from(next)));
+      return next;
+    });
+  };
+
+  const handleRename = () => {
+    if (renameConv && renameTitle.trim()) {
+      try {
+        convRepo.update(renameConv.id, { title: renameTitle.trim(), updatedAt: Date.now() });
+        loadConvs();
+      } catch (e) {}
+    }
+    setRenameConv(null);
+  };
+
+  const handleDelete = () => {
+    if (deleteConv) {
+      try {
+        msgRepo.deleteByConversation(deleteConv.id);
+        convRepo.deleteById(deleteConv.id);
+        setPinnedIds(prev => {
+          if (prev.has(deleteConv.id)) {
+            const next = new Set(prev);
+            next.delete(deleteConv.id);
+            AsyncStorage.setItem('pinnedIds', JSON.stringify(Array.from(next)));
+            return next;
+          }
+          return prev;
+        });
+        loadConvs();
+      } catch (e) {}
+    }
+    setDeleteConv(null);
   };
 
   const filtered = conversations.filter(c => 
@@ -108,7 +160,7 @@ export default function HistoryScreen() {
       <SectionList
         sections={sections}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({ section: { title } }) => (
           <Text style={styles.groupTitle}>{title}</Text>
@@ -117,24 +169,96 @@ export default function HistoryScreen() {
           const conv = item as Conversation;
           const isPinned = pinnedIds.has(conv.id);
           
+          const renderLeftActions = () => (
+            <View style={{ justifyContent: "center", width: 80, paddingLeft: 20 }}>
+              <Pressable
+                style={{ flex: 1, backgroundColor: isPinned ? "#64748b" : "#f59e0b", justifyContent: "center", alignItems: "center", borderRadius: 16, marginBottom: 8 }}
+                onPress={() => togglePin(conv.id)}
+              >
+                <Pin size={20} color="#fff" style={{ transform: isPinned ? [{ rotate: "45deg" }] : [] }} />
+              </Pressable>
+            </View>
+          );
+
+          const renderRightActions = () => (
+            <View style={{ flexDirection: "row", width: 140, paddingRight: 20, justifyContent: "flex-end", marginBottom: 8 }}>
+              <Pressable
+                style={{ flex: 1, backgroundColor: "#3b82f6", justifyContent: "center", alignItems: "center", borderRadius: 16, marginLeft: 8 }}
+                onPress={() => { rowRefs.current.get(conv.id)?.close(); setRenameTitle(conv.title); setRenameConv(conv); }}
+              >
+                <Pencil size={20} color="#fff" />
+              </Pressable>
+              <Pressable
+                style={{ flex: 1, backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center", borderRadius: 16, marginLeft: 8 }}
+                onPress={() => { rowRefs.current.get(conv.id)?.close(); setDeleteConv(conv); }}
+              >
+                <Trash2 size={20} color="#fff" />
+              </Pressable>
+            </View>
+          );
+          
           return (
-            <Pressable
-              onPress={() => router.push(`/chat/${conv.id}`)}
-              style={({ pressed }) => [styles.convItem, pressed && styles.convItemPressed]}
+            <Swipeable
+              ref={ref => {
+                if (ref) rowRefs.current.set(conv.id, ref);
+                else rowRefs.current.delete(conv.id);
+              }}
+              renderLeftActions={renderLeftActions}
+              renderRightActions={renderRightActions}
+              overshootLeft={false}
+              overshootRight={false}
             >
-              {isPinned ? (
-                <Pin size={16} color={theme.indigo} style={{ marginRight: 12 }} />
-              ) : (
-                <MessageSquare size={16} color={theme.textSecondary} style={{ marginRight: 12 }} />
-              )}
-              <View style={{ flex: 1 }}>
-                <Text style={styles.convTitle} numberOfLines={1}>{conv.title}</Text>
-                <Text style={styles.convDate}>{new Date(conv.updatedAt).toLocaleDateString()}</Text>
-              </View>
-            </Pressable>
+              <Pressable
+                onPress={() => router.push(`/chat/${conv.id}`)}
+                style={({ pressed }) => [styles.convItem, pressed && styles.convItemPressed]}
+              >
+                {isPinned ? (
+                  <Pin size={16} color={theme.indigo} style={{ marginRight: 12 }} />
+                ) : (
+                  <MessageSquare size={16} color={theme.textSecondary} style={{ marginRight: 12 }} />
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.convTitle} numberOfLines={1}>{conv.title}</Text>
+                  <Text style={styles.convDate}>{new Date(conv.updatedAt).toLocaleDateString()}</Text>
+                </View>
+              </Pressable>
+            </Swipeable>
           );
         }}
         ListEmptyComponent={<Text style={styles.emptyText}>No chats found.</Text>}
+      />
+
+      <Modal visible={!!renameConv} transparent animationType="fade">
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 24 }}>
+            <View style={{ backgroundColor: theme.surface, borderRadius: 16, padding: 20 }}>
+              <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: "700", marginBottom: 16 }}>Rename Chat</Text>
+              <TextInput
+                style={{ backgroundColor: theme.surface2, color: theme.textPrimary, padding: 12, borderRadius: 8, fontSize: 16, marginBottom: 24 }}
+                value={renameTitle}
+                onChangeText={setRenameTitle}
+                autoFocus
+              />
+              <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
+                <Pressable onPress={() => setRenameConv(null)} style={{ padding: 10 }}>
+                  <Text style={{ color: theme.textSecondary, fontSize: 16, fontWeight: "600" }}>Cancel</Text>
+                </Pressable>
+                <Pressable onPress={handleRename} style={{ padding: 10 }}>
+                  <Text style={{ color: theme.indigo, fontSize: 16, fontWeight: "600" }}>Save</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      <ConfirmDialog
+        visible={!!deleteConv}
+        title="Delete Chat"
+        message="Are you sure you want to delete this conversation? This cannot be undone."
+        confirmText="Delete"
+        onCancel={() => setDeleteConv(null)}
+        onConfirm={handleDelete}
       />
     </View>
   );
@@ -197,6 +321,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     marginBottom: 8,
     borderWidth: 1,
     borderColor: theme.border,
+    marginHorizontal: 20,
   },
   convItemPressed: {
     backgroundColor: theme.activeBg,
