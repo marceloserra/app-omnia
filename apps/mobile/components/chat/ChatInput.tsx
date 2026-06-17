@@ -9,16 +9,13 @@ import {
   Text,
 } from "react-native";
 import { ArrowUp, Square } from "lucide-react-native";
-import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 
 const BG = "#05050f";
 const INDIGO = "#6366f1";
 const TEXT_PRIMARY = "#f8fafc";
-const TEXT_MUTED = "rgba(148, 163, 184, 0.5)";
-const BORDER_IDLE = "rgba(255,255,255,0.1)";
-const BORDER_FOCUS = "rgba(99,102,241,0.5)";
-const INPUT_BG = "rgba(255,255,255,0.04)";
+const TEXT_MUTED = "rgba(148, 163, 184, 0.4)";
+const INPUT_BG = "#131320"; // clean surface color without borders
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -34,7 +31,6 @@ export function ChatInput({
   disabled = false,
 }: ChatInputProps) {
   const [text, setText] = useState("");
-  const [focused, setFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const canSend = text.trim().length > 0 && !disabled;
@@ -56,9 +52,9 @@ export function ChatInput({
   };
 
   return (
-    <BlurView intensity={40} tint="dark" style={styles.outerContainer}>
+    <View style={styles.outerContainer}>
       {/* The pill-shaped input card */}
-      <View style={[styles.inputCard, focused && styles.inputCardFocused]}>
+      <View style={styles.inputCard}>
         {/* Text field */}
         <TextInput
           ref={inputRef}
@@ -69,8 +65,6 @@ export function ChatInput({
           multiline
           maxLength={4000}
           style={styles.textInput}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
           onSubmitEditing={Platform.OS !== "ios" ? handleSend : undefined}
           blurOnSubmit={false}
           editable={!disabled}
@@ -114,42 +108,26 @@ export function ChatInput({
 
       {/* Tiny hint */}
       <Text style={styles.hint}>
-        {disabled ? "No provider connected" : "Omnia may make mistakes. Verify important info."}
+        {disabled ? "No provider connected" : "Omnia can make mistakes. Check important info."}
       </Text>
-    </BlurView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   outerContainer: {
-    paddingTop: 10,
-    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingHorizontal: 16,
     paddingBottom: Platform.OS === "ios" ? 32 : 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "transparent",
   },
   inputCard: {
     backgroundColor: INPUT_BG,
     borderRadius: 26,
-    borderWidth: 1,
-    borderColor: BORDER_IDLE,
     paddingTop: 12,
-    paddingLeft: 18,
-    paddingRight: 10,
+    paddingLeft: 16,
+    paddingRight: 8,
     paddingBottom: 8,
-    // Subtle shadow depth
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  inputCardFocused: {
-    borderColor: BORDER_FOCUS,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    shadowColor: INDIGO,
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
   },
   textInput: {
     color: TEXT_PRIMARY,
