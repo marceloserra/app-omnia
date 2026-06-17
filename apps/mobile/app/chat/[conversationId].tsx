@@ -17,9 +17,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
 
-const db = openDatabase();
-const msgRepo = createMessageRepo(db);
-const convRepo = createConversationRepo(db);
+let _db: any;
+let _msgRepo: any;
+let _convRepo: any;
+
+function getDb() {
+  if (!_db) {
+    _db = openDatabase();
+    _msgRepo = createMessageRepo(_db);
+    _convRepo = createConversationRepo(_db);
+  }
+  return { db: _db, msgRepo: _msgRepo, convRepo: _convRepo };
+}
 
 function generateId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -38,7 +47,7 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>(() => {
     if (!conversationId) return [];
     try {
-      return msgRepo.listByConversation(conversationId);
+      return getDb().msgRepo.listByConversation(conversationId);
     } catch {
       return [];
     }
@@ -47,7 +56,7 @@ export default function ChatScreen() {
   const [convTitle, setConvTitle] = useState(() => {
     if (!conversationId) return "Chat";
     try {
-      const conv = convRepo.getById(conversationId);
+      const conv = getDb().convRepo.getById(conversationId);
       return conv?.title || "Chat";
     } catch {
       return "Chat";
@@ -111,6 +120,7 @@ export default function ChatScreen() {
         content: text,
         timestamp: Date.now(),
       };
+      
 
       // Build chat history for the API from the current snapshot
       const snapshotForApi = isInitialPrompt ? [...prev] : [...prev, userMessage!];
@@ -122,6 +132,14 @@ export default function ChatScreen() {
       // Fire and forget the stream after we have the snapshot
       (async () => {
         try {
+          const { convRepo, msgRepo } = getDb();
+          if (isInitialPrompt && !convRepo.getById(conversationId)) {
+            convRepo.create({
+              id: conversationId,
+              title: "New Chat", // Will be updated by AI later
+              createdAt: Date.now(),
+            });
+          }
           if (userMessage) msgRepo.create(userMessage);
           msgRepo.create(assistantMessage);
           if (prev.length === 0 && userMessage) {
@@ -150,7 +168,7 @@ export default function ChatScreen() {
           }
 
           try {
-            msgRepo.updateContent(assistantId, fullContent);
+            getDb().msgRepo.updateContent(assistantId, fullContent);
           } catch (err) {
             logger.error("SQLite", "Failed to update assistant message content", err);
           }
@@ -161,7 +179,7 @@ export default function ChatScreen() {
             cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m)
           );
           try {
-            msgRepo.updateContent(assistantId, errorMsg);
+            getDb().msgRepo.updateContent(assistantId, errorMsg);
           } catch (err) {
             logger.error("SQLite", "Failed to log assistant stream error", err);
           }
@@ -183,6 +201,7 @@ export default function ChatScreen() {
   useEffect(() => {
     if (!conversationId) return;
     try {
+      const { convRepo, msgRepo } = getDb();
       const conv = convRepo.getById(conversationId);
       if (conv) setConvTitle(conv.title);
       const history = msgRepo.listByConversation(conversationId);

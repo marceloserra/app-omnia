@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
 import { ChatInput } from "../../components/chat/ChatInput";
-import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
+import { ModelPickerSheet, getModelIcon } from "../../components/chat/ModelPickerSheet";
 import { useProviderStore } from "../../store/provider-store";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
 import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
@@ -26,9 +26,18 @@ import { BlurView } from "expo-blur";
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
 
-const db = openDatabase();
-const msgRepo = createMessageRepo(db);
-const convRepo = createConversationRepo(db);
+let _db: any;
+let _msgRepo: any;
+let _convRepo: any;
+
+function getDb() {
+  if (!_db) {
+    _db = openDatabase();
+    _msgRepo = createMessageRepo(_db);
+    _convRepo = createConversationRepo(_db);
+  }
+  return { db: _db, msgRepo: _msgRepo, convRepo: _convRepo };
+}
 
 function generateId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -73,6 +82,7 @@ export default function HomeScreen() {
     const providerCtx = getProvider();
     if (!providerCtx) return;
 
+    const { convRepo, msgRepo } = getDb();
     const newConvId = generateId();
     const now = Date.now();
 
@@ -109,7 +119,7 @@ export default function HomeScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: theme.bg }}
       behavior="padding"
-      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
+      keyboardVerticalOffset={0}
     >
       <View style={{ flex: 1 }}>
         {/* Floating Header (Dynamic Island vibe) */}
@@ -192,27 +202,27 @@ export default function HomeScreen() {
         {/* Empty State: absolute within the list area only, not the whole screen */}
         {messages.length === 0 && (
           <View style={styles.emptyOverlay} pointerEvents="box-none">
-            <View style={styles.emptyGlyph}>
-              <Text style={{ fontSize: 32, color: theme.indigo }}>✦</Text>
-            </View>
-            <Text style={styles.emptyTitle}>{t("chat.empty.title")}</Text>
-            {noProvider ? (
-              <View style={{ alignItems: "center" }}>
-                <Text style={styles.emptySubtitle}>
-                  You need an AI provider to start chatting.
-                </Text>
-                <Pressable
-                  onPress={() => router.push("/settings")}
-                  style={({ pressed }) => [styles.providerBtn, pressed && { opacity: 0.8 }]}
-                >
-                  <Text style={styles.providerBtnText}>{t("settings.connect")}</Text>
-                </Pressable>
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconWrapper}>
+                {getModelIcon(store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId, 48)}
               </View>
-            ) : (
-              <Text style={styles.emptySubtitle}>
-                Ask me anything. I'll think through it with you.
-              </Text>
-            )}
+              <Text style={styles.emptyTitle}>Omnia · {store.activeProviderId === "openai" ? "OpenAI" : "Local"}</Text>
+              <Text style={styles.emptySubtitle}>{t("chat.empty.connected").replace("{model}", store.activeProviderId === "openai" ? store.openaiModelId : store.compatibleModelId)}</Text>
+
+              {noProvider && (
+                <View style={{ alignItems: "center", marginTop: 24 }}>
+                  <Text style={styles.emptySubtitle}>
+                    {t("chat.empty.noprovider")}
+                  </Text>
+                  <Pressable
+                    onPress={() => router.push("/settings")}
+                    style={({ pressed }) => [styles.providerConfigBtn, pressed && { opacity: 0.8 }]}
+                  >
+                    <Text style={styles.providerConfigText}>{t("chat.empty.cta")}</Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
           </View>
         )}
       </View>
@@ -312,49 +322,63 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     backgroundColor: theme.border,
   },
   emptyOverlay: {
-    ...StyleSheet.absoluteFill as any,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    paddingBottom: 60,
-    paddingHorizontal: 32,
+    zIndex: -1,
   },
-  emptyGlyph: {
-    width: 72,
-    height: 72,
-    borderRadius: 24,
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 120,
+  },
+  emptyIconWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: theme.activeBg,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
   },
   emptyTitle: {
+    fontSize: 20,
+    fontWeight: "600",
     color: theme.textPrimary,
-    fontSize: 22,
-    fontWeight: "700",
-    letterSpacing: 0.2,
-    marginBottom: 10,
-    textAlign: "center",
+    marginBottom: 8,
+    letterSpacing: 0.5,
   },
   emptySubtitle: {
-    color: theme.textMuted,
     fontSize: 15,
+    color: theme.textSecondary,
     textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 20,
   },
-  providerBtn: {
-    backgroundColor: theme.activeBg,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+  providerConfigBtn: {
+    marginTop: 16,
+    backgroundColor: theme.indigo,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: theme.border,
+    shadowColor: theme.indigo,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  providerConfigText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "600",
   },
   providerBtnText: {
     color: theme.indigo,
     fontWeight: "600",
     fontSize: 15,
-    letterSpacing: 0.3,
   },
   streamingIndicator: {
     flexDirection: "row",
