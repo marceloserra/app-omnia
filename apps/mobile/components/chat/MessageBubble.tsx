@@ -5,8 +5,12 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
-import Markdown from "react-native-markdown-display";
+import Markdown, { ASTNode } from "react-native-markdown-display";
 import { CheckCircle2 } from "lucide-react-native";
+// @ts-ignore
+import SyntaxHighlighter from "react-native-syntax-highlighter";
+// @ts-ignore
+import { atomOneDark } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
 const INDIGO = "#6366f1";
 const TEXT_PRIMARY = "#f8fafc";
@@ -71,6 +75,31 @@ const markdownStyles = StyleSheet.create({
   },
 });
 
+const renderRules = {
+  fence: (node: ASTNode, children: any, parent: any, styles: any) => {
+    return (
+      <View key={node.key} style={{ marginVertical: 8, borderRadius: 8, overflow: 'hidden' }}>
+        <SyntaxHighlighter
+          // @ts-ignore
+          language={node.sourceInfo || 'text'}
+          style={atomOneDark}
+          customStyle={{ padding: 12, margin: 0, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 8 }}
+          textStyle={{ fontFamily: 'Courier', fontSize: 13 }}
+        >
+          {node.content}
+        </SyntaxHighlighter>
+      </View>
+    );
+  },
+  code_inline: (node: ASTNode, children: any, parent: any, styles: any) => {
+    return (
+      <Text key={node.key} style={styles.code_inline}>
+        {node.content}
+      </Text>
+    );
+  }
+};
+
 export function MessageBubble({ message }: MessageBubbleProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
@@ -130,7 +159,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       <BlurView intensity={20} tint="dark" style={[styles.bubble, styles.assistantBubble]}>
         
         {/* Render Rich Markdown for AI responses */}
-        <Markdown style={markdownStyles}>
+        <Markdown style={markdownStyles} rules={renderRules}>
           {message.content}
         </Markdown>
 
@@ -161,7 +190,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     marginVertical: 6,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
   },
   userContainer: {
     justifyContent: "flex-end",
@@ -170,11 +199,11 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   bubble: {
-    maxWidth: "90%",
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   userBubble: {
+    maxWidth: "88%",
     borderRadius: 20,
     borderBottomRightRadius: 6,
     shadowColor: INDIGO,
@@ -184,6 +213,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   assistantBubble: {
+    maxWidth: "96%",
     borderRadius: 20,
     borderBottomLeftRadius: 6,
     borderWidth: 1,

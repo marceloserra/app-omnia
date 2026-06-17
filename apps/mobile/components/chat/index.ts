@@ -1,3 +1,3 @@
-export { ChatBubble } from './ChatBubble';
-export { ChatComposer } from './ChatComposer';
-export { ConversationItem } from './ConversationItem';
+export * from './ChatInput';
+export * from './MessageBubble';
+export * from './ConversationListItem';
