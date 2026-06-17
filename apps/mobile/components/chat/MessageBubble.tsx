@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
+  Animated,
 } from "react-native";
 import { Message } from "@omnia/shared-types";
 import { BlurView } from "expo-blur";
@@ -24,13 +25,50 @@ interface MessageBubbleProps {
   isStreaming?: boolean;
 }
 
-// ─── Typing indicator (three animated dots) ───────────────────────────────────────
+// ─── Typing indicator (bouncing dots) ───────────────────────────────────────
 function TypingIndicator() {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [anim1] = useState(new Animated.Value(0));
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [anim2] = useState(new Animated.Value(0));
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [anim3] = useState(new Animated.Value(0));
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  React.useEffect(() => {
+    const createBounce = (anim: Animated.Value, delay: number) => {
+      return Animated.sequence([
+        Animated.delay(delay),
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(anim, {
+              toValue: -6,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+            Animated.delay(300), // Wait before bouncing again
+          ])
+        )
+      ]);
+    };
+
+    Animated.parallel([
+      createBounce(anim1, 0),
+      createBounce(anim2, 150),
+      createBounce(anim3, 300),
+    ]).start();
+  }, [anim1, anim2, anim3]);
+
   return (
     <View style={typingStyles.row}>
-      <View style={[typingStyles.dot, typingStyles.dot1]} />
-      <View style={[typingStyles.dot, typingStyles.dot2]} />
-      <View style={[typingStyles.dot, typingStyles.dot3]} />
+      <Animated.View style={[typingStyles.dot, { transform: [{ translateY: anim1 }] }]} />
+      <Animated.View style={[typingStyles.dot, { transform: [{ translateY: anim2 }] }]} />
+      <Animated.View style={[typingStyles.dot, { transform: [{ translateY: anim3 }] }]} />
     </View>
   );
 }
@@ -40,18 +78,15 @@ const typingStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 6,
-    gap: 5,
+    gap: 4,
   },
   dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: "#818cf8",
-    opacity: 0.5,
+    opacity: 0.8,
   },
-  dot1: { opacity: 0.9 },
-  dot2: { opacity: 0.6 },
-  dot3: { opacity: 0.3 },
 });
 
 // ─── Native code block (no external lib, zero crash risk) ───────────────────
