@@ -21,6 +21,7 @@ export function ErrorBoundary(props: { error: Error; retry: () => void }) {
   return null;
 }
 
+import { ThemeProvider, DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { useTheme } from "../lib/theme";
 
 export default function RootLayout() {
@@ -30,8 +31,15 @@ export default function RootLayout() {
     logger.info("App", "Omnia App Launched (Telemetry Active)");
   }, []);
 
+  const isDark = theme.bg === "#05050f";
+  const navTheme = isDark ? DarkTheme : DefaultTheme;
+  const customNavTheme = {
+    ...navTheme,
+    colors: { ...navTheme.colors, background: theme.bg },
+  };
+
   return (
-    <>
+    <ThemeProvider value={customNavTheme}>
       {/* @ts-expect-error expo-status-bar backgroundColor is valid on android but types might complain */}
       <StatusBar style={theme.bg === "#05050f" ? "light" : "dark"} backgroundColor={theme.bg} />
       <Stack
@@ -58,6 +66,6 @@ export default function RootLayout() {
           options={{ title: "Settings" }}
         />
       </Stack>
-    </>
+    </ThemeProvider>
   );
 }
