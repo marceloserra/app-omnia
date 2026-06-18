@@ -11,10 +11,11 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { ArrowUp, Square, Plus, FileText } from "lucide-react-native";
+import { ArrowUp, Square, Plus, FileText, Mic } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -45,12 +46,70 @@ export function ChatInput({
   const [loadingText, setLoadingText] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const textBeforeDictation = useRef("");
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
   const { t } = useTranslation();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
 
   const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
+
+  useSpeechRecognitionEvent("start", () => {
+    textBeforeDictation.current = text;
+    setIsRecording(true);
+  });
+
+  useSpeechRecognitionEvent("end", () => {
+    setIsRecording(false);
+  });
+
+  useSpeechRecognitionEvent("result", (event) => {
+    const transcript = event.results[0]?.transcript;
+    if (transcript) {
+      const prefix = textBeforeDictation.current ? textBeforeDictation.current + " " : "";
+      setText(prefix + transcript);
+    }
+  });
+
+  useSpeechRecognitionEvent("error", (event) => {
+    console.error("Speech recognition error:", event.error);
+    setIsRecording(false);
+    if (event.error !== "client") {
+      Alert.alert("Dictation Error", event.error);
+    }
+  });
+
+  const handleDictation = async () => {
+    if (isRecording) {
+      ExpoSpeechRecognitionModule.stop();
+      if (useSettingsStore.getState().hapticsEnabled) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      return;
+    }
+
+    Keyboard.dismiss();
+    
+    if (useSettingsStore.getState().hapticsEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+
+    const { granted } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+    if (!granted) {
+      Alert.alert("Permission Required", "Omnia needs microphone access for dictation.");
+      return;
+    }
+
+    try {
+      ExpoSpeechRecognitionModule.start({
+        interimResults: true,
+      });
+    } catch (err) {
+      console.error("Failed to start speech recognition:", err);
+      setIsRecording(false);
+    }
+  };
 
   const handleSendPress = () => {
     if (disabled && onPressDisabled) {
@@ -211,28 +270,40 @@ export function ChatInput({
           </Pressable>
 
           {/* Text field */}
-        <TextInput
-          ref={inputRef}
-          value={text}
-          onChangeText={setText}
-          placeholder={t("chat.input.placeholder")}
-          placeholderTextColor={theme.textMuted}
-          multiline
-          maxLength={4000}
-          style={styles.textInput}
-          onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
-          blurOnSubmit={false}
-          editable={true}
-          returnKeyType="send"
-          enablesReturnKeyAutomatically
-          scrollEnabled
-          onFocus={() => {
-            setIsFocused(true);
-            if (onFocus) onFocus();
-          }}
-          onBlur={() => setIsFocused(false)}
-          testID="chat-input"
-        />
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', position: 'relative' }}>
+            <TextInput
+              ref={inputRef}
+              value={text}
+              onChangeText={setText}
+              placeholder={t("chat.input.placeholder")}
+              placeholderTextColor={theme.textMuted}
+              multiline
+              maxLength={4000}
+              style={[styles.textInput, { paddingRight: 40 }]}
+              onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
+              blurOnSubmit={false}
+              editable={true}
+              returnKeyType="send"
+              enablesReturnKeyAutomatically
+              scrollEnabled
+              onFocus={() => {
+                setIsFocused(true);
+                if (onFocus) onFocus();
+              }}
+              onBlur={() => setIsFocused(false)}
+              testID="chat-input"
+            />
+            <Pressable 
+              onPress={handleDictation} 
+              style={({ pressed }) => [
+                { position: 'absolute', right: 8, bottom: 6, width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
+                pressed && { backgroundColor: theme.activeBg }
+              ]}
+              accessibilityLabel="Dictate message"
+            >
+              <Mic size={20} color={isRecording ? theme.red : theme.textMuted} />
+            </Pressable>
+          </View>
 
           {/* Action button column */}
           <View style={styles.actionCol}>
@@ -326,7 +397,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     minHeight: 40, // Matches button height perfectly
     paddingTop: 9,
     paddingBottom: 9,
-    marginRight: 12,
+    marginRight: 0,
     textAlignVertical: "top",
   },
   actionCol: {
