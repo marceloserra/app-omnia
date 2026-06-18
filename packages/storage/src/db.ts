@@ -7,10 +7,13 @@ import * as SQLite from "expo-sqlite";
  * Schema version: 1
  * Migrations: tracked in the `schema_version` table.
  */
+let _dbInstance: SQLite.SQLiteDatabase | null = null;
+
 export function openDatabase() {
-  const db = SQLite.openDatabaseSync("omnia.db");
-  runMigrations(db);
-  return db;
+  if (_dbInstance) return _dbInstance;
+  _dbInstance = SQLite.openDatabaseSync("omnia.db");
+  runMigrations(_dbInstance);
+  return _dbInstance;
 }
 
 function runMigrations(db: SQLite.SQLiteDatabase) {
