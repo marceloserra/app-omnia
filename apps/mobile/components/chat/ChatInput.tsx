@@ -16,6 +16,7 @@ import { ArrowUp, Square, Plus, FileText, Mic } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
+import * as Localization from "expo-localization";
 
 let ExpoSpeechRecognitionModule: any = null;
 let useSpeechRecognitionEvent: any = () => {};
@@ -163,7 +164,9 @@ export function ChatInput({
     }
 
     try {
+      const deviceLang = Localization.getLocales()[0]?.languageTag || "en-US";
       ExpoSpeechRecognitionModule.start({
+        lang: deviceLang,
         interimResults: true,
       });
     } catch (err) {
