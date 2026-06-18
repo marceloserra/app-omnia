@@ -10,6 +10,7 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  InteractionManager,
 } from "react-native";
 import { ArrowUp, Square, Plus, FileText } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
@@ -81,11 +82,13 @@ export function ChatInput({
     setLoadingText(messages[Math.floor(Math.random() * messages.length)]);
     setIsPickingFile(true);
     
-    // Yield to the React event loop to ensure the AttachmentMenu modal fully closes
-    // and the 'working...' pill paints to the screen BEFORE the Android OS thread
-    // freezes the app to open the Native File Picker Intent. This also prevents 
-    // Android from instantly canceling the Intent if the UI is still animating.
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // ── PRINCIPAL FAANG FIX ──
+    // Relying on arbitrary `setTimeout(300)` is a code smell. Slower devices will break,
+    // and faster devices will waste time. Instead, we hook into React Native's bridge.
+    // `runAfterInteractions` waits precisely until the Modal's close animation completes
+    // and the JS thread yields, guaranteeing the Native Activity is 100% idle before 
+    // launching the File Picker Intent.
+    await new Promise<void>(resolve => InteractionManager.runAfterInteractions(() => resolve()));
     
     try {
       switch (option) {
