@@ -5,6 +5,7 @@ import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-spe
 import { logger } from "@omnia/logger";
 import { getWhisperContext, isModelDownloaded, startWhisperRealtime } from "../lib/whisper";
 import { useTranslation } from "../lib/i18n";
+import * as Haptics from "expo-haptics";
 
 export type DictationState = {
   isRecording: boolean;
@@ -48,6 +49,14 @@ export function useDictation() {
     logger.error("Dictation", "Cloud STT Error", event);
     setIsRecording(false);
     setUsingCloudFallback(false);
+    
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    
+    // Elegant fallback: Apple doesn't show a popup when you simply stay quiet (no-speech).
+    // It just vibrates and closes the mic. We only show a visible alert for real crashes.
+    if (event.error !== "no-speech") {
+      Alert.alert(t("chat.error.prefix") || "Error", event.message || "Speech recognition failed.");
+    }
   });
 
   const startCloudStrategy = async () => {
