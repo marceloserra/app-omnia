@@ -89,7 +89,7 @@ export function ChatInput({
   const [isFocused, setIsFocused] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const pendingTranscript = useRef("");
+  const textBeforeDictation = useRef("");
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
   const { t } = useTranslation();
@@ -97,38 +97,26 @@ export function ChatInput({
 
   const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
 
-  const flushTranscript = React.useCallback(() => {
-    if (pendingTranscript.current) {
-      setText((prev) => {
-        const prefix = prev.length > 0 && !prev.endsWith(" ") ? prev + " " : prev;
-        return prefix + pendingTranscript.current;
-      });
-      pendingTranscript.current = "";
-    }
-  }, []);
-
   useSpeechRecognitionEvent("start", () => {
-    pendingTranscript.current = "";
+    textBeforeDictation.current = text;
     setIsRecording(true);
   });
 
   useSpeechRecognitionEvent("end", () => {
     setIsRecording(false);
-    flushTranscript();
   });
 
   useSpeechRecognitionEvent("result", (event: any) => {
     const transcript = event.results[0]?.transcript;
     if (transcript) {
-      pendingTranscript.current = transcript;
+      const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
+      setText(prefix + transcript);
     }
   });
 
   useSpeechRecognitionEvent("error", (event: any) => {
     console.warn("Speech recognition error:", event.error);
     setIsRecording(false);
-    flushTranscript();
-    // Ignore no-speech as it's just a timeout, we simply flush the accumulated text
     if (event.error !== "client" && event.error !== "no-speech" && event.error !== "no-match") {
       Alert.alert("Dictation Error", event.error);
     }
@@ -333,54 +321,52 @@ export function ChatInput({
             )}
           </Pressable>
 
-          {/* Text field or Recording UI */}
-          {isRecording ? (
-            <View style={styles.recordingOverlay}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 10, height: 16 }}>
+          {/* Text field AND Recording UI */}
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', position: 'relative' }}>
+            <TextInput
+              ref={inputRef}
+              value={text}
+              onChangeText={setText}
+              placeholder={isRecording ? (t("chat.input.listening") || "Listening...") : t("chat.input.placeholder")}
+              placeholderTextColor={isRecording ? theme.red : theme.textMuted}
+              multiline
+              maxLength={4000}
+              style={[styles.textInput, { paddingRight: isRecording ? 80 : 40 }]}
+              onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
+              blurOnSubmit={false}
+              editable={!isRecording}
+              returnKeyType="send"
+              enablesReturnKeyAutomatically
+              scrollEnabled
+              onFocus={() => {
+                setIsFocused(true);
+                if (onFocus) onFocus();
+              }}
+              onBlur={() => setIsFocused(false)}
+              testID="chat-input"
+            />
+            
+            {isRecording ? (
+              <View style={{ position: 'absolute', right: 8, bottom: 6, flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, height: 16 }}>
                   <WaveformBar delay={0} isRecording={isRecording} theme={theme} />
                   <WaveformBar delay={150} isRecording={isRecording} theme={theme} />
                   <WaveformBar delay={300} isRecording={isRecording} theme={theme} />
                   <WaveformBar delay={100} isRecording={isRecording} theme={theme} />
                   <WaveformBar delay={250} isRecording={isRecording} theme={theme} />
                 </View>
-                <Text style={styles.recordingText}>{t("chat.input.listening") || "Listening..."}</Text>
+                <Pressable 
+                  onPress={handleDictation}
+                  style={({ pressed }) => [
+                    styles.stopDictationBtn,
+                    pressed && { opacity: 0.7 }
+                  ]}
+                  accessibilityLabel="Stop dictation"
+                >
+                  <Square size={14} color={theme.red} fill={theme.red} />
+                </Pressable>
               </View>
-              <Pressable 
-                onPress={handleDictation}
-                style={({ pressed }) => [
-                  styles.stopDictationBtn,
-                  pressed && { opacity: 0.7 }
-                ]}
-                accessibilityLabel="Stop dictation"
-              >
-                <Square size={14} color={theme.red} fill={theme.red} />
-              </Pressable>
-            </View>
-          ) : (
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', position: 'relative' }}>
-              <TextInput
-                ref={inputRef}
-                value={text}
-                onChangeText={setText}
-                placeholder={t("chat.input.placeholder")}
-                placeholderTextColor={theme.textMuted}
-                multiline
-                maxLength={4000}
-                style={[styles.textInput, { paddingRight: 40 }]}
-                onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
-                blurOnSubmit={false}
-                editable={true}
-                returnKeyType="send"
-                enablesReturnKeyAutomatically
-                scrollEnabled
-                onFocus={() => {
-                  setIsFocused(true);
-                  if (onFocus) onFocus();
-                }}
-                onBlur={() => setIsFocused(false)}
-                testID="chat-input"
-              />
+            ) : (
               <Pressable 
                 onPress={handleDictation} 
                 style={({ pressed }) => [
@@ -391,12 +377,12 @@ export function ChatInput({
               >
                 <Mic size={20} color={theme.textMuted} />
               </Pressable>
-            </View>
-          )}
+            )}
+          </View>
 
           {/* Action button column */}
           <View style={styles.actionCol}>
-            {isStreaming ? (
+            {isRecording ? null : isStreaming ? (
               <Pressable
                 onPress={handleStop}
                 style={({ pressed }) => [styles.sendBtn, styles.stopBtn, pressed && { opacity: 0.75 }]}
