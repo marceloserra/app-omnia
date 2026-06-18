@@ -39,11 +39,15 @@ To render images inside the `MessageBubble` efficiently, we will install and use
 `expo-image` uses SDWebImage (iOS) and Glide (Android) natively, offering aggressive memory caching, blurhash placeholders, and superior scroll performance. Attachments will be rendered in a grid/flex layout *above* the message text.
 
 ### 4. Just-In-Time (JIT) Base64 Encoding
-When a message is sent to an LLM Provider (like OpenAI `gpt-4o` or Anthropic), the provider often requires the image as a Base64 string.
 We will read the file from disk, convert it to Base64 *in-memory* exclusively during the API payload construction, and let the garbage collector clean it up immediately after the HTTP request completes.
+
+### 5. Local Native Text Extraction (PDFs & Documents)
+OpenAI's Chat Completion API (and local models) do not natively accept raw `.pdf` or `.docx` bytes in the `messages` payload; they only accept `image_url` for Vision. 
+To support document attachments immediately (Phase 10) without waiting for the full RAG/Knowledge Base implementation (Phase 13), we will use `expo-pdf-text-extract` (which utilizes native iOS PDFKit and Android PDFBox) to extract text locally and inject it directly into the prompt (e.g., `[Content of PDF]: ...`). Raw text files (`.txt`, `.md`, `.csv`, `.json`) will be read directly via `expo-file-system`.
 
 ## Consequences
 - **Positive:** SQLite remains incredibly fast and small (only storing strings).
 - **Positive:** App memory footprint stays low because Base64 strings are transient.
 - **Positive:** Android scroll performance is preserved via `expo-image`.
 - **Negative:** Requires file system management (we must remember to delete files from `omnia_attachments/` when a user deletes a conversation or clears history).
+- **Negative:** Requires the app to be built as a custom development client (`expo run:ios/android`) because `expo-pdf-text-extract` adds native Swift/Kotlin dependencies.

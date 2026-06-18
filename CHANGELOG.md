@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. See [standa
 - Add persistent storage for attachments: Files are copied securely to the `FileSystem.documentDirectory` to survive OS cache purges.
 - Extend SQLite schema (v3) to store attachment metadata JSON efficiently, avoiding base64 blobs in the database.
 - Integrate `expo-image` into `MessageBubble` for ultra-performant, cached image rendering within chat bubbles.
+- Implement Local Native Text Extraction for PDFs (`expo-pdf-text-extract`) and raw text files (`.txt`, `.md`, `.csv`, `.json`), injecting content directly into the AI prompt to support document Q&A without waiting for Phase 13 RAG.
 
 ### Changed
 
@@ -28,6 +29,9 @@ All notable changes to this project will be documented in this file. See [standa
 - Harden Android release APK support for HTTP local AI providers by injecting a native network security config during Expo prebuild.
 - Restore the Android adaptive launcher icon asset so release APK installs show the Omnia icon instead of the default Android Studio icon.
 - Fix CI typecheck/test resolution for mobile Jest files by excluding tests from the production TypeScript program and making React Native Testing Library available to the root test runner.
+- Fix chat history rendering where network or filesystem delays caused user messages to be sorted below AI responses due to asynchronous timestamps.
+- Fix low contrast of the assistant bubble and typing indicator in light mode by adding adaptive opacity and borders.
+- Fix attachment persistence failure on Android by implementing per-item graceful fallback to the cache URI if the Sandbox copy fails.
 
 ## [1.0.1] - The Omnia Design Update
 
