@@ -10,8 +10,14 @@ export interface ProviderConnectionConfig {
   baseUrl?: string; // Important for OpenAI-compatible providers like LM Studio
 }
 
+export interface ChatMessageContentPart {
+  type: "text" | "image_url";
+  text?: string;
+  image_url?: { url: string };
+}
+
 export interface ChatRequest {
-  messages: { role: string; content: string }[];
+  messages: { role: string; content: string | ChatMessageContentPart[] }[];
   modelId: string;
   temperature?: number;
   stream?: boolean;

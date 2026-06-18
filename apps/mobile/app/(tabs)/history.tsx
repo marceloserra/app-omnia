@@ -360,7 +360,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     letterSpacing: 0.5,
     marginTop: 16,
     marginBottom: 8,
-    marginLeft: 4,
+    paddingHorizontal: 24,
   },
   convItem: {
     flexDirection: "row",

@@ -33,7 +33,8 @@
     "plugins": [
       "expo-sqlite",
       "./plugins/with-android-cleartext-traffic",
-      "@config-plugins/detox"
+      "@config-plugins/detox",
+      "expo-image"
     ]
   }
 }

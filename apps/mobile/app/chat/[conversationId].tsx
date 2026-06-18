@@ -4,6 +4,7 @@ import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
 import { ChatInput } from "../../components/chat/ChatInput";
+import { Attachment } from "../../components/chat/AttachmentPill";
 import { ModelPickerSheet, getModelIcon } from "../../components/chat/ModelPickerSheet";
 import { ModelChip } from "../../components/chat/ModelChip";
 import { useProviderStore } from "../../store/provider-store";
@@ -19,6 +20,7 @@ import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
 import { useSettingsStore } from "../../store/settings-store";
 import * as Haptics from "expo-haptics";
+import * as FileSystem from "expo-file-system/legacy";
 
 let _db: any;
 let _msgRepo: any;
@@ -99,7 +101,7 @@ export default function ChatScreen() {
     return null;
   }, [store]);
 
-  const handleSend = useCallback(async (text: string, isInitialPrompt: boolean = false) => {
+  const handleSend = useCallback(async (text: string, attachments?: Attachment[], isInitialPrompt: boolean = false) => {
     const providerCtx = getProvider();
     if (!providerCtx) return;
     if (!conversationId) return;
@@ -118,20 +120,79 @@ export default function ChatScreen() {
       timestamp: Date.now(),
     };
 
+    const processedAttachments: Attachment[] = [];
+    if (attachments && attachments.length > 0) {
+      const attachmentDir = (FileSystem.documentDirectory || "file:///tmp/") + 'omnia_attachments/';
+      try {
+        const dirInfo = await FileSystem.getInfoAsync(attachmentDir);
+        if (!dirInfo.exists) {
+          await FileSystem.makeDirectoryAsync(attachmentDir, { intermediates: true });
+        }
+        for (const att of attachments) {
+          const ext = att.uri.split('.').pop() || 'tmp';
+          const newFileName = `${generateId()}.${ext}`;
+          const destUri = attachmentDir + newFileName;
+          await FileSystem.copyAsync({ from: att.uri, to: destUri });
+          processedAttachments.push({ ...att, uri: destUri });
+        }
+      } catch (err) {
+        logger.error("FileSystem", "Failed to persist attachments", err);
+        console.error("FileSystem Error:", err);
+        // Fallback to ephemeral URIs so the chat doesn't break
+        if (processedAttachments.length === 0) {
+          processedAttachments.push(...attachments);
+        }
+      }
+    }
+
     const userMessage: Message | null = isInitialPrompt ? null : {
       id: generateId(),
       conversationId: conversationId,
       role: "user",
       content: text,
       timestamp: Date.now(),
+      attachments: processedAttachments.length > 0 ? processedAttachments : undefined,
     };
 
     const prev = messagesRef.current;
     const snapshotForApi = isInitialPrompt ? [...prev] : [...prev, userMessage!];
-    const chatHistory = snapshotForApi.map((m) => ({
-      role: m.role as "user" | "assistant" | "system",
-      content: m.content,
+    
+    // Construct multi-modal payload
+    const chatHistory = await Promise.all(snapshotForApi.map(async (m) => {
+      if (m.attachments && m.attachments.length > 0) {
+        const contentParts: any[] = [];
+        if (m.content) {
+          contentParts.push({ type: "text", text: m.content });
+        }
+        for (const att of m.attachments) {
+          if (att.type === 'image') {
+            try {
+              const base64 = await FileSystem.readAsStringAsync(att.uri, { encoding: FileSystem.EncodingType.Base64 });
+              const mime = att.mimeType || 'image/jpeg';
+              contentParts.push({
+                type: "image_url",
+                image_url: { url: `data:${mime};base64,${base64}` }
+              });
+            } catch (err) {
+              logger.error("FileSystem", `Failed to read attachment ${att.uri} as Base64`, err);
+            }
+          }
+        }
+        // If it only had documents or reading failed, fallback to text
+        if (contentParts.length === 0) {
+           return { role: m.role as "user" | "assistant" | "system", content: m.content };
+        }
+        return {
+          role: m.role as "user" | "assistant" | "system",
+          content: contentParts,
+        };
+      }
+      return {
+        role: m.role as "user" | "assistant" | "system",
+        content: m.content,
+      };
     }));
+    
     const isFirstMessage = prev.length === 0 && userMessage;
 
     setMessages((currentPrev) => {
@@ -265,7 +326,7 @@ export default function ChatScreen() {
       setMessages(history);
       if (initialPrompt && !hasTriggeredPrompt.current) {
         hasTriggeredPrompt.current = true;
-        setTimeout(() => { handleSend(initialPrompt, true); }, 300);
+        setTimeout(() => { handleSend(initialPrompt, undefined, true); }, 300);
       }
     } catch (err) {
       logger.error("SQLite", "Failed to load chat history", err);

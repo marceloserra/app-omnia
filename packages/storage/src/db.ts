@@ -58,4 +58,11 @@ function runMigrations(db: SQLite.SQLiteDatabase) {
       UPDATE schema_version SET version = 2;
     `);
   }
+
+  if (currentVersion < 3) {
+    db.execSync(`
+      ALTER TABLE messages ADD COLUMN attachments TEXT;
+      UPDATE schema_version SET version = 3;
+    `);
+  }
 }

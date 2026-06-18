@@ -8,16 +8,21 @@ import {
   Keyboard,
   Text,
   Alert,
+  ScrollView,
 } from "react-native";
 import { ArrowUp, Square, Plus } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
 import { useSettingsStore } from "../../store/settings-store";
+import { AttachmentPill, Attachment } from "./AttachmentPill";
+import { AttachmentMenu } from "./AttachmentMenu";
 
 export interface ChatInputProps {
-  onSend: (text: string) => void;
+  onSend: (text: string, attachments?: Attachment[]) => void;
   onStop?: () => void;
   onPressDisabled?: () => void;
   isStreaming?: boolean;
@@ -34,13 +39,15 @@ export function ChatInput({
   onFocus,
 }: ChatInputProps) {
   const [text, setText] = useState("");
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isFocused, setIsFocused] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
   const { t } = useTranslation();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
 
-  const canSend = text.trim().length > 0 && !disabled;
+  const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
 
   const handleSendPress = () => {
     if (disabled && onPressDisabled) {
@@ -48,15 +55,79 @@ export function ChatInput({
       return;
     }
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed && attachments.length === 0) return;
     
     if (useSettingsStore.getState().hapticsEnabled) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     
-    onSend(trimmed);
+    onSend(trimmed, attachments);
     setText("");
+    setAttachments([]);
     inputRef.current?.clear();
+  };
+
+  const handleAttachPress = () => {
+    Keyboard.dismiss();
+    setMenuVisible(true);
+  };
+
+  const handleAttachOption = async (option: 'camera' | 'library' | 'files') => {
+    setMenuVisible(false);
+    
+    switch (option) {
+      case 'camera': {
+        const camPerm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!camPerm.granted) return;
+        const camResult = await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          quality: 0.8,
+        });
+        if (!camResult.canceled && camResult.assets[0]) {
+          const asset = camResult.assets[0];
+          setAttachments((prev) => [
+            ...prev,
+            { uri: asset.uri, name: asset.fileName || "photo.jpg", type: "image", mimeType: asset.mimeType, size: asset.fileSize },
+          ]);
+        }
+        break;
+      }
+      case 'library': {
+        const libResult = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images', 'videos'],
+          quality: 0.8,
+          allowsMultipleSelection: true,
+        });
+        if (!libResult.canceled && libResult.assets) {
+          const newAtts = libResult.assets.map((asset) => ({
+            uri: asset.uri,
+            name: asset.fileName || "photo.jpg",
+            type: "image" as const,
+            mimeType: asset.mimeType,
+            size: asset.fileSize,
+          }));
+          setAttachments((prev) => [...prev, ...newAtts]);
+        }
+        break;
+      }
+      case 'files': {
+        const docResult = await DocumentPicker.getDocumentAsync({
+          copyToCacheDirectory: true,
+          multiple: true,
+        });
+        if (!docResult.canceled && docResult.assets) {
+          const newAtts = docResult.assets.map((asset) => ({
+            uri: asset.uri,
+            name: asset.name,
+            type: "document" as const,
+            mimeType: asset.mimeType,
+            size: asset.size,
+          }));
+          setAttachments((prev) => [...prev, ...newAtts]);
+        }
+        break;
+      }
+    }
   };
 
   const handleStop = () => {
@@ -70,16 +141,33 @@ export function ChatInput({
 
   return (
     <View style={styles.outerContainer}>
-      {/* The pill-shaped input card */}
+      <AttachmentMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onSelect={handleAttachOption}
+      />
       <View style={[styles.inputCard, isFocused && styles.inputCardFocused]}>
-        <Pressable 
-          onPress={() => Alert.alert(t("chat.input.attach.title"), t("chat.input.attach.msg"))}
-          style={({ pressed }) => [styles.attachBtn, pressed && { opacity: 0.6 }]}
-        >
-          <Plus size={24} color={theme.textSecondary} />
-        </Pressable>
+        
+        {/* Attachments UI (Pills) */}
+        {attachments.length > 0 && (
+          <View style={styles.attachmentsRow}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              {attachments.map((att, idx) => (
+                <AttachmentPill key={`${att.uri}-${idx}`} attachment={att} onRemove={() => setAttachments(p => p.filter((_, i) => i !== idx))} />
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
-        {/* Text field */}
+        <View style={styles.inputRow}>
+          <Pressable 
+            onPress={handleAttachPress}
+            style={({ pressed }) => [styles.attachBtn, pressed && { opacity: 0.6 }]}
+          >
+            <Plus size={24} color={theme.textSecondary} />
+          </Pressable>
+
+          {/* Text field */}
         <TextInput
           ref={inputRef}
           value={text}
@@ -103,35 +191,36 @@ export function ChatInput({
           testID="chat-input"
         />
 
-        {/* Action button column */}
-        <View style={styles.actionCol}>
-          {isStreaming ? (
-            <Pressable
-              onPress={handleStop}
-              style={({ pressed }) => [styles.sendBtn, styles.stopBtn, pressed && { opacity: 0.75 }]}
-              accessibilityLabel="Stop generating"
-            >
-              <Square size={16} color={theme.textPrimary} />
-            </Pressable>
-          ) : (
-            <Pressable
-              onPress={handleSendPress}
-              disabled={!canSend}
-              style={({ pressed }) => [
-                styles.sendBtn,
-                canSend ? styles.sendBtnActive : styles.sendBtnIdle,
-                pressed && canSend && { opacity: 0.8 },
-              ]}
-              accessibilityLabel="Send message"
-              testID="send-message-button"
-            >
-              <ArrowUp
-                size={20}
-                color={canSend ? "#ffffff" : theme.textMuted}
-                strokeWidth={3}
-              />
-            </Pressable>
-          )}
+          {/* Action button column */}
+          <View style={styles.actionCol}>
+            {isStreaming ? (
+              <Pressable
+                onPress={handleStop}
+                style={({ pressed }) => [styles.sendBtn, styles.stopBtn, pressed && { opacity: 0.75 }]}
+                accessibilityLabel="Stop generating"
+              >
+                <Square size={16} color={theme.textPrimary} />
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={handleSendPress}
+                disabled={!canSend}
+                style={({ pressed }) => [
+                  styles.sendBtn,
+                  canSend ? styles.sendBtnActive : styles.sendBtnIdle,
+                  pressed && canSend && { opacity: 0.8 },
+                ]}
+                accessibilityLabel="Send message"
+                testID="send-message-button"
+              >
+                <ArrowUp
+                  size={20}
+                  color={canSend ? "#ffffff" : theme.textMuted}
+                  strokeWidth={3}
+                />
+              </Pressable>
+            )}
+          </View>
         </View>
       </View>
 
@@ -152,8 +241,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     // Transparent — the pill inputCard provides its own background
   },
   inputCard: {
-    flexDirection: "row",
-    alignItems: "flex-end",
+    flexDirection: "column",
     backgroundColor: theme.surface2,
     borderRadius: 26,
     borderWidth: 1,
@@ -163,6 +251,16 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     paddingRight: 6,
     paddingBottom: 6,
     minHeight: 52,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+  },
+  attachmentsRow: {
+    paddingLeft: 4,
+    paddingRight: 4,
+    paddingTop: 4,
+    paddingBottom: 12,
   },
   inputCardFocused: {
     borderColor: theme.indigo,

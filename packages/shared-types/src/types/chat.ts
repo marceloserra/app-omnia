@@ -6,6 +6,14 @@ export interface TokenMetadata {
   totalTokens?: number;
 }
 
+export interface MessageAttachment {
+  uri: string;
+  type: 'image' | 'document';
+  mimeType?: string;
+  name: string;
+  size?: number;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
@@ -15,6 +23,7 @@ export interface Message {
   providerId?: string; // ID of the provider that generated this (if role is assistant)
   modelId?: string;    // ID of the model that generated this
   metadata?: TokenMetadata;
+  attachments?: MessageAttachment[];
 }
 
 export interface Conversation {
