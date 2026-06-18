@@ -9,7 +9,8 @@
     "backgroundColor": "#05050f",
     "scheme": "omnia-mobile",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.marceloserra.omnia"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,9 +24,6 @@
       "softwareKeyboardLayoutMode": "resize",
       "backgroundColor": "#05050f",
       "package": "com.marceloserra.omnia"
-    },
-    "androidStatusBar": {
-      "translucent": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
