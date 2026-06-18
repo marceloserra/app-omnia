@@ -71,6 +71,12 @@ export async function startWhisperRealtime(
     globalTranscriber = null;
   }
 
+  // Create a contextual prompt to guide the model towards the UI language,
+  // while still allowing it to auto-detect and transcribe other languages.
+  let promptHint = "The user is speaking in English. Here is the transcription:";
+  if (language === 'pt') promptHint = "O usuário está falando em português. Aqui está a transcrição precisa e natural:";
+  else if (language === 'es') promptHint = "El usuario está hablando en español. Aquí está la transcripción precisa y natural:";
+
   const audioStream = new AudioPcmStreamAdapter();
   globalTranscriber = new RealtimeTranscriber(
     {
@@ -81,13 +87,26 @@ export async function startWhisperRealtime(
       audioSliceSec: 60,
       realtimeProcessingPauseMs: 200,
       initRealtimeAfterMs: 200,
+      initialPrompt: promptHint,
       transcribeOptions: {
-        language,
+        language: 'auto',
       }
     },
     {
       onTranscribe: (evt: any) => {
-        onResult(evt.data?.result || "", evt.isCapturing);
+        let text = (evt.data?.result || "").trim();
+        
+        // Anti-hallucination filter for common Whisper artifacts during silence
+        const lowerText = text.toLowerCase().replace(/[^a-z]/g, '');
+        const hallucinations = ["thankyou", "thanksforwatching", "pleasesubscribe", "obrigado", "gracias", "silence", "music"];
+        if (hallucinations.includes(lowerText)) {
+          text = "";
+        }
+        
+        // Also strip text inside brackets like [Música] or (silêncio)
+        text = text.replace(/\[.*?\]|\(.*?\)/g, '').trim();
+
+        onResult(text, evt.isCapturing);
       },
       onError: (err: any) => {
         if (onError) onError(err);
