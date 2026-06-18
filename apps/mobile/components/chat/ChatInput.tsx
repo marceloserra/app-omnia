@@ -97,7 +97,10 @@ export function ChatInput({
   // Real-time Whisper Dictation
   const startWhisperDictation = async () => {
     try {
-      setIsDownloadingModel(true);
+      const isDownloaded = await isModelDownloaded();
+      if (!isDownloaded) {
+        setIsDownloadingModel(true);
+      }
       await getWhisperContext(); // Ensure model is loaded
       setIsDownloadingModel(false);
       

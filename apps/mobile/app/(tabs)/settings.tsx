@@ -546,7 +546,7 @@ export default function SettingsScreen() {
       <ConfirmDialog
         visible={showWhisperDeleteConfirm}
         title="Remove Voice Engine"
-        message="Are you sure you want to delete the offline dictation engine? You will need to download the ~75MB file again to use dictation."
+        message="Are you sure you want to delete the offline dictation engine? You will need to download the ~142MB file again to use dictation."
         confirmText="Remove"
         onCancel={() => setShowWhisperDeleteConfirm(false)}
         onConfirm={confirmDeleteWhisper}
