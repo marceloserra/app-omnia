@@ -55,15 +55,16 @@ Agents must not implement work from a later phase unless the user explicitly adv
 - Android keyboard fix (pan mode + KeyboardAvoidingView padding)
 - NativeWind permanently removed; all styling via pure `StyleSheet.create`
 
-## Phase 8 (Conversation Management — Next)
+## Phase 8 (Completed — Conversation Management)
 
 - Swipe-to-delete individual conversations (with undo toast)
 - Long-press context menu: Rename and Delete
 - Delete All History (Settings danger zone + Alert confirmation)
 - Sidebar search/filter by conversation title
 - Conversation date grouping: Today / Yesterday / Last 7 days / Older
+- Swipe-to-pin conversations natively in SQLite
 
-## Phase 9 (Release Management & Premium UI Pivot — ACTIVE)
+## Phase 9 (Completed — Release Management & Premium UI Pivot)
 
 - Pivot architecture to Home-based Tab Navigation (replacing legacy Drawer)
 - Floating Glassmorphism Tab Bar (visionOS/Apple HIG aesthetic)
@@ -71,6 +72,12 @@ Agents must not implement work from a later phase unless the user explicitly adv
 - SectionList bucketing for Chat History ("Today", "Yesterday", etc.)
 - Full UI/UX refactoring for Theme and Language injection
 - Release Engineering Strategy and Pipelines (PR, Main, Release APK/SHA256)
+- Git Flow Adoption and Mandated PR Templates
+- Cut stable releases up to v1.0.2
+
+## Phase 10 (ACTIVE — Feature Expansion & Stabilization)
+
+- TBD: Define next major features (e.g., Image Generation, Web client).
 
 ## Non Goals
 
