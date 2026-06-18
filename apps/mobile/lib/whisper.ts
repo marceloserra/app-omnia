@@ -5,6 +5,7 @@ import { initWhisper } from 'whisper.rn/index.js';
 import { RealtimeTranscriber } from 'whisper.rn/realtime-transcription/RealtimeTranscriber.js';
 // @ts-ignore
 import { AudioPcmStreamAdapter } from 'whisper.rn/realtime-transcription/adapters/AudioPcmStreamAdapter.js';
+import { logger } from '@omnia/logger';
 const MODEL_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin';
 export const MODEL_FILE_PATH = `${(FileSystem as any).documentDirectory}ggml-base.bin`;
 
@@ -30,8 +31,9 @@ export async function downloadWhisperModel(onProgress?: (progress: number) => vo
   );
 
   console.log("[Whisper] Downloading ggml-base.bin model (~142MB)...");
+  logger.info("Whisper", "Downloading ggml-base.bin model (~142MB)...");
   await downloadResumable.downloadAsync();
-  console.log("[Whisper] Download complete!");
+  logger.info("Whisper", "Download complete!");
 }
 
 export async function deleteWhisperModel(): Promise<void> {
@@ -75,11 +77,11 @@ export async function startWhisperRealtime(
   onResult: (text: string, isCapturing: boolean) => void,
   onError?: (err: any) => void
 ): Promise<{ stop: () => Promise<void> }> {
-  console.log(`[Whisper] startWhisperRealtime requested. UI Language: ${language}`);
+  logger.info("Whisper", `startWhisperRealtime requested. UI Language: ${language}`);
   
   const context = await getWhisperContext();
   if (!context) {
-    console.error("[Whisper] Failed to start: Context is not initialized.");
+    logger.error("Whisper", "Failed to start: Context is not initialized.");
     throw new Error("Whisper context not initialized");
   }
 
@@ -99,7 +101,7 @@ export async function startWhisperRealtime(
   if (language === 'pt') promptHint = "O usuário está falando em português com a inteligência artificial Omnia. Aqui está a transcrição precisa e natural:";
   else if (language === 'es') promptHint = "El usuario está hablando en español con la inteligencia artificial Omnia. Aquí está la transcripción precisa e natural:";
 
-  console.log(`[Whisper] Initializing RealtimeTranscriber with promptHint: "${promptHint}"`);
+  logger.info("Whisper", `Initializing RealtimeTranscriber with promptHint: "${promptHint}"`);
 
   const audioStream = new AudioPcmStreamAdapter();
   globalTranscriber = new RealtimeTranscriber(
@@ -127,10 +129,8 @@ export async function startWhisperRealtime(
         const recordingTime = evt.recordingTime;
         const sliceIndex = evt.sliceIndex;
         
-        console.log(`\n[Whisper.onTranscribe] --- EVENT: ${evt.type} ---`);
-        console.log(`[Whisper.onTranscribe] Slice: ${sliceIndex} | RecTime: ${recordingTime}ms | ProcTime: ${processTime}ms`);
-        console.log(`[Whisper.onTranscribe] Detected Lang: ${detectedLang}`);
-        console.log(`[Whisper.onTranscribe] Raw Text: "${rawResult}"`);
+        logger.info("Whisper.onTranscribe", `EVENT: ${evt.type} | Slice: ${sliceIndex} | RecTime: ${recordingTime}ms | ProcTime: ${processTime}ms | Detected Lang: ${detectedLang}`);
+        logger.info("Whisper.onTranscribe", `Raw Text: "${rawResult}"`);
 
         let text = rawResult.trim();
         
@@ -138,7 +138,7 @@ export async function startWhisperRealtime(
         const lowerText = text.toLowerCase().replace(/[^a-z]/g, '');
         const hallucinations = ["thankyou", "thanksforwatching", "pleasesubscribe", "obrigado", "gracias", "silence", "music"];
         if (hallucinations.includes(lowerText)) {
-          console.log(`[Whisper.onTranscribe] FILTERED OUT hallucination: "${text}"`);
+          logger.info("Whisper.onTranscribe", `FILTERED OUT hallucination: "${text}"`);
           text = "";
         }
         
@@ -146,10 +146,10 @@ export async function startWhisperRealtime(
         const oldText = text;
         text = text.replace(/\[.*?\]|\(.*?\)/g, '').trim();
         if (oldText !== text && oldText.length > 0) {
-          console.log(`[Whisper.onTranscribe] STRIPPED BRACKETS. Old: "${oldText}" -> New: "${text}"`);
+          logger.info("Whisper.onTranscribe", `STRIPPED BRACKETS. Old: "${oldText}" -> New: "${text}"`);
         }
 
-        console.log(`[Whisper.onTranscribe] Final Text Emitted: "${text}" | isCapturing: ${evt.isCapturing}`);
+        logger.info("Whisper.onTranscribe", `Final Text Emitted: "${text}" | isCapturing: ${evt.isCapturing}`);
         onResult(text, evt.isCapturing);
       },
       onError: (err: any) => {

@@ -19,6 +19,7 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as Localization from "expo-localization";
+import { logger } from "@omnia/logger";
 import { getWhisperContext, isModelDownloaded, downloadWhisperModel, startWhisperRealtime } from "../../lib/whisper";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
@@ -117,7 +118,7 @@ export function ChatInput({
           setWhisperSession(null);
         }
       }, (err) => {
-        console.warn("Whisper STT Error:", err);
+        logger.error("ChatInput", "Whisper STT Callback Error", err);
         setIsRecording(false);
         setWhisperSession(null);
       });
@@ -125,7 +126,7 @@ export function ChatInput({
       setWhisperSession({ stop });
       
     } catch (err: any) {
-      console.warn("Whisper STT Error:", err);
+      logger.error("ChatInput", "Whisper Dictation Setup Error", err);
       setIsDownloadingModel(false);
       setIsRecording(false);
       Alert.alert("Dictation Error", err?.message || String(err));
