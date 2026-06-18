@@ -24,6 +24,7 @@ import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import * as Device from 'expo-device';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProviderStore } from "../../store/provider-store";
 import Constants from "expo-constants";
@@ -74,6 +75,30 @@ export default function SettingsScreen() {
     if (useSettingsStore.getState().hapticsEnabled) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    
+    // Hardware Capability Detection (Phase 9 Quality Gates)
+    if (Platform.OS === 'android') {
+      const model = Device.modelName || "";
+      const totalMemory = Device.totalMemory || 0;
+      // Exynos S21 variants (Global) are known to struggle with ggml-base
+      const isExynosS21 = model.includes("SM-G991B") || model.includes("SM-G996B") || model.includes("SM-G998B");
+      const isLowMemory = totalMemory > 0 && totalMemory < 4 * 1024 * 1024 * 1024; // < 4GB
+      
+      if (isExynosS21 || isLowMemory) {
+        const proceed = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            t("settings.capabilities.voice.warning.title" as any) || "Hardware Warning",
+            t("settings.capabilities.voice.warning.msg" as any) || "Your device processor may struggle to run the Voice Engine smoothly. You may experience slow transcriptions.\n\nDo you still want to proceed?",
+            [
+              { text: t("chat.delete.cancel" as any) || "Cancel", style: "cancel", onPress: () => resolve(false) },
+              { text: "Download Anyway", style: "destructive", onPress: () => resolve(true) }
+            ]
+          );
+        });
+        if (!proceed) return;
+      }
+    }
+
     try {
       setWhisperProgress(0);
       await downloadWhisperModel((p) => setWhisperProgress(p));
