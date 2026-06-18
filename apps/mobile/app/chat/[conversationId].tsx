@@ -137,6 +137,11 @@ export default function ChatScreen() {
         }
       } catch (err) {
         logger.error("FileSystem", "Failed to persist attachments", err);
+        console.error("FileSystem Error:", err);
+        // Fallback to ephemeral URIs so the chat doesn't break
+        if (processedAttachments.length === 0) {
+          processedAttachments.push(...attachments);
+        }
       }
     }
 
