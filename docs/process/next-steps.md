@@ -27,12 +27,12 @@ Once the stable APK is published and verified on physical devices, the project w
 
 For full strategic details, read `docs/roadmap/strategic-roadmap-review.md`.
 
-> **Inspiration Benchmark:** Agents MUST review `/Users/marceloserra/Documents/coding/projects/open-source/llama.cpp/tools/ui` for UI/UX inspiration on attachments, capabilities, and MCP execution.
+> **Inspiration Benchmark:** Agents MUST review world-class FAANG UIs (ChatGPT, Claude, Apple Intelligence) and open-source benchmarks like `/Users/marceloserra/Documents/coding/projects/open-source/llama.cpp/tools/ui` for UX inspiration. The goal is a premium, zero-friction experience for attachments, capabilities, and tool execution.
 
 ### Phase 10: Multi-Modal Attachments
 - **Goal:** Image → Model, PDF → Model, Camera → Model.
 - **Value:** Interact naturally with contracts, invoices, screenshots.
-- **Inspiration:** Llama.cpp UI attachment menus.
+- **Inspiration:** ChatGPT/Claude attachment pill UI, Apple Messages camera integration, and Llama.cpp attachment menus.
 
 ### Phase 11: Voice (Microphone / STT)
 - **Goal:** Allow users to speak to the model instead of typing.
