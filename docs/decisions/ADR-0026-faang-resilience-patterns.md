@@ -1,4 +1,4 @@
-# ADR-0026: FAANG-Tier Resilience & Idempotency Patterns
+# ADR 0026: FAANG-Tier Resilience and Idempotency Patterns
 
 ## Status
 Accepted

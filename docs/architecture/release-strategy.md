@@ -36,28 +36,59 @@ Use Semantic Versioning (SemVer).
 *   **Minor (`vX.Y+1.0`)**: New features. Example: `v0.3.0`
 *   **Major (`vX+1.0.0`)**: Breaking changes. Example: `v1.0.0`
 
+## Branching Strategy
+Release work follows `docs/process/git-flow.md`.
+
+*   `main` is production-only and must reflect released code.
+*   `develop` is the integration branch for reviewed work.
+*   `feature/*`, `bugfix/*`, `chore/*`, and `docs/*` branches target `develop`.
+*   `release/vX.Y.Z` branches stabilize a release from `develop` before merging to `main` and tagging.
+*   `hotfix/*` branches are reserved for urgent fixes from `main` and must be back-merged to `develop`.
+*   PRs into `main` use squash merge. Back-merge and release-sync PRs into `develop` use merge commits.
+
 ---
 
 ## GitHub Actions Strategy
 
-### 1. Pull Request Pipeline
-**Trigger:** Opening or updating a PR against `main`.
+### 1. Branch Validation
+**Workflow:** `.github/workflows/branch-validation.yml`
+**Trigger:** Pushing to scoped work or integration branches: `feature/**`, `bugfix/**`, `hotfix/**`, `chore/**`, `docs/**`, `release/**`, or `develop`.
 **Jobs:**
 *   Lint (`pnpm lint`)
 *   Typecheck (`pnpm typecheck`)
 *   Unit Tests (`pnpm test`)
-*   Storybook Validation (Check if stories compile)
 *   *Note: Artifacts are not generated here.*
 
-### 2. Main Branch Pipeline
-**Trigger:** Merge or direct push to `main`.
+### 2. PR Validation
+**Workflow:** `.github/workflows/pr-validation.yml`
+**Trigger:** Opening or updating a pull request targeting `develop`, `main`, or `release/**`.
+**Jobs:**
+*   Install with frozen lockfile
+*   Lint (`pnpm lint`)
+*   Typecheck (`pnpm typecheck`)
+*   Unit Tests (`pnpm test`)
+*   *Note: Artifacts are not generated here.*
+
+### 3. Main Validation
+**Workflow:** `.github/workflows/main-validation.yml`
+**Trigger:** Merge to `main` through the release or hotfix flow.
 **Jobs:**
 *   Build Validation (`expo export`)
 *   Android Debug Build check
 *   Documentation Validation
 *   *Purpose: Ensure the repository is always in a releasable state.*
 
-### 3. Release Pipeline
+### 4. Hotfix Back-Merge
+**Workflow:** `.github/workflows/hotfix-backmerge.yml`
+**Trigger:** A `hotfix/**` pull request is merged into `main`.
+**Jobs:**
+*   Create an automation branch from `develop`
+*   Merge `main` into that branch
+*   Open a PR back to `develop`
+*   *Purpose: Ensure urgent production fixes flow back into integration without bypassing branch protection.*
+
+### 5. Release APK
+**Workflow:** `.github/workflows/release-apk.yml`
 **Trigger:** Pushing a Git Tag (e.g., `refs/tags/v*`).
 **Jobs:**
 1.  **Build Artifacts:** Run Expo prebuild and compile the Android APK (`gradlew assembleRelease`).
@@ -125,20 +156,44 @@ All four commands must exit with code 0. Do not tag if any of them fail.
 ### Cutting a New Release
 
 ```bash
-# 1. Ensure main is clean and pushed
-git status
-git push origin main
+# 1. Stabilize from develop
+git checkout develop
+git pull origin develop
+git checkout -b release/vX.Y.Z
 
-# 2. Create an annotated tag with the release body inline
+# 2. Run the full pre-release gate
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm typecheck
+pnpm test
+
+# 3. Open PR: release/vX.Y.Z -> main
+# Merge with squash after PR validation passes.
+
+# 4. Ensure main is clean after the PR merge
+git checkout main
+git pull origin main
+git status
+
+# 5. Create an annotated tag with the release body inline
 git tag -a vX.Y.Z -m "Omnia vX.Y.Z — <Title>
 
 <Release body here>"
 
-# 3. Push the tag — this triggers the Release Pipeline automatically
+# 6. Push the tag — this triggers the Release APK workflow automatically
 git push origin vX.Y.Z
+
+# 7. Open a release-sync PR to develop
+git checkout develop
+git pull origin develop
+git checkout -b chore/backmerge-main-vX.Y.Z
+git merge main --no-ff
+git push origin chore/backmerge-main-vX.Y.Z
+# Open PR: chore/backmerge-main-vX.Y.Z -> develop
+# Merge with a merge commit after PR validation passes.
 ```
 
-The GitHub Actions Release Pipeline will then:
+The GitHub Actions Release APK workflow will then:
 1. Checkout the tagged commit
 2. Run `expo export --platform android` to generate the JS bundle
 3. Compile the Android APK (`omnia-android-vX.Y.Z-universal.apk`)
@@ -147,6 +202,59 @@ The GitHub Actions Release Pipeline will then:
 6. Attach the APK and checksum as downloadable assets
 
 No further action is required.
+
+### Cutting a Hotfix Release
+
+Use this path only for urgent defects in an already released artifact. Standard feature and bugfix work still targets `develop`.
+
+```bash
+# 1. Branch from main
+git checkout main
+git pull origin main
+git checkout -b hotfix/<short-description>
+
+# 2. Fix the issue, verify, push, and open a PR to main
+git commit -m "fix(scope): short description"
+git push origin hotfix/<short-description>
+# Open PR: hotfix/<short-description> -> main
+# Merge with squash after PR validation passes.
+
+# 3. After the PR merges, tag the patch release from main
+git checkout main
+git pull origin main
+git tag -a vX.Y.Z -m "Omnia vX.Y.Z — Hotfix: <Title>
+
+<Release body here>"
+git push origin vX.Y.Z
+
+# 4. Back-merge main into develop immediately
+# The hotfix-backmerge workflow should open this PR automatically.
+# If automation fails, create it manually:
+git checkout develop
+git pull origin develop
+git checkout -b chore/backmerge-main-vX.Y.Z
+git merge main --no-ff
+git push origin chore/backmerge-main-vX.Y.Z
+# Open PR: chore/backmerge-main-vX.Y.Z -> develop
+# Merge with a merge commit after PR validation passes.
+```
+
+Hotfix acceptance criteria:
+
+1. The hotfix PR uses `.github/pull_request_template.md`.
+2. The PR target is `main`.
+3. The PR is merged with squash.
+4. The patch tag is created from `main`, not from the hotfix branch.
+5. The Release APK workflow publishes a downloadable APK and checksum.
+6. `main` is back-merged into `develop` after the tag is pushed, preferably through the automated back-merge PR.
+7. Any skipped local release-build checks are documented with residual risk.
+
+Hotfix propagation rule:
+
+- The hotfix lands in `main` first.
+- After tagging, merge `main` into `develop`; this is the required propagation step.
+- If a release candidate branch already exists, merge `main` into that branch as well.
+- If the fix was originally authored on `develop`, cherry-pick it into a `hotfix/*` branch created from `main`, then follow the normal hotfix flow.
 
 ### Moving a Tag (Re-releasing)
 
@@ -162,7 +270,7 @@ git tag -a vX.Y.Z -m "<Release body>"
 git push origin vX.Y.Z
 ```
 
-> Note: Moving a tag re-triggers the Release Pipeline and overwrites the previous GitHub Release assets.
+> Note: Moving a tag re-triggers the Release APK workflow and overwrites the previous GitHub Release assets.
 
 ### Dependency Hygiene Rule
 

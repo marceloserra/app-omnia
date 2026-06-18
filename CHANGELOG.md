@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-changelog](https://github.com/bcoe/standard-changelog) for changelog format recommendations.
 
+## [Unreleased]
+
+### Added
+
+- Add a repository PR template requiring summary, context, review strategy, architecture notes, executed plan, verification evidence, rollout, risk review, documentation, follow-ups, and merge readiness.
+- Add documented Git Flow conventions for `feature/*`, `bugfix/*`, `hotfix/*`, `chore/*`, `docs/*`, `release/vX.Y.Z`, `develop`, and `main`.
+- Add Hotfix Back-Merge automation to open a `main` to `develop` PR after a `hotfix/*` PR merges into `main`.
+- Add branch, PR, main, release APK, and hotfix back-merge workflow documentation.
+
+### Changed
+
+- Rename CI workflow files to purpose-driven names: `branch-validation.yml`, `pr-validation.yml`, `main-validation.yml`, `release-apk.yml`, and `hotfix-backmerge.yml`.
+- Expand CI coverage for pushes to `feature/**`, `bugfix/**`, `hotfix/**`, `chore/**`, `docs/**`, `release/**`, and `develop`.
+- Make changelog updates mandatory for user-facing, release, CI/CD, architectural, process, and bugfix changes.
+- Document merge strategy rules: squash PRs into `main`, squash normal work into `develop`, and use merge commits for release-sync and hotfix back-merge PRs.
+
+### Fixed
+
+- Harden Android release APK support for HTTP local AI providers by injecting a native network security config during Expo prebuild.
+- Restore the Android adaptive launcher icon asset so release APK installs show the Omnia icon instead of the default Android Studio icon.
+- Fix CI typecheck/test resolution for mobile Jest files by excluding tests from the production TypeScript program and making React Native Testing Library available to the root test runner.
+
 ## [1.0.1] - The Omnia Design Update
 
 **Omnia v1.0.1** establishes our official **Omnia Design System (ODS)**, bringing extreme FAANG-tier polish, native gesture ergonomics, and offline resilience to the UI.

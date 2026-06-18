@@ -17,7 +17,7 @@ When project requirements and playbook conventions conflict:
 
 ## Active Phase
 
-Phase 1: monorepo foundation, tooling, CI/CD, documentation, and quality gates.
+Phase 9: release management, production APK stabilization, Git Flow adoption, and final MVP polish.
 
 ## Agent Contract
 
@@ -25,11 +25,13 @@ Repository-level agent instructions live in `AGENTS.md`. Any agent working in th
 
 ## Phase Boundary
 
-Phase 1 must not implement provider logic, persistence, chat UI, authentication, sync, RAG, agents, MCP, tool calling, plugins, voice, or cloud backend features.
+Phase 9 must not implement post-MVP capabilities such as RAG, agents, MCP, tool calling, WebFetch, voice, sync, authentication, plugins, or cloud backend features.
+
+Release stabilization may fix production APK defects, release automation, native packaging configuration, documentation, and Phase 9 UI/UX polish.
 
 ## Quality Gates
 
-Required checks before Phase 1 completion:
+Required checks before release handoff:
 
 - `pnpm install --frozen-lockfile`
 - `pnpm lint`
