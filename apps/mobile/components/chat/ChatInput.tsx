@@ -9,6 +9,7 @@ import {
   Text,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { ArrowUp, Square, Plus } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
@@ -40,6 +41,7 @@ export function ChatInput({
 }: ChatInputProps) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isPickingFile, setIsPickingFile] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
@@ -74,9 +76,11 @@ export function ChatInput({
 
   const handleAttachOption = async (option: 'camera' | 'library' | 'files') => {
     setMenuVisible(false);
+    setIsPickingFile(true);
     
-    switch (option) {
-      case 'camera': {
+    try {
+      switch (option) {
+        case 'camera': {
         const camPerm = await ImagePicker.requestCameraPermissionsAsync();
         if (!camPerm.granted) return;
         const camResult = await ImagePicker.launchCameraAsync({
@@ -131,8 +135,11 @@ export function ChatInput({
           console.error("DocumentPicker error:", err);
           Alert.alert("File Error", "Could not pick the requested file. Make sure it is downloaded to your device.");
         }
-        break;
+          break;
+        }
       }
+    } finally {
+      setIsPickingFile(false);
     }
   };
 
@@ -168,9 +175,14 @@ export function ChatInput({
         <View style={styles.inputRow}>
           <Pressable 
             onPress={handleAttachPress}
+            disabled={isPickingFile}
             style={({ pressed }) => [styles.attachBtn, pressed && { opacity: 0.6 }]}
           >
-            <Plus size={24} color={theme.textSecondary} />
+            {isPickingFile ? (
+              <ActivityIndicator size="small" color={theme.textSecondary} />
+            ) : (
+              <Plus size={24} color={theme.textSecondary} />
+            )}
           </Pressable>
 
           {/* Text field */}
