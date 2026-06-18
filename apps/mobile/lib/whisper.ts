@@ -129,8 +129,8 @@ export async function startWhisperRealtime(
         const recordingTime = evt.recordingTime;
         const sliceIndex = evt.sliceIndex;
         
-        logger.info("Whisper.onTranscribe", `EVENT: ${evt.type} | Slice: ${sliceIndex} | RecTime: ${recordingTime}ms | ProcTime: ${processTime}ms | Detected Lang: ${detectedLang}`);
-        logger.info("Whisper.onTranscribe", `Raw Text: "${rawResult}"`);
+        logger.debug("Whisper.onTranscribe", `EVENT: ${evt.type} | Slice: ${sliceIndex} | RecTime: ${recordingTime}ms | ProcTime: ${processTime}ms | Detected Lang: ${detectedLang}`);
+        logger.debug("Whisper.onTranscribe", `Raw Text: "${rawResult}"`);
 
         let text = rawResult.trim();
         
@@ -138,7 +138,7 @@ export async function startWhisperRealtime(
         const lowerText = text.toLowerCase().replace(/[^a-z]/g, '');
         const hallucinations = ["thankyou", "thanksforwatching", "pleasesubscribe", "obrigado", "gracias", "silence", "music"];
         if (hallucinations.includes(lowerText)) {
-          logger.info("Whisper.onTranscribe", `FILTERED OUT hallucination: "${text}"`);
+          logger.debug("Whisper.onTranscribe", `FILTERED OUT hallucination: "${text}"`);
           text = "";
         }
         
@@ -146,10 +146,10 @@ export async function startWhisperRealtime(
         const oldText = text;
         text = text.replace(/\[.*?\]|\(.*?\)/g, '').trim();
         if (oldText !== text && oldText.length > 0) {
-          logger.info("Whisper.onTranscribe", `STRIPPED BRACKETS. Old: "${oldText}" -> New: "${text}"`);
+          logger.debug("Whisper.onTranscribe", `STRIPPED BRACKETS. Old: "${oldText}" -> New: "${text}"`);
         }
 
-        logger.info("Whisper.onTranscribe", `Final Text Emitted: "${text}" | isCapturing: ${evt.isCapturing}`);
+        logger.debug("Whisper.onTranscribe", `Final Text Emitted: "${text}" | isCapturing: ${evt.isCapturing}`);
         onResult(text, evt.isCapturing);
       },
       onError: (err: any) => {

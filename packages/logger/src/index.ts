@@ -13,7 +13,7 @@ if (__DEV__ && Platform.OS !== "web") {
   }
 }
 
-type LogLevel = "info" | "warn" | "error";
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogEntry {
   level: LogLevel;
@@ -28,7 +28,8 @@ function sendTelemetry(entry: LogEntry) {
     // Also log locally to the device terminal (Metro)
     if (entry.level === "error") console.error(`[${entry.tag}]`, entry.message, entry.error || "", entry.data || "");
     else if (entry.level === "warn") console.warn(`[${entry.tag}]`, entry.message, entry.data || "");
-    else console.log(`[${entry.tag}]`, entry.message, entry.data || "");
+    else if (entry.level === "info") console.info(`[${entry.tag}]`, entry.message, entry.data || "");
+    else console.debug(`[${entry.tag}]`, entry.message, entry.data || "");
 
     // Fire and forget to telemetry server
     fetch(TELEMETRY_URL, {
@@ -52,6 +53,12 @@ function serializeError(err: any): string {
 }
 
 export const logger = {
+  debug: (tag: string, message: string, data?: any) => {
+    // Only dispatch debug logs in development mode to save processing overhead in prod
+    if (__DEV__) {
+      sendTelemetry({ level: "debug", tag, message, data });
+    }
+  },
   info: (tag: string, message: string, data?: any) => {
     sendTelemetry({ level: "info", tag, message, data });
   },
