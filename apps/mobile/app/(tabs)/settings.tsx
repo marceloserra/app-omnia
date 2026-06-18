@@ -27,7 +27,7 @@ import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProviderStore } from "../../store/provider-store";
 import Constants from "expo-constants";
-import { isModelDownloaded, downloadWhisperModel } from "../../lib/whisper";
+import { isModelDownloaded, downloadWhisperModel, deleteWhisperModel } from "../../lib/whisper";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -82,6 +82,24 @@ export default function SettingsScreen() {
     } finally {
       setWhisperProgress(-1);
     }
+  };
+
+  const handleDeleteWhisper = async () => {
+    Alert.alert(
+      "Remove Voice Engine",
+      "Are you sure you want to delete the offline dictation engine? You will need to download the ~75MB file again to use dictation.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Remove", 
+          style: "destructive", 
+          onPress: async () => {
+            await deleteWhisperModel();
+            setIsWhisperReady(false);
+          }
+        }
+      ]
+    );
   };
 
   // Sync testResult when store hydrates asynchronously
@@ -441,7 +459,19 @@ export default function SettingsScreen() {
                 </View>
                 
                 {isWhisperReady ? (
-                  <Text style={{ color: "#10b981", fontSize: 14, fontWeight: "600" }}>Enabled</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Text style={{ color: "#10b981", fontSize: 14, fontWeight: "600" }}>Enabled</Text>
+                    <Pressable
+                      onPress={handleDeleteWhisper}
+                      style={({ pressed }) => [
+                        { padding: 8, backgroundColor: theme.red + '15', borderRadius: 12 },
+                        pressed && { opacity: 0.7 }
+                      ]}
+                      accessibilityLabel="Delete voice engine"
+                    >
+                      <Trash2 size={16} color={theme.red} />
+                    </Pressable>
+                  </View>
                 ) : whisperProgress >= 0 ? (
                   <ActivityIndicator size="small" color={theme.indigo} />
                 ) : (

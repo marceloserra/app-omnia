@@ -34,6 +34,22 @@ export async function downloadWhisperModel(onProgress?: (progress: number) => vo
   console.log("[Whisper] Download complete!");
 }
 
+export async function deleteWhisperModel(): Promise<void> {
+  try {
+    if (globalWhisperContext) {
+      await globalWhisperContext.release();
+      globalWhisperContext = null;
+    }
+  } catch (e) {
+    console.warn("Failed to release whisper context:", e);
+  }
+  
+  const fileInfo = await FileSystem.getInfoAsync(MODEL_FILE_PATH);
+  if (fileInfo.exists) {
+    await FileSystem.deleteAsync(MODEL_FILE_PATH);
+  }
+}
+
 export async function getWhisperContext(): Promise<any> {
   if (globalWhisperContext) {
     return globalWhisperContext;
@@ -90,8 +106,6 @@ export async function startWhisperRealtime(
       realtimeProcessingPauseMs: 800,
       initRealtimeAfterMs: 500,
       initialPrompt: promptHint,
-      // Default heuristic VAD to help cut silence automatically
-      vadPreset: 'default',
       transcribeOptions: {
         language: 'auto',
         // Use beam search instead of greedy to massively improve understanding of "tiny" model
