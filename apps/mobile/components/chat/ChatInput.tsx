@@ -11,7 +11,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { ArrowUp, Square, Plus } from "lucide-react-native";
+import { ArrowUp, Square, Plus, FileText } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -180,15 +180,16 @@ export function ChatInput({
               {isPickingFile && (
                 <View style={{ 
                   flexDirection: "row", alignItems: "center", 
-                  backgroundColor: "rgba(99,102,241,0.1)", 
+                  backgroundColor: theme.activeBg, 
                   paddingHorizontal: 12, paddingVertical: 8, 
-                  borderRadius: 14, borderWidth: 1, borderColor: "rgba(99,102,241,0.3)",
-                  marginRight: 8, height: 36
+                  borderRadius: 14, borderWidth: 1, borderColor: theme.border,
+                  marginRight: 8, height: 36, opacity: 0.6
                 }}>
-                  <ActivityIndicator size="small" color="#6366f1" style={{ marginRight: 6 }} />
-                  <Text style={{ color: "#6366f1", fontSize: 13, fontWeight: "600", fontStyle: "italic" }}>
+                  <FileText size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
+                  <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: "500" }}>
                     {loadingText}
                   </Text>
+                  <ActivityIndicator size="small" color={theme.textSecondary} style={{ marginLeft: 8 }} />
                 </View>
               )}
             </ScrollView>

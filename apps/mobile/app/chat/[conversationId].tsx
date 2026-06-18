@@ -164,76 +164,6 @@ export default function ChatScreen() {
     const prev = messagesRef.current;
     const snapshotForApi = isInitialPrompt ? [...prev] : [...prev, userMessage!];
     
-    // Construct multi-modal payload
-    const chatHistory = await Promise.all(snapshotForApi.map(async (m) => {
-      if (m.attachments && m.attachments.length > 0) {
-        const contentParts: any[] = [];
-        if (m.content) {
-          contentParts.push({ type: "text", text: m.content });
-        }
-        for (const att of m.attachments) {
-          if (isAbortedRef.current) break;
-          
-          if (att.type === 'image') {
-            try {
-              const base64 = await FileSystem.readAsStringAsync(att.uri, { encoding: FileSystem.EncodingType.Base64 });
-              const mime = att.mimeType || 'image/jpeg';
-              contentParts.push({
-                type: "image_url",
-                image_url: { url: `data:${mime};base64,${base64}` }
-              });
-            } catch (err) {
-              logger.error("FileSystem", `Failed to read attachment ${att.uri} as Base64`, err);
-              contentParts.push({ type: "text", text: "\n[System: Could not read image attachment data]" });
-            }
-          } else if (att.type === 'document') {
-            const ext = att.name.toLowerCase().split('.').pop() || '';
-            const isPdf = ext === 'pdf' || att.mimeType === 'application/pdf';
-            
-            if (isPdf) {
-              try {
-                const text = await extractText(att.uri);
-                if (text && text.trim().length > 0) {
-                  // Limit text to avoid blowing up the context window instantly
-                  contentParts.push({ type: "text", text: `\n\n[Content of PDF: ${att.name}]\n${text.substring(0, 30000)}` });
-                } else {
-                  contentParts.push({ type: "text", text: `\n\n[Content of PDF: ${att.name}]\n(No extractable text found)` });
-                }
-              } catch (err) {
-                logger.error("FileSystem", `Failed to extract text from PDF ${att.uri}`, err);
-                contentParts.push({ type: "text", text: `\n\n[Content of PDF: ${att.name}]\n(Extraction failed)` });
-              }
-            } else if (['txt', 'md', 'csv', 'json'].includes(ext)) {
-              try {
-                const text = await FileSystem.readAsStringAsync(att.uri, { encoding: FileSystem.EncodingType.UTF8 });
-                contentParts.push({ type: "text", text: `\n\n[Content of Document: ${att.name}]\n${text.substring(0, 30000)}` });
-              } catch (err) {
-                logger.error("FileSystem", `Failed to read raw text document ${att.uri}`, err);
-              }
-            }
-          }
-        }
-        // If there are no images, we MUST flatten the text parts into a single string.
-        // Many local non-vision models (like Llama-3) via LMStudio will reject or misparse
-        // array-based payloads if they are not explicitly vision requests.
-        const hasImages = contentParts.some(p => p.type === 'image_url');
-        
-        if (!hasImages) {
-          const fullText = contentParts.map(p => p.text).join('\n');
-          return { role: m.role as "user" | "assistant" | "system", content: fullText };
-        }
-
-        return {
-          role: m.role as "user" | "assistant" | "system",
-          content: contentParts,
-        };
-      }
-      return {
-        role: m.role as "user" | "assistant" | "system",
-        content: m.content,
-      };
-    }));
-    
     const isFirstMessage = prev.length === 0 && userMessage;
 
     setMessages((currentPrev) => {
@@ -242,6 +172,108 @@ export default function ChatScreen() {
 
     // Fire and forget the stream OUTSIDE the state updater to prevent React StrictMode duplicate side-effects
     (async () => {
+      let extractingInterval: NodeJS.Timeout | null = null;
+      if (hasDocuments) {
+        let dots = 1;
+        extractingInterval = setInterval(() => {
+          dots = (dots % 3) + 1;
+          const pulsingText = `_Extracting documents${".".repeat(dots)}_`;
+          setMessages((cur) => cur.map((m) => m.id === assistantId ? { ...m, content: pulsingText } : m));
+        }, 500);
+      }
+
+      let chatHistory: any[];
+      try {
+        chatHistory = await Promise.all(snapshotForApi.map(async (m) => {
+          if (m.attachments && m.attachments.length > 0) {
+            const contentParts: any[] = [];
+            if (m.content) {
+              contentParts.push({ type: "text", text: m.content });
+            }
+            for (const att of m.attachments) {
+              if (isAbortedRef.current) break;
+              
+              if (att.type === 'image') {
+                try {
+                  const base64 = await FileSystem.readAsStringAsync(att.uri, { encoding: FileSystem.EncodingType.Base64 });
+                  const mime = att.mimeType || 'image/jpeg';
+                  contentParts.push({
+                    type: "image_url",
+                    image_url: { url: `data:${mime};base64,${base64}` }
+                  });
+                } catch (err) {
+                  logger.error("FileSystem", `Failed to read attachment ${att.uri} as Base64`, err);
+                  contentParts.push({ type: "text", text: "\n[System: Could not read image attachment data]" });
+                }
+              } else if (att.type === 'document') {
+                const ext = att.name.toLowerCase().split('.').pop() || '';
+                const isPdf = ext === 'pdf' || att.mimeType === 'application/pdf';
+                
+                if (isPdf) {
+                  try {
+                    const text = await extractText(att.uri);
+                    if (text && text.trim().length > 0) {
+                      const limit = 30000;
+                      if (text.length > limit) {
+                        contentParts.push({ type: "text", text: `\n\n[Content of PDF: ${att.name}]\n${text.substring(0, limit)}\n\n[System Warning: This PDF was too large and was truncated to the first ~15 pages. Inform the user of this limitation immediately.]` });
+                      } else {
+                        contentParts.push({ type: "text", text: `\n\n[Content of PDF: ${att.name}]\n${text}` });
+                      }
+                    } else {
+                      throw new Error("PDF_EMPTY");
+                    }
+                  } catch (err) {
+                    logger.error("FileSystem", `Failed to extract text from PDF ${att.uri}`, err);
+                    throw new Error(`PDF_EXTRACTION_FAILED:${att.name}`);
+                  }
+                } else if (['txt', 'md', 'csv', 'json'].includes(ext)) {
+                  try {
+                    const text = await FileSystem.readAsStringAsync(att.uri, { encoding: FileSystem.EncodingType.UTF8 });
+                    contentParts.push({ type: "text", text: `\n\n[Content of Document: ${att.name}]\n${text.substring(0, 30000)}` });
+                  } catch (err) {
+                    logger.error("FileSystem", `Failed to read raw text document ${att.uri}`, err);
+                  }
+                }
+              }
+            }
+            // If there are no images, we MUST flatten the text parts into a single string.
+            // Many local non-vision models (like Llama-3) via LMStudio will reject or misparse
+            // array-based payloads if they are not explicitly vision requests.
+            const hasImages = contentParts.some(p => p.type === 'image_url');
+            
+            if (!hasImages) {
+              const fullText = contentParts.map(p => p.text).join('\n');
+              return { role: m.role as "user" | "assistant" | "system", content: fullText };
+            }
+
+            return {
+              role: m.role as "user" | "assistant" | "system",
+              content: contentParts,
+            };
+          }
+          return {
+            role: m.role as "user" | "assistant" | "system",
+            content: m.content,
+          };
+        }));
+      } catch (err: any) {
+        if (extractingInterval) clearInterval(extractingInterval);
+        
+        let errorMsg = "_[Extraction Failed]_";
+        if (err.message && err.message.startsWith("PDF_EXTRACTION_FAILED")) {
+          const fileName = err.message.split(":")[1];
+          errorMsg = `🚨 **Falha na Leitura**\n\nNão foi possível extrair texto do arquivo **${fileName}**. Ele pode estar corrompido, protegido por senha, ou ser um PDF apenas com imagens rasterizadas sem OCR.`;
+        }
+        
+        setMessages((cur) => cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m));
+        try { getDb().msgRepo.updateContent(assistantId, errorMsg); } catch(e){}
+        setIsStreaming(false);
+        isAbortedRef.current = false;
+        return;
+      }
+      
+      if (extractingInterval) clearInterval(extractingInterval);
+
       try {
         const { convRepo, msgRepo } = getDb();
         if (isInitialPrompt && !convRepo.getById(conversationId)) {
