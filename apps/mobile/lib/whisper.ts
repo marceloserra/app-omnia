@@ -60,43 +60,45 @@ export async function startWhisperRealtime(
 ): Promise<{ stop: () => Promise<void> }> {
   const context = await getWhisperContext();
 
-  if (!globalTranscriber) {
-    const audioStream = new AudioPcmStreamAdapter();
-    globalTranscriber = new RealtimeTranscriber(
-      {
-        whisperContext: context,
-        audioStream,
-      },
-      {
-        audioSliceSec: 60,
-        realtimeProcessingPauseMs: 200,
-        initRealtimeAfterMs: 200,
-      },
-      {
-        onTranscribe: (evt: any) => {
-          onResult(evt.data?.result || "", evt.isCapturing);
-        },
-        onError: (err: any) => {
-          if (onError) onError(err);
-        }
-      }
-    );
-  } else {
-    globalTranscriber.updateCallbacks({
+  // Always recreate the transcriber to ensure clean state and avoid "only works first time" bug
+  if (globalTranscriber) {
+    try {
+      await globalTranscriber.stop();
+    } catch (e) {
+      // ignore
+    }
+    globalTranscriber = null;
+  }
+
+  const audioStream = new AudioPcmStreamAdapter();
+  globalTranscriber = new RealtimeTranscriber(
+    {
+      whisperContext: context,
+      audioStream,
+    },
+    {
+      audioSliceSec: 60,
+      realtimeProcessingPauseMs: 200,
+      initRealtimeAfterMs: 200,
+    },
+    {
       onTranscribe: (evt: any) => {
         onResult(evt.data?.result || "", evt.isCapturing);
       },
       onError: (err: any) => {
         if (onError) onError(err);
       }
-    });
-  }
+    }
+  );
 
   await globalTranscriber.start();
 
   return {
     stop: async () => {
-      await globalTranscriber.stop();
+      if (globalTranscriber) {
+        await globalTranscriber.stop();
+        globalTranscriber = null;
+      }
     }
   };
 }
