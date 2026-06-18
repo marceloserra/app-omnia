@@ -356,10 +356,6 @@ export function ChatInput({
             </View>
 
           {/* Action column */}
-          {usingCloudFallback && (
-             <Text style={styles.hint}>Cloud Dictation active. Download offline engine in Settings for speed & privacy.</Text>
-          )}
-          
           <View style={styles.actionCol}>
             {isRecording ? null : isStreaming ? (
               <Pressable
@@ -393,9 +389,13 @@ export function ChatInput({
       </View>
 
       {/* Tiny hint */}
-      <Text style={styles.hint}>
-        {disabled ? t("chat.input.disabled") : t("chat.input.hint")}
-      </Text>
+      {usingCloudFallback ? (
+         <Text style={styles.hint}>Cloud Dictation active. Download offline engine in Settings for speed & privacy.</Text>
+      ) : (
+        <Text style={styles.hint}>
+          {disabled ? t("chat.input.disabled") : t("chat.input.hint")}
+        </Text>
+      )}
     </View>
   );
 }
