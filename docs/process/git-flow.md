@@ -193,6 +193,7 @@ Hotfix propagation terminology:
   ```
 - **Never move or delete a tag without documenting the reason in `docs/architecture/release-strategy.md`.**
 - **Never add `@babel/core` as a direct dependency to `apps/mobile/package.json`.** It is managed at the workspace root. Verify with `pnpm list @babel/core --filter mobile`.
+- **Update `CHANGELOG.md` in the same branch** for user-facing behavior, bug fixes, release workflow changes, CI/CD changes, architecture/process changes, and dependency changes. If no entry is needed, explain that in the PR.
 - **One concern per branch.** Do not mix feature work with dependency upgrades.
 - **PRs must target `develop`, not `main`**, unless it is a documented hotfix.
 - **PR descriptions must use `.github/pull_request_template.md`** and include the executive summary, review strategy, plan executed, verification evidence, skipped checks, rollout plan, and residual risk.

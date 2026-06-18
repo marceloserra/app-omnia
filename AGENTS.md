@@ -64,6 +64,7 @@ Disallowed in Phase 9:
 - Keep CI commands aligned with root scripts.
 - Add ADRs for structural or technology decisions.
 - Update documentation in the same change as behavior or workflow changes.
+- Update `CHANGELOG.md` in the same change for user-facing behavior, bug fixes, release workflow changes, CI/CD changes, architecture/process changes, and dependency changes. If no changelog entry is needed, state why in the PR.
 - When editing documentation or process files, fix directly related documentation divergences in the same change. If a divergence is real but outside the current scope, call it out in the handoff instead of leaving it silent.
 - Prefer small, phase-bounded changes over broad scaffolding.
 - **AI Telemetry:** If the user reports a crash or bug during development, ALWAYS check `omnia-telemetry.jsonl` at the root of the project to read the structured stack trace before asking the user for logs. (See `docs/architecture/ai-telemetry.md`).

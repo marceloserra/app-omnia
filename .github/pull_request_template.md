@@ -116,6 +116,12 @@
 
 - TBD
 
+## Changelog
+
+<!-- Required. Link the CHANGELOG.md entry, or explain why this PR does not need one. -->
+
+- TBD
+
 ## Follow-Ups
 
 <!-- List follow-ups that should not block this PR. Write "None" if there are none. -->
