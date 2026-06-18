@@ -25,5 +25,9 @@ The system is built on atomic, reusable, and strictly typed React Native compone
 - `SwipeableRow`: The gesture-driven list item foundation.
 - `Input` & `Button`: Foundational UI primitives.
 
+### 5. Multi-Modal Attachment UX (Phase 10)
+- **Attachment Pills:** Selected files (Images, PDFs) appear as compact, rounded "pills" above the chat input. They include a small preview thumbnail, file name/extension, and a clear `X` button to dismiss.
+- **Native Action Sheets:** Tapping the attachment icon (`Paperclip` or `Plus`) summons a native iOS/Android Bottom Sheet (or `ActionSheetIOS`) presenting explicit choices: Camera, Photo Library, and Files, ensuring zero-friction integration with the OS.
+
 ## Naming Convention
 Internally and externally, we refer to this aesthetic and component library as the **Omnia Design System**. It represents our commitment to delivering a polished, world-class user experience.
