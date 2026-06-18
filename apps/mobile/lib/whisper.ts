@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
 // @ts-ignore
-import { initWhisper } from 'whisper.rn';
+import { initWhisper } from 'whisper.rn/index.js';
 // @ts-ignore
 import { RealtimeTranscriber } from 'whisper.rn/realtime-transcription/RealtimeTranscriber.js';
 // @ts-ignore
