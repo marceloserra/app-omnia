@@ -87,6 +87,7 @@ export function ChatInput({
   const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
   const [whisperSession, setWhisperSession] = useState<{ stop: () => Promise<void> } | null>(null);
   const textBeforeDictation = useRef("");
+  const partialDictationText = useRef("");
   const isStartingDictation = useRef(false);
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
@@ -108,11 +109,17 @@ export function ChatInput({
       setIsRecording(true);
       textBeforeDictation.current = text;
       
+      partialDictationText.current = "";
+      
       const { stop } = await startWhisperRealtime(language, (transcript, isCapturing) => {
+        if (transcript) {
+          partialDictationText.current = transcript.trim();
+        }
         if (!isCapturing) {
-          if (transcript && transcript.trim().length > 0) {
+          // Fallback if the native layer decides to stop on its own
+          if (partialDictationText.current.length > 0) {
             const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
-            setText(prefix + transcript.trim());
+            setText(prefix + partialDictationText.current);
           }
           setIsRecording(false);
           setWhisperSession(null);
@@ -136,6 +143,10 @@ export function ChatInput({
   const handleDictation = async () => {
     if (isRecording && whisperSession) {
       await whisperSession.stop();
+      if (partialDictationText.current.length > 0) {
+        const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
+        setText(prefix + partialDictationText.current);
+      }
       setIsRecording(false);
       setWhisperSession(null);
       return;
