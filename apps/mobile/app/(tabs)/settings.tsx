@@ -60,6 +60,7 @@ export default function SettingsScreen() {
   const [isValidating, setIsValidating] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg?: string; models: string[] } | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showWhisperDeleteConfirm, setShowWhisperDeleteConfirm] = useState(false);
   const [modelPickerVisible, setModelPickerVisible] = useState(false);
   
   const [isWhisperReady, setIsWhisperReady] = useState(false);
@@ -84,22 +85,14 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleDeleteWhisper = async () => {
-    Alert.alert(
-      "Remove Voice Engine",
-      "Are you sure you want to delete the offline dictation engine? You will need to download the ~75MB file again to use dictation.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Remove", 
-          style: "destructive", 
-          onPress: async () => {
-            await deleteWhisperModel();
-            setIsWhisperReady(false);
-          }
-        }
-      ]
-    );
+  const handleDeleteWhisper = () => {
+    setShowWhisperDeleteConfirm(true);
+  };
+
+  const confirmDeleteWhisper = async () => {
+    await deleteWhisperModel();
+    setIsWhisperReady(false);
+    setShowWhisperDeleteConfirm(false);
   };
 
   // Sync testResult when store hydrates asynchronously
@@ -548,6 +541,15 @@ export default function SettingsScreen() {
         confirmText={t("chat.delete.confirm")}
         onCancel={() => setShowClearConfirm(false)}
         onConfirm={confirmClearAll}
+      />
+
+      <ConfirmDialog
+        visible={showWhisperDeleteConfirm}
+        title="Remove Voice Engine"
+        message="Are you sure you want to delete the offline dictation engine? You will need to download the ~75MB file again to use dictation."
+        confirmText="Remove"
+        onCancel={() => setShowWhisperDeleteConfirm(false)}
+        onConfirm={confirmDeleteWhisper}
       />
 
       <ModelPickerSheet
