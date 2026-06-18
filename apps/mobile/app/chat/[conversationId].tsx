@@ -21,6 +21,7 @@ import { useTranslation } from "../../lib/i18n";
 import { useSettingsStore } from "../../store/settings-store";
 import * as Haptics from "expo-haptics";
 import * as FileSystem from "expo-file-system/legacy";
+import { extractText } from "expo-pdf-text-extract";
 
 let _db: any;
 let _msgRepo: any;
@@ -181,6 +182,29 @@ export default function ChatScreen() {
             } catch (err) {
               logger.error("FileSystem", `Failed to read attachment ${att.uri} as Base64`, err);
               contentParts.push({ type: "text", text: "\n[System: Could not read image attachment data]" });
+            }
+          } else if (att.type === 'document') {
+            const ext = att.name.toLowerCase().split('.').pop() || '';
+            if (ext === 'pdf') {
+              try {
+                const text = await extractText(att.uri);
+                if (text && text.trim().length > 0) {
+                  // Limit text to avoid blowing up the context window instantly
+                  contentParts.push({ type: "text", text: `\n\n[Content of PDF: ${att.name}]\n${text.substring(0, 30000)}` });
+                } else {
+                  contentParts.push({ type: "text", text: `\n\n[Content of PDF: ${att.name}]\n(No extractable text found)` });
+                }
+              } catch (err) {
+                logger.error("FileSystem", `Failed to extract text from PDF ${att.uri}`, err);
+                contentParts.push({ type: "text", text: `\n\n[Content of PDF: ${att.name}]\n(Extraction failed)` });
+              }
+            } else if (['txt', 'md', 'csv', 'json'].includes(ext)) {
+              try {
+                const text = await FileSystem.readAsStringAsync(att.uri, { encoding: FileSystem.EncodingType.UTF8 });
+                contentParts.push({ type: "text", text: `\n\n[Content of Document: ${att.name}]\n${text.substring(0, 30000)}` });
+              } catch (err) {
+                logger.error("FileSystem", `Failed to read raw text document ${att.uri}`, err);
+              }
             }
           }
         }

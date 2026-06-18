@@ -150,6 +150,9 @@ importers:
       expo-localization:
         specifier: ^56.0.6
         version: 56.0.6(expo@56.0.12)(react@19.2.3)
+      expo-pdf-text-extract:
+        specifier: ^1.1.0
+        version: 1.1.0(expo@56.0.12)(react-native@0.85.3(@babel/core@8.0.1)(@react-native/jest-preset@0.85.3(@babel/core@8.0.1)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@8.0.1))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
       expo-router:
         specifier: ~56.2.11
         version: 56.2.11(89a68e9a3d4dd05ec4de4c62402f7f7f)
@@ -3840,6 +3843,14 @@ packages:
     resolution: {integrity: sha512-fHZcFpYO/o62GYa6fJyAQJZcAShzhoN0iMMDzbr7vD3ewET6e1vAlTonbEakN9F0VHEgBFJ4NREy87uwVcpCuA==}
     peerDependencies:
       react-native: '*'
+
+  expo-pdf-text-extract@1.1.0:
+    resolution: {integrity: sha512-LH0qNUZBTdIZ4EJUOHF+akqP0IgrlnLFM3skVlZxvyZFHJeU7LFGnr6eOSmRZ2PpTFUYsbs+aZSKmUdWPeSCYw==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      expo: '>=49.0.0'
+      react: '>=18.0.0'
+      react-native: '>=0.72.0'
 
   expo-router@56.2.11:
     resolution: {integrity: sha512-08DBTrKv3QanOc9u1JNxSEChW9c/qNFbQ0dO28OLvufWWfdSRkSdHmh365D2FgoZg1qaOzZPCDuL3tM6nGSfkQ==}
@@ -9633,9 +9644,7 @@ snapshots:
       metro-runtime: 0.84.4
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   '@react-native/metro-config@0.85.3(@babel/core@8.0.1)':
     dependencies:
@@ -9645,9 +9654,7 @@ snapshots:
       metro-runtime: 0.84.4
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
     optional: true
 
   '@react-native/normalize-colors@0.85.3': {}
@@ -11959,6 +11966,12 @@ snapshots:
 
   expo-modules-jsi@56.0.10(react-native@0.85.3(@babel/core@8.0.1)(@react-native/jest-preset@0.85.3(@babel/core@8.0.1)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@8.0.1))(@types/react@19.2.17)(react@19.2.3)):
     dependencies:
+      react-native: 0.85.3(@babel/core@8.0.1)(@react-native/jest-preset@0.85.3(@babel/core@8.0.1)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@8.0.1))(@types/react@19.2.17)(react@19.2.3)
+
+  expo-pdf-text-extract@1.1.0(expo@56.0.12)(react-native@0.85.3(@babel/core@8.0.1)(@react-native/jest-preset@0.85.3(@babel/core@8.0.1)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@8.0.1))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      expo: 56.0.12(@babel/core@8.0.1)(@expo/dom-webview@56.0.5)(@expo/metro-runtime@56.0.15)(expo-router@56.2.11)(react-dom@19.2.3(react@19.2.3))(react-native-worklets@0.9.2(@babel/core@7.29.7)(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(@babel/core@8.0.1)(@react-native/jest-preset@0.85.3(@babel/core@8.0.1)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@8.0.1))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      react: 19.2.3
       react-native: 0.85.3(@babel/core@8.0.1)(@react-native/jest-preset@0.85.3(@babel/core@8.0.1)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@8.0.1))(@types/react@19.2.17)(react@19.2.3)
 
   expo-router@56.2.11(89a68e9a3d4dd05ec4de4c62402f7f7f):
