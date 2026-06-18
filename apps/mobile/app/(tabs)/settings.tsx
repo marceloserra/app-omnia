@@ -18,7 +18,7 @@ import { router } from "expo-router";
 import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
 import { Input } from "../../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
-import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe, Vibrate } from "lucide-react-native";
+import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe, Vibrate, Mic } from "lucide-react-native";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
@@ -390,6 +390,22 @@ export default function SettingsScreen() {
                 }
                 return [...acc, curr] as any;
               }, [])}
+            </View>
+          </View>
+
+          {/* Capabilities Section */}
+          <View style={{ marginTop: 24 }}>
+            <Text style={styles.sectionTitle}>Capabilities</Text>
+            <View style={styles.iosGroup}>
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#10b981" }]}>
+                  <Mic size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>Voice Dictation</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>Powered by OpenAI Whisper (On-Device)</Text>
+                </View>
+              </View>
             </View>
           </View>
 
