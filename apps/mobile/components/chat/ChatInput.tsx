@@ -101,24 +101,6 @@ export function ChatInput({
     await startDictation();
   };
 
-  const confirmDownload = async () => {
-    setShowDownloadPrompt(false);
-    try {
-      setIsDownloadingModel(true);
-      setDownloadProgress(0);
-      await downloadWhisperModel((p) => setDownloadProgress(p));
-      setIsDownloadingModel(false);
-      setDownloadProgress(-1);
-      
-      // Let the user tap mic manually after download is complete
-      Alert.alert("Success", "Engine downloaded! Tap the mic to begin dictation.");
-    } catch (e) {
-      Alert.alert("Error", "Download failed. Check your connection.");
-      setIsDownloadingModel(false);
-      setDownloadProgress(-1);
-    }
-  };
-
   const handleSendPress = () => {
     if (disabled && onPressDisabled) {
       onPressDisabled();
@@ -231,35 +213,6 @@ export function ChatInput({
   return (
     <View style={styles.outerContainer}>
       
-      {/* Premium Download Modal */}
-      <Modal visible={showDownloadPrompt} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalIconBg}>
-              <Mic size={28} color={theme.indigo} />
-            </View>
-            <Text style={styles.modalTitle}>{t("settings.capabilities.voice.req.title")}</Text>
-            <Text style={styles.modalText}>
-              {t("settings.capabilities.voice.req.msg")}
-            </Text>
-            <View style={styles.modalActions}>
-              <Pressable
-                onPress={() => setShowDownloadPrompt(false)}
-                style={({ pressed }) => [styles.modalBtnCancel, pressed && { opacity: 0.7 }]}
-              >
-                <Text style={styles.modalBtnCancelText}>{t("common.cancel")}</Text>
-              </Pressable>
-              <Pressable
-                onPress={confirmDownload}
-                style={({ pressed }) => [styles.modalBtnConfirm, pressed && { opacity: 0.8 }]}
-              >
-                <Text style={styles.modalBtnConfirmText}>{t("settings.capabilities.voice.get")}</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
       <AttachmentMenu
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
