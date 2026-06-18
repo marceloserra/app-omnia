@@ -109,11 +109,11 @@ export function ChatInput({
       textBeforeDictation.current = text;
       
       const { stop } = await startWhisperRealtime(language, (transcript, isCapturing) => {
-        if (transcript) {
-          const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
-          setText(prefix + transcript.trim());
-        }
         if (!isCapturing) {
+          if (transcript && transcript.trim().length > 0) {
+            const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
+            setText(prefix + transcript.trim());
+          }
           setIsRecording(false);
           setWhisperSession(null);
         }
