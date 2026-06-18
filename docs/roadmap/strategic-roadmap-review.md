@@ -48,6 +48,25 @@ A unified interface for:
 
 ---
 
+## Mobile-Native Advantage
+
+As a mobile application, Omnia has access to hardware and OS integrations that web clients do not. The architecture must actively exploit these to create a "zero-friction" user experience.
+
+### Unique Capabilities to Exploit
+1. **The Share Sheet (System Intent):** Users should be able to share a PDF, URL, or image from *any* app directly into Omnia to instantly start a conversation or add to the Knowledge Base.
+2. **On-Device Sensors & Context:**
+   - **Location (GPS):** "Summarize Wikipedia for the landmark I am looking at."
+   - **Camera & Live OCR:** Point the camera at a physical menu and ask "What is gluten-free?"
+   - **Audio (Always-on capability):** Background listening or driving mode.
+3. **OS Integrations (via MCP/Tools):**
+   - **Contacts & Calendar:** "Do I have meetings tomorrow?" or "Send this summary to John."
+   - **Reminders & Push Notifications:** Proactive agentic alerts ("Your model finished researching the topic").
+4. **Hardware Acceleration (NPU/Neural Engine):** Local models and embeddings running natively on Apple Silicon or Snapdragon NPUs to preserve battery and maintain privacy.
+
+These mobile-native advantages must dictate *how* Tools (Phase 12) and Capabilities (Phase 12.5) are designed. They are not just API wrappers; they are bridges to the physical and OS environment.
+
+---
+
 ## Roadmap Review
 
 ### Phase 10 — Multi-Modal Attachments
