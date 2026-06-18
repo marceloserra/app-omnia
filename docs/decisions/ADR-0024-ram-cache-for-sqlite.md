@@ -1,4 +1,4 @@
-# 9. RAM Cache for SQLite Storage
+# ADR 0024: RAM Cache for SQLite Storage
 
 Date: 2026-06-17
 
