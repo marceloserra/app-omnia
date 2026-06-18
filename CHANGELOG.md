@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file. See [standa
 - Add Hotfix Back-Merge automation to open a `main` to `develop` PR after a `hotfix/*` PR merges into `main`.
 - Add branch, PR, main, release APK, and hotfix back-merge workflow documentation.
 - Add a release notes standard and GitHub Release template based on changelog entries, commits, PRs, and manual rollout notes.
+- Implement Phase 10 Multi-Modal Attachments: Users can now attach photos and files using a premium, FAANG-style custom floating `AttachmentMenu`.
+- Add persistent storage for attachments: Files are copied securely to the `FileSystem.documentDirectory` to survive OS cache purges.
+- Extend SQLite schema (v3) to store attachment metadata JSON efficiently, avoiding base64 blobs in the database.
+- Integrate `expo-image` into `MessageBubble` for ultra-performant, cached image rendering within chat bubbles.
 
 ### Changed
 
