@@ -27,7 +27,7 @@ const androidSpecs: Record<string, DeviceHardwareSpec> = {
   "Pixel 6": { cpu: "Google Tensor", gpu: "Mali-G78", npu: "Tensor TPU", isSupportedCpu: true },
 };
 
-export function getDeviceSpec(modelName: string): DeviceHardwareSpec {
+export function getDeviceSpec(modelName: string, brand: string, archs: string[] | null): DeviceHardwareSpec {
   // Check Apple
   for (const [key, spec] of Object.entries(appleSpecs)) {
     if (modelName.startsWith(key)) return spec;
@@ -38,9 +38,12 @@ export function getDeviceSpec(modelName: string): DeviceHardwareSpec {
   }
   
   // Generic Fallback
+  const archString = archs && archs.length > 0 ? archs[0].toUpperCase() : "ARM";
+  const brandString = brand ? brand.charAt(0).toUpperCase() + brand.slice(1) : "Generic";
+  
   return {
-    cpu: "Generic ARM",
-    gpu: "Unknown GPU",
+    cpu: `${brandString} ${archString} Processor`,
+    gpu: "Integrated GPU",
     npu: "Unsupported",
     isSupportedCpu: true, // Assume true for unknown Androids unless RAM fails
   };

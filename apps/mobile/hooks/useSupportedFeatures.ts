@@ -18,7 +18,7 @@ export function useSupportedFeatures(): AppFeatures {
     let whisperSupport: FeatureSupport = { isSupported: true };
 
     if (hw.isSimulator) {
-      whisperSupport = { isSupported: false, reason: "Simulators lack audio hardware acceleration." };
+      whisperSupport = { isSupported: true, reason: "Virtual device (performance may be reduced)" };
     } else if (!hw.isSupportedRam) {
       whisperSupport = { isSupported: false, reason: "Requires at least 4GB of RAM for stable inference." };
     } else if (!hw.isSupportedCpu) {
