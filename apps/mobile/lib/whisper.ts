@@ -95,9 +95,9 @@ export async function startWhisperRealtime(
 
   // Create a contextual prompt to guide the model towards the UI language,
   // while still allowing it to auto-detect and transcribe other languages.
-  let promptHint = "The user is speaking in English. Here is the transcription:";
-  if (language === 'pt') promptHint = "O usuário está falando em português. Aqui está a transcrição precisa e natural:";
-  else if (language === 'es') promptHint = "El usuario está hablando en español. Aquí está la transcripción precisa e natural:";
+  let promptHint = "The user is speaking in English to the AI assistant Omnia. Here is the transcription:";
+  if (language === 'pt') promptHint = "O usuário está falando em português com a inteligência artificial Omnia. Aqui está a transcrição precisa e natural:";
+  else if (language === 'es') promptHint = "El usuario está hablando en español con la inteligencia artificial Omnia. Aquí está la transcripción precisa e natural:";
 
   console.log(`[Whisper] Initializing RealtimeTranscriber with promptHint: "${promptHint}"`);
 
@@ -116,8 +116,6 @@ export async function startWhisperRealtime(
       initialPrompt: promptHint,
       transcribeOptions: {
         language: 'auto',
-        // Use beam search instead of greedy to massively improve understanding of "tiny" model
-        beamSize: 5,
         temperature: 0.0,
       }
     },

@@ -86,6 +86,7 @@ export function ChatInput({
   const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
   const [whisperSession, setWhisperSession] = useState<{ stop: () => Promise<void> } | null>(null);
   const textBeforeDictation = useRef("");
+  const isStartingDictation = useRef(false);
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
   const { t, language } = useTranslation();
@@ -136,6 +137,8 @@ export function ChatInput({
       return;
     }
     
+    if (isStartingDictation.current) return;
+    
     // Request Microphone Permission
     if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
@@ -151,7 +154,12 @@ export function ChatInput({
       return;
     }
 
-    startWhisperDictation();
+    isStartingDictation.current = true;
+    try {
+      await startWhisperDictation();
+    } finally {
+      isStartingDictation.current = false;
+    }
   };
 
   const confirmDownload = async () => {
