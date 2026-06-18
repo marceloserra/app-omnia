@@ -18,7 +18,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as Localization from "expo-localization";
 import { Audio } from "expo-av";
-import { getWhisperContext } from "../../lib/whisper";
+import { getWhisperContext, isModelDownloaded, downloadWhisperModel } from "../../lib/whisper";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -139,6 +139,32 @@ export function ChatInput({
     const { status } = await Audio.requestPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(t("chat.input.mic_permission_denied") || "Microphone permission is required.");
+      return;
+    }
+
+    const downloaded = await isModelDownloaded();
+    if (!downloaded) {
+      Alert.alert(
+        "Voice Engine Required",
+        "To use offline dictation, Omnia needs to download the 75MB Whisper AI Engine.\n\nWould you like to download it now?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Download", 
+            onPress: async () => {
+              try {
+                setIsDownloadingModel(true);
+                await downloadWhisperModel();
+                setIsDownloadingModel(false);
+                startWhisperDictation();
+              } catch (e) {
+                Alert.alert("Error", "Download failed. Check your connection.");
+                setIsDownloadingModel(false);
+              }
+            } 
+          }
+        ]
+      );
       return;
     }
 
