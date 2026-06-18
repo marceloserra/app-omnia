@@ -2,9 +2,9 @@ import * as FileSystem from 'expo-file-system/legacy';
 // @ts-ignore
 import { initWhisper } from 'whisper.rn';
 // @ts-ignore
-import { RealtimeTranscriber } from 'whisper.rn/src/realtime-transcription/RealtimeTranscriber';
+import { RealtimeTranscriber } from 'whisper.rn/realtime-transcription/RealtimeTranscriber';
 // @ts-ignore
-import { AudioPcmStreamAdapter } from 'whisper.rn/src/realtime-transcription/adapters/AudioPcmStreamAdapter';
+import { AudioPcmStreamAdapter } from 'whisper.rn/realtime-transcription/adapters/AudioPcmStreamAdapter';
 const MODEL_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin';
 export const MODEL_FILE_PATH = `${(FileSystem as any).documentDirectory}ggml-tiny.bin`;
 

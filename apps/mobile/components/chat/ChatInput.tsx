@@ -11,6 +11,7 @@ import {
   ScrollView,
   ActivityIndicator,
   PermissionsAndroid,
+  Modal,
 } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence, withDelay } from 'react-native-reanimated';
 import { ArrowUp, Square, Plus, FileText, Mic } from "lucide-react-native";
