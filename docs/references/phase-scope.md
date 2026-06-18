@@ -82,11 +82,13 @@ Agents must not implement work from a later phase unless the user explicitly adv
 
 ## Future Scope (Pending)
 
-- Phase 11: Retrieval-Augmented Generation (RAG)
-- Phase 12: WebSearch & Tool Calling
-- Phase 13: Model Context Protocol (MCP)
-- Phase 14: Voice & Text-to-Speech (TTS)
-- Phase 15: Multi-Agent Delegation
+- Phase 11: Knowledge Base
+- Phase 12: Tool Calling
+- Phase 12.5: Skills & Capabilities
+- Phase 13: Workspaces
+- Phase 14: Model Context Protocol (MCP)
+- Phase 15: Voice (STT, TTS, Realtime)
+- Phase 16: Multi-Agent Delegation
 
 ## Non Goals
 
