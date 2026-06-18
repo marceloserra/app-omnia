@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Platform, Alert } from "react-native";
 import { PermissionsAndroid } from "react-native";
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
@@ -37,15 +37,20 @@ export function useDictation() {
     return final;
   };
 
+  const usingCloudFallbackRef = useRef(false);
+  useEffect(() => {
+    usingCloudFallbackRef.current = usingCloudFallback;
+  }, [usingCloudFallback]);
+
   // --- Cloud STT Strategy ---
-  useSpeechRecognitionEvent("result", (event) => {
-    if (!usingCloudFallback) return;
+  useSpeechRecognitionEvent("result", useCallback((event) => {
+    if (!usingCloudFallbackRef.current) return;
     const transcript = event.results[0]?.transcript || "";
     partialDictationText.current = transcript.trim();
-  });
+  }, []));
 
-  useSpeechRecognitionEvent("error", (event) => {
-    if (!usingCloudFallback) return;
+  useSpeechRecognitionEvent("error", useCallback((event) => {
+    if (!usingCloudFallbackRef.current) return;
     logger.error("Dictation", "Cloud STT Error", event);
     setIsRecording(false);
     setUsingCloudFallback(false);
@@ -57,7 +62,7 @@ export function useDictation() {
     if (event.error !== "no-speech") {
       Alert.alert(t("chat.error.prefix") || "Error", event.message || "Speech recognition failed.");
     }
-  });
+  }, [t]));
 
   const startCloudStrategy = async () => {
     try {

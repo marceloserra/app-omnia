@@ -114,7 +114,6 @@ export function ChatInput({
   
   const { startDictation, stopDictation, state: dictationState } = useDictation();
   const { isRecording, usingCloudFallback, isDownloadingModel } = dictationState;
-
   const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
 
   const handleDictation = async () => {
@@ -357,18 +356,6 @@ export function ChatInput({
             </View>
 
           {/* Action column */}
-          {isRecording && (
-            <View style={styles.recordingOverlay}>
-              <AnimatedRecordingIndicator delay={0} />
-              <AnimatedRecordingIndicator delay={300} />
-              <AnimatedRecordingIndicator delay={600} />
-              <Text style={styles.recordingText}>Listening...</Text>
-              <Pressable style={styles.stopDictationBtn} onPress={handleDictation} hitSlop={10}>
-                <Square size={14} color={theme.red} fill={theme.red} />
-              </Pressable>
-            </View>
-          )}
-          
           {usingCloudFallback && (
              <Text style={styles.hint}>Cloud Dictation active. Download offline engine in Settings for speed & privacy.</Text>
           )}
