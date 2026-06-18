@@ -471,11 +471,12 @@ export default function SettingsScreen() {
                   <Pressable
                     onPress={handleDownloadWhisper}
                     style={({ pressed }) => [
-                      { backgroundColor: theme.activeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+                      { backgroundColor: theme.activeBg, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
                       pressed && { opacity: 0.7 }
                     ]}
                   >
                     <Text style={{ color: theme.indigo, fontSize: 13, fontWeight: "600" }}>{t("settings.capabilities.voice.get")}</Text>
+                    <Text style={{ color: theme.indigo, fontSize: 11, marginTop: 2, opacity: 0.8 }}>(142MB)</Text>
                   </Pressable>
                 )}
               </View>
