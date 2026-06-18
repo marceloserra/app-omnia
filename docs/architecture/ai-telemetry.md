@@ -56,3 +56,16 @@ To ensure the telemetry system is active:
    ```
 
 3. If you see an error in the app, you just need to tell the AI: *"The app crashed"* or *"SQLite failed"*. The AI will automatically read the `omnia-telemetry.jsonl` file to find the root cause.
+
+### Native Crashes (App crashes on boot)
+
+Because the AI Telemetry system runs in JavaScript (`_layout.tsx`), it **cannot** catch crashes that happen natively during the app boot process (e.g., C++ NDK errors, Kotlin `NoClassDefFoundError`, missing `.so` libraries). 
+
+If the app crashes instantly before the UI loads, the AI Telemetry file will be empty. In this scenario, the human developer must use the Android Debug Bridge (ADB) to catch the native logs.
+
+**For Humans:**
+If the app crashes on boot, open a **new terminal tab** and run:
+```bash
+adb logcat -s AndroidRuntime
+```
+*(Leave this running, open the app so it crashes, and copy the error stack trace to the AI).*
