@@ -1,5 +1,6 @@
 import { useSettingsStore } from "../store/settings-store";
 import { getLocales } from "expo-localization";
+import { useCallback } from "react";
 
 const en = {
   // Navigation
@@ -345,7 +346,7 @@ export function useTranslation() {
 
   const dict = dictionaries[activeLang as keyof typeof dictionaries] || dictionaries.en;
 
-  const t = (key: DictionaryKey) => dict[key] || en[key] || key;
+  const t = useCallback((key: DictionaryKey) => dict[key] || en[key] || key, [dict]);
 
   return { t, language: activeLang };
 }
