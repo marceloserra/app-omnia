@@ -1,4 +1,4 @@
-# 10. Model Selection Belongs in Chat Context, Not Settings
+# ADR 0025: Model Selection Belongs in Chat Context, Not Settings
 
 Date: 2026-06-17
 

@@ -230,3 +230,46 @@ This document serves as a centralized knowledge base for critical errors encount
 - **Solution (Mandatory Rule for Agents):**
   - **Android:** `"softwareKeyboardLayoutMode"` must be set to `"resize"` in `app.json`. This tells Android to natively shrink the `flex: 1` window.
   - **React Native:** `KeyboardAvoidingView` must have `behavior={Platform.OS === "ios" ? "padding" : undefined}`. Android natively resizes, so it doesn't need (and cannot have) `behavior="padding"`. iOS still requires `behavior="padding"`.
+
+### Issue 13: Final Android APK Blocks HTTP Local Provider URLs
+- **Date:** 2026-06-17
+- **Phase/Context:** Phase 09 (Release APK Stabilization)
+- **Status:** RESOLVED by config plugin, pending physical APK verification
+- **Error/Symptom:** Local provider URLs such as `http://192.168.x.x:1234/v1` work during development but fail in the installed release APK.
+- **Root Cause:**
+  - Android 9+ blocks cleartext HTTP by default in production APKs.
+  - Expo Go/dev flows can hide this because local HTTP is needed for development tooling.
+  - `android.usesCleartextTraffic: true` existed in `app.json`, but the final APK also needed a generated native `android:networkSecurityConfig` reference to guarantee the release manifest behavior.
+- **Solution:**
+  - Added `apps/mobile/network_security_config.xml`.
+  - Added `apps/mobile/plugins/with-android-cleartext-traffic.js`.
+  - Registered the plugin before `@config-plugins/detox` in `apps/mobile/app.json`; this ordering makes the final generated XML match Omnia's broad local-provider config instead of Detox's emulator-only config.
+  - The plugin copies the XML into `android/app/src/main/res/xml/network_security_config.xml` during `expo prebuild` and injects:
+    ```xml
+    android:usesCleartextTraffic="true"
+    android:networkSecurityConfig="@xml/network_security_config"
+    ```
+- **Important User Note:** On a physical Android device, `localhost` points to the phone itself. To reach LM Studio, Ollama, or another server running on a computer, use the computer's LAN IP, for example `http://192.168.1.100:1234/v1`, and make sure the server binds to a reachable interface.
+- **Validation:** Run `expo prebuild --platform android --clean --no-install`, then inspect `apps/mobile/android/app/src/main/AndroidManifest.xml` and `apps/mobile/android/app/src/main/res/xml/network_security_config.xml`.
+
+### Issue 14: CI Typecheck and Jest Fail Resolving React Native Testing Library
+- **Date:** 2026-06-17
+- **Phase/Context:** Phase 09 (Hotfix CI Stabilization)
+- **Status:** RESOLVED
+- **Error/Symptom:**
+  ```text
+  components/ui/__tests__/ConfirmDialog.test.tsx(2,43): error TS2307:
+  Cannot find module '@testing-library/react-native' or its corresponding type declarations.
+
+  Cannot find module '@testing-library/react-native' from 'jest.setup.js'
+  ```
+- **Root Cause:**
+  - `apps/mobile/tsconfig.json` included every `*.tsx` file, including Jest test files under `__tests__`.
+  - The mobile production typecheck therefore depended on test-only dependencies and pnpm hoisting behavior in CI.
+  - The root `pnpm test` gate runs through Turbo and invokes mobile Jest from CI's workspace layout. `apps/mobile/jest.setup.js` imports `@testing-library/react-native`, so the test runner must be able to resolve it predictably from the root workspace as well as from the mobile package.
+  - Local checks passed earlier because the module was available from the existing root `node_modules`; the GitHub runner exposed the fragility by not resolving the same hoisted layout.
+- **Solution:**
+  - Excluded test files from `apps/mobile/tsconfig.json`.
+  - Added `@testing-library/react-native` to the root dev dependencies so root Turbo/Jest execution resolves the setup import consistently in CI.
+  - Kept `pnpm test` as the required gate for test files and test-only dependencies.
+- **Rule:** App `typecheck` validates production/source TypeScript. Jest test compilation belongs to `pnpm test`, and test setup dependencies used by root workspace gates must be resolvable from the root dependency graph.

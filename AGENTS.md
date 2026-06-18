@@ -7,9 +7,10 @@ Before changing this repository, read these files in order:
 1. `MANIFEST.md`
 2. `docs/references/phase-scope.md`
 3. `docs/process/quality-gates.md`
-4. `docs/architecture/overview.md`
-5. Relevant ADRs in `docs/decisions/`
-6. Area-specific `AGENTS.md` files, such as `apps/mobile/AGENTS.md`
+4. `docs/process/git-flow.md`
+5. `docs/architecture/overview.md`
+6. Relevant ADRs in `docs/decisions/`
+7. Area-specific `AGENTS.md` files, such as `apps/mobile/AGENTS.md`
 
 ## Source Of Truth
 
@@ -31,13 +32,18 @@ Active phase: **Phase 9 ACTIVE**
 
 **Completed:**
 - Defined Release Engineering Strategy (`docs/architecture/release-strategy.md`).
-- Implemented PR Pipeline (`.github/workflows/pr.yml`).
-- Implemented Main Branch Validation Pipeline (`.github/workflows/main.yml`).
-- Implemented automated Release Pipeline with APK & SHA256 generation (`.github/workflows/release.yml`).
+- Implemented Branch Validation Pipeline (`.github/workflows/branch-validation.yml`).
+- Implemented PR Validation Pipeline (`.github/workflows/pr-validation.yml`).
+- Implemented Main Validation Pipeline (`.github/workflows/main-validation.yml`).
+- Implemented automated Release APK Pipeline with APK & SHA256 generation (`.github/workflows/release-apk.yml`).
+- Implemented Hotfix Back-Merge automation (`.github/workflows/hotfix-backmerge.yml`).
+- Cut stable release `v1.0.0`.
+- Cut patch release `v1.0.1`.
 
 **Remaining / Adjusted:**
 - Full UI/UX refactoring for Theme and Language injection across all components.
-- Tagging and cutting the first stable `v1.0.0` release.
+- Patch release stabilization for final APK defects.
+- Git Flow adoption for all future changes.
 
 Disallowed in Phase 9:
 - RAG, Tool Calling, MCP, WebFetch, Voice.
@@ -52,11 +58,14 @@ Disallowed in Phase 9:
 
 ## Engineering Rules
 
+- Follow `docs/process/git-flow.md`: no direct commits to `main`; use `develop`, `release/vX.Y.Z`, and scoped work branches.
 - Use pnpm workspaces and Turborepo root scripts.
 - Keep `pnpm-lock.yaml` synchronized with package changes.
 - Keep CI commands aligned with root scripts.
 - Add ADRs for structural or technology decisions.
 - Update documentation in the same change as behavior or workflow changes.
+- Update `CHANGELOG.md` in the same change for user-facing behavior, bug fixes, release workflow changes, CI/CD changes, architecture/process changes, and dependency changes. If no changelog entry is needed, state why in the PR.
+- When editing documentation or process files, fix directly related documentation divergences in the same change. If a divergence is real but outside the current scope, call it out in the handoff instead of leaving it silent.
 - Prefer small, phase-bounded changes over broad scaffolding.
 - **AI Telemetry:** If the user reports a crash or bug during development, ALWAYS check `omnia-telemetry.jsonl` at the root of the project to read the structured stack trace before asking the user for logs. (See `docs/architecture/ai-telemetry.md`).
 
@@ -79,4 +88,3 @@ pnpm --filter ./apps/mobile exec expo export --platform android --output-dir /pr
 ```
 
 If a command cannot be run, document the reason and the risk.
-

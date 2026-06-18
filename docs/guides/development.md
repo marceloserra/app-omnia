@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Document the local workflow for Phase 1 contributors.
+Document the local workflow for Omnia contributors and agents.
 
 ## Prerequisites
 
@@ -107,4 +107,10 @@ If `--android` reports "No Android connected device found", ensure an AVD is cre
 
 ## Phase Discipline
 
-Phase 1 is foundation only. Do not add providers, SQLite persistence, or chat features until the documented phase that owns them.
+The active phase is documented in `MANIFEST.md`, `AGENTS.md`, and `docs/references/phase-scope.md`.
+
+Do not implement capabilities outside the active phase. During Phase 9, production APK stabilization, release automation, documentation, and approved UI/UX polish are allowed. RAG, agents, MCP, tool calling, WebFetch, voice, sync, authentication, plugins, and cloud backend work remain out of scope.
+
+## Branch Discipline
+
+Follow `docs/process/git-flow.md` for all changes. Work branches target `develop`; release branches stabilize from `develop`; emergency hotfixes branch from `main` and are back-merged to `develop`.
