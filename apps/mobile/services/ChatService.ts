@@ -50,6 +50,7 @@ class ChatService {
           id: conversationId,
           title,
           createdAt: Date.now(),
+          updatedAt: Date.now(),
         });
       }
     } catch (e) {

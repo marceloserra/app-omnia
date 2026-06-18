@@ -75,6 +75,7 @@ export function useDictation() {
       setIsRecording(true);
       partialDictationText.current = "";
       setUsingCloudFallback(true);
+      logger.info("Dictation", "Starting Cloud STT Native Engine");
       
       await ExpoSpeechRecognitionModule.start({
         lang: language,
@@ -97,6 +98,7 @@ export function useDictation() {
       
       setIsRecording(true);
       partialDictationText.current = "";
+      logger.info("Dictation", "Starting Local Offline Whisper AI Engine");
       
       const { stop } = await startWhisperRealtime(language, (transcript, isCapturing) => {
         if (transcript) {
