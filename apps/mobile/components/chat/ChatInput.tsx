@@ -17,13 +17,8 @@ import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, wit
 import { ArrowUp, Square, Plus, FileText, Mic } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import * as DocumentPicker from "expo-document-picker";
-import * as Localization from "expo-localization";
-import { logger } from "@omnia/logger";
-import { getWhisperContext, isModelDownloaded, downloadWhisperModel, startWhisperRealtime } from "../../lib/whisper";
-import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
-import * as Device from "expo-device";
-
+import { isModelDownloaded } from "../../lib/whisper";
+import { useDictation } from "../../hooks/useDictation";
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
 import { useSettingsStore } from "../../store/settings-store";
@@ -83,153 +78,27 @@ export function ChatInput({
   const [loadingText, setLoadingText] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isDownloadingModel, setIsDownloadingModel] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(-1);
-  const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
-  const [whisperSession, setWhisperSession] = useState<{ stop: () => Promise<void> } | null>(null);
-  const textBeforeDictation = useRef("");
-  const partialDictationText = useRef("");
-  const isStartingDictation = useRef(false);
-  const isUsingCloudSTT = useRef(false);
-  const [cloudHintVisible, setCloudHintVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
   const { t, language } = useTranslation();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
+  
+  const { startDictation, stopDictation, state: dictationState } = useDictation();
+  const { isRecording, usingCloudFallback, isDownloadingModel } = dictationState;
 
   const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
 
-  const commitDictationText = () => {
-    if (partialDictationText.current.length > 0) {
-      const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
-      setText(prefix + partialDictationText.current);
-    }
-    setIsRecording(false);
-    setWhisperSession(null);
-    isUsingCloudSTT.current = false;
-    setCloudHintVisible(false);
-  };
-
-  useSpeechRecognitionEvent("result", (event) => {
-    if (!isUsingCloudSTT.current) return;
-    const transcript = event.results[0]?.transcript || "";
-    partialDictationText.current = transcript.trim();
-    if (event.isFinal) {
-      commitDictationText();
-    }
-  });
-
-  useSpeechRecognitionEvent("error", (event) => {
-    if (!isUsingCloudSTT.current) return;
-    logger.error("ChatInput", "Cloud STT Error", event);
-    setIsRecording(false);
-    isUsingCloudSTT.current = false;
-    setCloudHintVisible(false);
-  });
-
-  const startCloudDictation = async () => {
-    try {
-      const perms = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-      if (!perms.granted) {
-        Alert.alert(t("chat.input.mic_permission_denied") || "Microphone permission is required.");
-        return;
-      }
-      
-      setIsRecording(true);
-      textBeforeDictation.current = text;
-      partialDictationText.current = "";
-      isUsingCloudSTT.current = true;
-      setCloudHintVisible(true);
-      
-      await ExpoSpeechRecognitionModule.start({
-        lang: language === 'auto' ? 'en-US' : language, // expo-speech-recognition prefers specific locales, default to OS
-        interimResults: true,
-      });
-      
-    } catch (err: any) {
-      logger.error("ChatInput", "Cloud Dictation Setup Error", err);
-      setIsRecording(false);
-      isUsingCloudSTT.current = false;
-      setCloudHintVisible(false);
-      Alert.alert("Dictation Error", err?.message || String(err));
-    }
-  };
-
-  const startWhisperDictation = async () => {
-    try {
-      await getWhisperContext(); // Ensure model is loaded
-      setIsDownloadingModel(false);
-      
-      setIsRecording(true);
-      textBeforeDictation.current = text;
-      
-      partialDictationText.current = "";
-      
-      const { stop } = await startWhisperRealtime(language, (transcript, isCapturing) => {
-        if (transcript) {
-          partialDictationText.current = transcript.trim();
-        }
-        if (!isCapturing) {
-          commitDictationText();
-        }
-      }, (err) => {
-        logger.error("ChatInput", "Whisper STT Callback Error", err);
-        setIsRecording(false);
-        setWhisperSession(null);
-      });
-      
-      setWhisperSession({ stop });
-      
-    } catch (err: any) {
-      logger.error("ChatInput", "Whisper Dictation Setup Error", err);
-      setIsDownloadingModel(false);
-      setIsRecording(false);
-      Alert.alert("Dictation Error", err?.message || String(err));
-    }
-  };
-
   const handleDictation = async () => {
     if (isRecording) {
-      if (isUsingCloudSTT.current) {
-        await ExpoSpeechRecognitionModule.stop();
-        commitDictationText();
-      } else if (whisperSession) {
-        try {
-          await whisperSession.stop();
-        } catch (e) {
-          logger.error("ChatInput", "Error stopping whisper session", e);
-        }
-        commitDictationText();
+      const finalTranscript = await stopDictation();
+      if (finalTranscript.length > 0) {
+        const prefix = text + (text.endsWith(" ") || text.length === 0 ? "" : " ");
+        setText(prefix + finalTranscript);
       }
       return;
     }
     
-    if (isStartingDictation.current) return;
-    isStartingDictation.current = true;
-    
-    // Request Microphone Permission
-    if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
-      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert(t("chat.input.mic_permission_denied") || "Microphone permission is required.");
-        isStartingDictation.current = false;
-        return;
-      }
-    }
-
-    const downloaded = await isModelDownloaded();
-    
-    try {
-      if (!downloaded) {
-        // Fallback to Cloud Dictation
-        await startCloudDictation();
-      } else {
-        await startWhisperDictation();
-      }
-    } finally {
-      isStartingDictation.current = false;
-    }
+    await startDictation();
   };
 
   const confirmDownload = async () => {
@@ -502,12 +371,7 @@ export function ChatInput({
                 )}
               </View>
 
-              {/* Elegant Thin Progress Bar at the bottom of the input */}
-              {isDownloadingModel && downloadProgress >= 0 && (
-                <View style={{ position: 'absolute', bottom: 0, left: 16, right: 16, height: 2, backgroundColor: 'transparent', overflow: 'hidden', borderRadius: 1 }}>
-                  <View style={{ height: '100%', width: `${Math.max(5, downloadProgress * 100)}%`, backgroundColor: theme.indigo }} />
-                </View>
-              )}
+              {/* Action column removed download progress UI as download is in settings */}
             </View>
 
           {/* Action column */}
@@ -523,7 +387,7 @@ export function ChatInput({
             </View>
           )}
           
-          {cloudHintVisible && (
+          {usingCloudFallback && (
              <Text style={styles.hint}>Cloud Dictation active. Download offline engine in Settings for speed & privacy.</Text>
           )}
           
