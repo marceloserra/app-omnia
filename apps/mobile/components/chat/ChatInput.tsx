@@ -111,19 +111,25 @@ export function ChatInput({
         break;
       }
       case 'files': {
-        const docResult = await DocumentPicker.getDocumentAsync({
-          copyToCacheDirectory: true,
-          multiple: true,
-        });
-        if (!docResult.canceled && docResult.assets) {
-          const newAtts = docResult.assets.map((asset) => ({
-            uri: asset.uri,
-            name: asset.name,
-            type: "document" as const,
-            mimeType: asset.mimeType,
-            size: asset.size,
-          }));
-          setAttachments((prev) => [...prev, ...newAtts]);
+        try {
+          const docResult = await DocumentPicker.getDocumentAsync({
+            type: ['application/pdf', 'text/*'],
+            copyToCacheDirectory: false, // Let our downstream logic handle the copy to avoid OS cache lock issues
+            multiple: true,
+          });
+          if (!docResult.canceled && docResult.assets) {
+            const newAtts = docResult.assets.map((asset) => ({
+              uri: asset.uri,
+              name: asset.name,
+              type: "document" as const,
+              mimeType: asset.mimeType,
+              size: asset.size,
+            }));
+            setAttachments((prev) => [...prev, ...newAtts]);
+          }
+        } catch (err) {
+          console.error("DocumentPicker error:", err);
+          Alert.alert("File Error", "Could not pick the requested file. Make sure it is downloaded to your device.");
         }
         break;
       }
