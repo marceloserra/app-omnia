@@ -82,19 +82,7 @@ export default function SettingsScreen() {
     }
     
     // Hardware Capability Detection (Phase 9 Quality Gates)
-    if (!features.localWhisper.isSupported) {
-      const proceed = await new Promise<boolean>((resolve) => {
-        Alert.alert(
-          t("settings.capabilities.voice.warning.title" as any) || "Hardware Warning",
-          (t("settings.capabilities.voice.warning.msg" as any) || "Your device processor may struggle to run the Voice Engine smoothly. You may experience slow transcriptions.\n\nDo you still want to proceed?") + `\n\nReason: ${features.localWhisper.reason}`,
-          [
-            { text: t("chat.delete.cancel" as any) || "Cancel", style: "cancel", onPress: () => resolve(false) },
-            { text: "Download Anyway", style: "destructive", onPress: () => resolve(true) }
-          ]
-        );
-      });
-      if (!proceed) return;
-    }
+    if (!features.localWhisper.isSupported) return;
 
     try {
       setWhisperProgress(0);
@@ -453,7 +441,7 @@ export default function SettingsScreen() {
           <View style={{ marginTop: 24 }}>
             <Text style={styles.sectionTitle}>{t("settings.capabilities.title")}</Text>
             <View style={styles.iosGroup}>
-              <View style={[styles.iosRow, { paddingVertical: 16 }]}>
+              <View style={[styles.iosRow, { paddingVertical: 16, opacity: features.localWhisper.isSupported ? 1 : 0.5 }]} pointerEvents={features.localWhisper.isSupported ? "auto" : "none"}>
                 <View style={[styles.iosIconContainer, { backgroundColor: isWhisperReady ? "#10b981" : theme.textMuted }]}>
                   <Mic size={18} color="#fff" />
                 </View>
@@ -489,6 +477,10 @@ export default function SettingsScreen() {
                   </View>
                 ) : whisperProgress >= 0 ? (
                   <ActivityIndicator size="small" color={theme.indigo} />
+                ) : !features.localWhisper.isSupported ? (
+                  <View style={{ backgroundColor: theme.activeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}>
+                    <Text style={{ color: theme.textMuted, fontSize: 13, fontWeight: "600" }}>Unsupported</Text>
+                  </View>
                 ) : (
                   <Pressable
                     onPress={handleDownloadWhisper}
