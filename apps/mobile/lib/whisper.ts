@@ -55,6 +55,7 @@ export async function getWhisperContext(): Promise<any> {
 let globalTranscriber: any = null;
 
 export async function startWhisperRealtime(
+  language: string,
   onResult: (text: string, isCapturing: boolean) => void,
   onError?: (err: any) => void
 ): Promise<{ stop: () => Promise<void> }> {
@@ -81,7 +82,7 @@ export async function startWhisperRealtime(
       realtimeProcessingPauseMs: 200,
       initRealtimeAfterMs: 200,
       transcribeOptions: {
-        language: 'pt',
+        language,
       }
     },
     {

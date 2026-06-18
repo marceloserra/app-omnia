@@ -88,7 +88,7 @@ export function ChatInput({
   const textBeforeDictation = useRef("");
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
 
   const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
@@ -103,7 +103,7 @@ export function ChatInput({
       setIsRecording(true);
       textBeforeDictation.current = text;
       
-      const { stop } = await startWhisperRealtime((transcript, isCapturing) => {
+      const { stop } = await startWhisperRealtime(language, (transcript, isCapturing) => {
         if (transcript) {
           const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
           setText(prefix + transcript.trim());
