@@ -81,6 +81,12 @@ export function ChatInput({
     setLoadingText(messages[Math.floor(Math.random() * messages.length)]);
     setIsPickingFile(true);
     
+    // Yield to the React event loop to ensure the AttachmentMenu modal fully closes
+    // and the 'working...' pill paints to the screen BEFORE the Android OS thread
+    // freezes the app to open the Native File Picker Intent. This also prevents 
+    // Android from instantly canceling the Intent if the UI is still animating.
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     try {
       switch (option) {
         case 'camera': {
