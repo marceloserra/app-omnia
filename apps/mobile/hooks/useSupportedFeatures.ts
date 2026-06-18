@@ -19,10 +19,10 @@ export function useSupportedFeatures(): AppFeatures {
 
     if (hw.isSimulator) {
       whisperSupport = { isSupported: false, reason: "Simulators lack audio hardware acceleration." };
-    } else if (hw.isExynosS21) {
-      whisperSupport = { isSupported: false, reason: "Exynos 2100 processor has known compatibility issues with ggml engine." };
-    } else if (hw.isLowMemory) {
+    } else if (!hw.isSupportedRam) {
       whisperSupport = { isSupported: false, reason: "Requires at least 4GB of RAM for stable inference." };
+    } else if (!hw.isSupportedCpu) {
+      whisperSupport = { isSupported: false, reason: "CPU architecture unsupported or known to have issues with local engine." };
     }
 
     return {

@@ -1,14 +1,18 @@
 import { useMemo } from 'react';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import { getDeviceSpec } from '../lib/deviceSpecs';
 
 export interface HardwareProfile {
   modelName: string;
   osName: string;
   osVersion: string;
   totalMemoryGB: number;
-  isExynosS21: boolean;
-  isLowMemory: boolean;
+  cpu: string;
+  gpu: string;
+  npu: string;
+  isSupportedCpu: boolean;
+  isSupportedRam: boolean;
   isSimulator: boolean;
 }
 
@@ -20,11 +24,17 @@ export function useHardwareDetection(): HardwareProfile {
     const totalMemoryBytes = Device.totalMemory || 0;
     const totalMemoryGB = totalMemoryBytes > 0 ? Math.round(totalMemoryBytes / (1024 * 1024 * 1024)) : 0;
     
-    // Exynos S21 variants (Global) are known to struggle with ggml-base/tiny
+    // Check known specs
+    const specs = getDeviceSpec(model);
+    
+    // Explicit exclusions
     const isExynosS21 = Platform.OS === 'android' && 
       (model.includes("SM-G991B") || model.includes("SM-G996B") || model.includes("SM-G998B"));
-      
-    const isLowMemory = totalMemoryGB > 0 && totalMemoryGB < 4;
+    
+    // Evaluate Support Status
+    const isSupportedCpu = specs.isSupportedCpu && !isExynosS21;
+    const isSupportedRam = totalMemoryGB >= 4; // Require at least 4GB RAM
+    
     const isSimulator = !Device.isDevice;
 
     return {
@@ -32,8 +42,11 @@ export function useHardwareDetection(): HardwareProfile {
       osName,
       osVersion,
       totalMemoryGB,
-      isExynosS21,
-      isLowMemory,
+      cpu: specs.cpu,
+      gpu: specs.gpu,
+      npu: specs.npu,
+      isSupportedCpu,
+      isSupportedRam,
       isSimulator,
     };
   }, []);

@@ -18,7 +18,7 @@ import { router } from "expo-router";
 import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
 import { Input } from "../../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
-import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe, Vibrate, Mic, Cpu, Smartphone, Info } from "lucide-react-native";
+import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe, Vibrate, Mic, Cpu, Smartphone, Info, Database } from "lucide-react-native";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
@@ -539,10 +539,44 @@ export default function SettingsScreen() {
               </View>
               <View style={styles.iosRowBorder} />
               
-              {/* CPU / Memory */}
+              {/* Processors */}
               <View style={styles.iosRow}>
                 <View style={[styles.iosIconContainer, { backgroundColor: "#8b5cf6" }]}>
                   <Cpu size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>CPU Architecture</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{hw.cpu}</Text>
+                </View>
+              </View>
+              <View style={styles.iosRowBorder} />
+
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#f43f5e" }]}>
+                  <Monitor size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>GPU Graphics</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{hw.gpu}</Text>
+                </View>
+              </View>
+              <View style={styles.iosRowBorder} />
+
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#06b6d4" }]}>
+                  <Box size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>Neural Processing Unit</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{hw.npu}</Text>
+                </View>
+              </View>
+              <View style={styles.iosRowBorder} />
+
+              {/* Memory */}
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#10b981" }]}>
+                  <Database size={18} color="#fff" />
                 </View>
                 <View style={{ flex: 1, paddingRight: 16 }}>
                   <Text style={styles.iosRowLabel}>System Memory</Text>
