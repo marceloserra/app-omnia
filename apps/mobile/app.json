@@ -36,10 +36,9 @@
       "@config-plugins/detox",
       "expo-image",
       [
-        "expo-speech-recognition",
+        "expo-document-picker",
         {
-          "microphonePermission": "Omnia needs microphone access to dictate messages.",
-          "speechRecognitionPermission": "Omnia needs speech recognition access to transcribe your voice."
+          "appleTeamId": "XXXXX"
         }
       ]
     ]
