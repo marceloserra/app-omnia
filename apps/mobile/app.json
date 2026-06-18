@@ -34,7 +34,14 @@
       "expo-sqlite",
       "./plugins/with-android-cleartext-traffic",
       "@config-plugins/detox",
-      "expo-image"
+      "expo-image",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Omnia needs microphone access to dictate messages.",
+          "speechRecognitionPermission": "Omnia needs speech recognition access to transcribe your voice."
+        }
+      ]
     ]
   }
 }
