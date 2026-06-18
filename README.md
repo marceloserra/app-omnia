@@ -2,7 +2,7 @@
 
 <p align="center">
   <img
-    src="./apps/mobile/assets/omnia-logo.jpg"
+    src="./apps/mobile/assets/favicon.png"
     alt="Omnia icon"
     width="96"
     height="96"
@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img alt="Latest Release" src="https://img.shields.io/badge/Release-v1.0.0-0A84FF?style=flat-square" />
+  <img alt="Latest Release" src="https://img.shields.io/badge/Release-v1.2.0-0A84FF?style=flat-square" />
   <img alt="React Native" src="https://img.shields.io/badge/React_Native-05050f?style=flat-square&logo=react" />
   <img alt="Expo" src="https://img.shields.io/badge/Expo-SDK_56-black?style=flat-square&logo=expo" />
   <img alt="SQLite" src="https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite" />
@@ -33,11 +33,10 @@
 <br>
 
 <p align="center">
-  <!-- TODO: Replace with actual .gif demo from Simulator -->
   <img
-    src="https://via.placeholder.com/360x640/05050f/6366f1?text=Omnia+Demo+Video+.gif"
-    alt="Omnia demo"
-    width="360"
+    src="./apps/mobile/assets/omnia-app-hero.png"
+    alt="Omnia demo!!"
+    width="800"
   />
 </p>
 <br>
