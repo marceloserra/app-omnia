@@ -29,8 +29,10 @@ const en = {
   
   // Chat
   "chat.empty.title": "What can I help with?",
-  "chat.input.placeholder": "Message Omnia...",
+  "chat.input.placeholder": "Message for Omnia...",
   "chat.input.listening": "Listening...",
+  "chat.input.mic_permission_denied": "Microphone permission is required.",
+  "chat.input.attachments.max": "Maximum of 4 attachments allowed",
   "chat.drawer.title": "Conversations",
   "chat.delete.title": "Delete Chat",
   "chat.delete.message": "will be permanently deleted. This cannot be undone.",
@@ -124,7 +126,9 @@ const pt: typeof en = {
   
   "chat.empty.title": "Como posso ajudar?",
   "chat.input.placeholder": "Mensagem para Omnia...",
-  "chat.input.listening": "Ouvindo...",
+  "chat.input.listening": "Gravando...",
+  "chat.input.mic_permission_denied": "Permissão de microfone é necessária.",
+  "chat.input.attachments.max": "Máximo de 4 anexos permitidos",
   "chat.drawer.title": "Conversas",
   "chat.delete.title": "Apagar Conversa",
   "chat.delete.message": "será permanentemente apagada. Esta ação não pode ser desfeita.",
@@ -218,6 +222,8 @@ const es: typeof en = {
   "chat.empty.title": "¿En qué puedo ayudarte?",
   "chat.input.placeholder": "Mensaje para Omnia...",
   "chat.input.listening": "Escuchando...",
+  "chat.input.mic_permission_denied": "Se requiere permiso de micrófono.",
+  "chat.input.attachments.max": "Máximo de 4 adjuntos permitidos",
   "chat.drawer.title": "Conversaciones",
   "chat.delete.title": "Eliminar Chat",
   "chat.delete.message": "se eliminará permanentemente. Esta acción no se puede deshacer.",

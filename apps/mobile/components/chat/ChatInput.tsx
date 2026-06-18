@@ -17,17 +17,8 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as Localization from "expo-localization";
-
-let ExpoSpeechRecognitionModule: any = null;
-let useSpeechRecognitionEvent: any = () => {};
-
-try {
-  const speech = require("expo-speech-recognition");
-  ExpoSpeechRecognitionModule = speech.ExpoSpeechRecognitionModule;
-  useSpeechRecognitionEvent = speech.useSpeechRecognitionEvent;
-} catch (e) {
-  console.log("[Speech] Native module not available. Voice input disabled in Expo Go.");
-}
+import { Audio } from "expo-av";
+import { getWhisperContext } from "../../lib/whisper";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -89,6 +80,8 @@ export function ChatInput({
   const [isFocused, setIsFocused] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isDownloadingModel, setIsDownloadingModel] = useState(false);
+  const [whisperSession, setWhisperSession] = useState<{ stop: () => Promise<void> } | null>(null);
   const textBeforeDictation = useRef("");
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
@@ -97,70 +90,59 @@ export function ChatInput({
 
   const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
 
-  useSpeechRecognitionEvent("start", () => {
-    textBeforeDictation.current = text;
-    setIsRecording(true);
-  });
-
-  useSpeechRecognitionEvent("end", () => {
-    setIsRecording(false);
-  });
-
-  useSpeechRecognitionEvent("result", (event: any) => {
-    const transcript = event.results[0]?.transcript;
-    if (transcript) {
-      const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
-      setText(prefix + transcript);
+  // Real-time Whisper Dictation
+  const startWhisperDictation = async () => {
+    try {
+      setIsDownloadingModel(true);
+      const whisperContext = await getWhisperContext();
+      setIsDownloadingModel(false);
+      
+      setIsRecording(true);
+      textBeforeDictation.current = text;
+      
+      const { stop, subscribe } = await whisperContext.transcribeRealtime({
+        language: 'pt',
+        realtimeAudioSec: 60,
+        realtimeAudioSliceSec: 1, // Emit results frequently
+      });
+      
+      setWhisperSession({ stop });
+      
+      subscribe((evt: any) => {
+        const transcript = evt.data?.result;
+        if (transcript) {
+          const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
+          setText(prefix + transcript.trim());
+        }
+        if (!evt.isCapturing) {
+          setIsRecording(false);
+          setWhisperSession(null);
+        }
+      });
+    } catch (err: any) {
+      console.warn("Whisper STT Error:", err);
+      setIsDownloadingModel(false);
+      setIsRecording(false);
+      Alert.alert("Dictation Error", err?.message || String(err));
     }
-  });
-
-  useSpeechRecognitionEvent("error", (event: any) => {
-    console.warn("Speech recognition error:", event.error);
-    setIsRecording(false);
-    if (event.error !== "client" && event.error !== "no-speech" && event.error !== "no-match") {
-      Alert.alert("Dictation Error", event.error);
-    }
-  });
+  };
 
   const handleDictation = async () => {
-    if (!ExpoSpeechRecognitionModule) {
-      Alert.alert(
-        "Expo Go Limit", 
-        "Voice dictation requires custom native code (C++/Swift) that is not included in the standard Expo Go app.\n\nTo use the microphone, you must compile the native app using 'expo run:android' or 'expo run:ios'."
-      );
-      return;
-    }
-
-    if (isRecording) {
-      ExpoSpeechRecognitionModule.stop();
-      if (useSettingsStore.getState().hapticsEnabled) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
-      return;
-    }
-
-    Keyboard.dismiss();
-    
-    if (useSettingsStore.getState().hapticsEnabled) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-
-    const { granted } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-    if (!granted) {
-      Alert.alert("Permission Required", "Omnia needs microphone access for dictation.");
-      return;
-    }
-
-    try {
-      const deviceLang = Localization.getLocales()[0]?.languageTag || "en-US";
-      ExpoSpeechRecognitionModule.start({
-        lang: deviceLang,
-        interimResults: true,
-      });
-    } catch (err) {
-      console.error("Failed to start speech recognition:", err);
+    if (isRecording && whisperSession) {
+      await whisperSession.stop();
       setIsRecording(false);
+      setWhisperSession(null);
+      return;
     }
+    
+    // Request Microphone Permission
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(t("chat.input.mic_permission_denied") || "Microphone permission is required.");
+      return;
+    }
+
+    startWhisperDictation();
   };
 
   const handleSendPress = () => {
@@ -192,11 +174,6 @@ export function ChatInput({
     setLoadingText(messages[Math.floor(Math.random() * messages.length)]);
     setIsPickingFile(true);
     
-    // ── PRINCIPAL FAANG FIX ──
-    // `InteractionManager` was deprecated in RN 0.76+. The modern standard for yielding 
-    // to animations before launching heavyweight Intents without arbitrary long delays
-    // is combining requestAnimationFrame (waits for next layout/paint) with a tiny setTimeout
-    // (pushes execution to the back of the JS task queue).
     await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 50)));
     
     try {
@@ -239,7 +216,7 @@ export function ChatInput({
         try {
           const docResult = await DocumentPicker.getDocumentAsync({
             type: ['application/pdf', 'text/*'],
-            copyToCacheDirectory: Platform.OS === 'ios', // REQUIRED on iOS for security-scoped URLs. On Android, false prevents silent cancel bugs with Drive files.
+            copyToCacheDirectory: Platform.OS === 'ios',
             multiple: true,
           });
           if (!docResult.canceled && docResult.assets) {
@@ -327,14 +304,14 @@ export function ChatInput({
               ref={inputRef}
               value={text}
               onChangeText={setText}
-              placeholder={t("chat.input.placeholder")}
-              placeholderTextColor={theme.textMuted}
+              placeholder={isDownloadingModel ? "Downloading AI Engine..." : t("chat.input.placeholder")}
+              placeholderTextColor={isDownloadingModel ? theme.indigo : theme.textMuted}
               multiline
               maxLength={4000}
               style={[styles.textInput, { paddingRight: isRecording ? 100 : 40 }]}
               onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
               blurOnSubmit={false}
-              editable={!isRecording}
+              editable={!isRecording && !isDownloadingModel}
               returnKeyType="send"
               enablesReturnKeyAutomatically
               scrollEnabled
@@ -372,13 +349,19 @@ export function ChatInput({
             ) : (
               <Pressable 
                 onPress={handleDictation} 
+                disabled={isDownloadingModel}
                 style={({ pressed }) => [
                   { position: 'absolute', right: 8, bottom: 6, width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
-                  pressed && { backgroundColor: theme.activeBg }
+                  pressed && { backgroundColor: theme.activeBg },
+                  isDownloadingModel && { opacity: 0.5 }
                 ]}
                 accessibilityLabel="Dictate message"
               >
-                <Mic size={20} color={theme.textMuted} />
+                {isDownloadingModel ? (
+                  <ActivityIndicator size="small" color={theme.indigo} />
+                ) : (
+                  <Mic size={20} color={theme.textMuted} />
+                )}
               </Pressable>
             )}
           </View>
