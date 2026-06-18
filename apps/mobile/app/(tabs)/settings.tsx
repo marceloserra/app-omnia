@@ -437,7 +437,7 @@ export default function SettingsScreen() {
                 </View>
                 <View style={{ flex: 1, paddingRight: 16 }}>
                   <Text style={styles.iosRowLabel}>Voice Dictation</Text>
-                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4, lineHeight: 18 }}>Powered by OpenAI Whisper (On-Device)</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4, lineHeight: 18 }}>Offline Whisper AI Engine</Text>
                   
                   {whisperProgress >= 0 && (
                     <View style={{ marginTop: 8 }}>
@@ -475,7 +475,7 @@ export default function SettingsScreen() {
                       pressed && { opacity: 0.7 }
                     ]}
                   >
-                    <Text style={{ color: theme.indigo, fontSize: 13, fontWeight: "600" }}>Get (142MB)</Text>
+                    <Text style={{ color: theme.indigo, fontSize: 13, fontWeight: "600" }}>Download</Text>
                   </Pressable>
                 )}
               </View>
