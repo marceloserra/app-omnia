@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Animated } from "react-native";
+import { useTheme } from "../../lib/theme";
 
 /**
  * A classic staggered bounce "typing" indicator.
@@ -7,6 +8,7 @@ import { View, StyleSheet, Animated } from "react-native";
  * regardless of JS thread congestion during streaming.
  */
 export function TypingIndicator() {
+  const theme = useTheme();
   const [anim1] = useState(new Animated.Value(0));
   const [anim2] = useState(new Animated.Value(0));
   const [anim3] = useState(new Animated.Value(0));
@@ -46,11 +48,14 @@ export function TypingIndicator() {
     };
   }, [anim1, anim2, anim3]);
 
+  const isDark = theme.bg === "#05050f";
+  const dotColor = isDark ? "#818cf8" : theme.textSecondary;
+
   return (
     <View style={typingStyles.row}>
-      <Animated.View style={[typingStyles.dot, { transform: [{ translateY: anim1 }] }]} />
-      <Animated.View style={[typingStyles.dot, { transform: [{ translateY: anim2 }] }]} />
-      <Animated.View style={[typingStyles.dot, { transform: [{ translateY: anim3 }] }]} />
+      <Animated.View style={[typingStyles.dot, { backgroundColor: dotColor, transform: [{ translateY: anim1 }] }]} />
+      <Animated.View style={[typingStyles.dot, { backgroundColor: dotColor, transform: [{ translateY: anim2 }] }]} />
+      <Animated.View style={[typingStyles.dot, { backgroundColor: dotColor, transform: [{ translateY: anim3 }] }]} />
     </View>
   );
 }
@@ -66,7 +71,6 @@ const typingStyles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#818cf8", // indigo-400
-    opacity: 0.8,
+    opacity: 0.7,
   },
 });
