@@ -383,10 +383,7 @@ export function ChatInput({
                 />
                 
                 {isRecording && (
-                  <View style={{ position: 'absolute', left: 4, bottom: 6, flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface2, paddingRight: 8 }}>
-                    <Text style={{ color: theme.red, fontSize: 12, fontWeight: '600', marginRight: 8, fontStyle: 'italic' }}>
-                      {t("chat.input.listening") || "Listening..."}
-                    </Text>
+                  <View style={{ position: 'absolute', left: 8, bottom: 6, flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface2, paddingRight: 8 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', height: 16 }}>
                       <WaveformBar delay={0} isRecording={isRecording} theme={theme} />
                       <WaveformBar delay={150} isRecording={isRecording} theme={theme} />
