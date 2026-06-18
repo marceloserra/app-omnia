@@ -85,21 +85,20 @@ export async function startWhisperRealtime(
     throw new Error("Whisper context not initialized");
   }
 
-  // Always recreate the transcriber to ensure clean state and avoid "only works first time" bug
+  // Add a small delay to ensure native layer has fully released the context
   if (globalTranscriber) {
     try {
       await globalTranscriber.stop();
+      await new Promise(res => setTimeout(res, 250));
     } catch (e) {
       // ignore
     }
     globalTranscriber = null;
   }
 
-  // Create a contextual prompt to guide the model towards the UI language,
-  // while still allowing it to auto-detect and transcribe other languages.
-  let promptHint = "The user is speaking in English to the AI assistant Omnia. Here is the transcription:";
-  if (language === 'pt') promptHint = "O usuário está falando em português com a inteligência artificial Omnia. Aqui está a transcrição precisa e natural:";
-  else if (language === 'es') promptHint = "El usuario está hablando en español con la inteligencia artificial Omnia. Aquí está la transcripción precisa e natural:";
+  // Do not use language-specific prompts as they force Whisper to translate instead of transcribe.
+  // Just seed the AI's name so it recognizes 'Omnia' instead of 'Omni' or 'Amnia'.
+  const promptHint = "Omnia.";
 
   logger.info("Whisper", `Initializing RealtimeTranscriber with promptHint: "${promptHint}"`);
 
@@ -164,6 +163,7 @@ export async function startWhisperRealtime(
     stop: async () => {
       if (globalTranscriber) {
         await globalTranscriber.stop();
+        await new Promise(res => setTimeout(res, 250));
         globalTranscriber = null;
       }
     }
