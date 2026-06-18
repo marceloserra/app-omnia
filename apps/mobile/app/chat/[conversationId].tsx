@@ -4,6 +4,7 @@ import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
 import { ChatInput } from "../../components/chat/ChatInput";
+import { Attachment } from "../../components/chat/AttachmentPill";
 import { ModelPickerSheet, getModelIcon } from "../../components/chat/ModelPickerSheet";
 import { ModelChip } from "../../components/chat/ModelChip";
 import { useProviderStore } from "../../store/provider-store";
@@ -99,7 +100,7 @@ export default function ChatScreen() {
     return null;
   }, [store]);
 
-  const handleSend = useCallback(async (text: string, isInitialPrompt: boolean = false) => {
+  const handleSend = useCallback(async (text: string, attachments?: Attachment[], isInitialPrompt: boolean = false) => {
     const providerCtx = getProvider();
     if (!providerCtx) return;
     if (!conversationId) return;
@@ -265,7 +266,7 @@ export default function ChatScreen() {
       setMessages(history);
       if (initialPrompt && !hasTriggeredPrompt.current) {
         hasTriggeredPrompt.current = true;
-        setTimeout(() => { handleSend(initialPrompt, true); }, 300);
+        setTimeout(() => { handleSend(initialPrompt, undefined, true); }, 300);
       }
     } catch (err) {
       logger.error("SQLite", "Failed to load chat history", err);

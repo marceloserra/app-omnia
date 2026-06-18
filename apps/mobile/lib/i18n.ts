@@ -62,6 +62,10 @@ const en = {
   "chat.input.hint": "Omnia can make mistakes. Check important info.",
   "chat.input.attach.title": "Coming Soon",
   "chat.input.attach.msg": "File attachments will be available in Phase 11.",
+  "chat.input.attach.camera": "Camera",
+  "chat.input.attach.library": "Photo Library",
+  "chat.input.attach.files": "Files",
+  "common.cancel": "Cancel",
 
   "settings.model.select": "Select Model",
   "settings.model.none": "None",
@@ -138,6 +142,10 @@ const pt: typeof en = {
   "chat.input.hint": "O Omnia pode cometer erros. Verifique informações importantes.",
   "chat.input.attach.title": "Em Breve",
   "chat.input.attach.msg": "O envio de arquivos estará disponível na Fase 11.",
+  "chat.input.attach.camera": "Câmera",
+  "chat.input.attach.library": "Galeria de Fotos",
+  "chat.input.attach.files": "Arquivos",
+  "common.cancel": "Cancelar",
 
   "settings.model.select": "Selecionar Modelo",
   "settings.model.none": "Nenhum",
@@ -214,6 +222,10 @@ const es: typeof en = {
   "chat.input.hint": "Omnia puede cometer errores. Verifica información importante.",
   "chat.input.attach.title": "Próximamente",
   "chat.input.attach.msg": "El envío de archivos estará disponible en la Fase 11.",
+  "chat.input.attach.camera": "Cámara",
+  "chat.input.attach.library": "Fototeca",
+  "chat.input.attach.files": "Archivos",
+  "common.cancel": "Cancelar",
 
   "settings.model.select": "Seleccionar Modelo",
   "settings.model.none": "Ninguno",
