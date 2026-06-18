@@ -15,7 +15,17 @@ import { ArrowUp, Square, Plus, FileText, Mic } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
+
+let ExpoSpeechRecognitionModule: any = null;
+let useSpeechRecognitionEvent: any = () => {};
+
+try {
+  const speech = require("expo-speech-recognition");
+  ExpoSpeechRecognitionModule = speech.ExpoSpeechRecognitionModule;
+  useSpeechRecognitionEvent = speech.useSpeechRecognitionEvent;
+} catch (e) {
+  console.log("[Speech] Native module not available. Voice input disabled in Expo Go.");
+}
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -81,6 +91,14 @@ export function ChatInput({
   });
 
   const handleDictation = async () => {
+    if (!ExpoSpeechRecognitionModule) {
+      Alert.alert(
+        "Expo Go Limit", 
+        "Voice dictation requires custom native code (C++/Swift) that is not included in the standard Expo Go app.\n\nTo use the microphone, you must compile the native app using 'expo run:android' or 'expo run:ios'."
+      );
+      return;
+    }
+
     if (isRecording) {
       ExpoSpeechRecognitionModule.stop();
       if (useSettingsStore.getState().hapticsEnabled) {
