@@ -32,32 +32,34 @@ For full strategic details, read `docs/roadmap/strategic-roadmap-review.md`.
 ### Phase 10: Multi-Modal Attachments
 - **Goal:** Image → Model, PDF → Model, Camera → Model.
 - **Value:** Interact naturally with contracts, invoices, screenshots.
+- **Inspiration:** Llama.cpp UI attachment menus.
 
-### Phase 11: Knowledge Base
-- **Goal:** Persistent knowledge collections ("My Knowledge" - do not use the term RAG).
+### Phase 11: Voice (Microphone / STT)
+- **Goal:** Allow users to speak to the model instead of typing.
+- **Tech Options:** 
+  - *Native/Free:* `SFSpeechRecognizer` (iOS) & `SpeechRecognizer` (Android) — Zero cost, works offline.
+  - *Modern/LLM-grade:* Whisper API (via Groq for 0 latency free-tier) or Whisper.cpp (local execution).
+
+### Phase 12: WebSearch
+- **Goal:** Enable the LLM to search the web and fetch live data.
+- **Tech Options:**
+  - *100% Free:* DuckDuckGo HTML scraping proxy (zero API keys).
+  - *Agentic/Free-Tier:* Tavily API (built for LLMs, 1000 free searches/month) or Brave Search API.
+
+### Phase 13: Knowledge Base
+- **Goal:** Persistent knowledge collections ("My Knowledge").
 - **Tech:** Local embeddings, chunking, SQLite vector search.
 
-### Phase 12: Tool Calling
-- **Goal:** Enable models to execute actions (Web Search, Calculator, Shell).
-
-### Phase 12.5: Skills & Capabilities
+### Phase 14: Skills & Capabilities
 - **Goal:** Reusable building blocks independent of the execution layer.
 - **Tech:** `capabilities/`, `registry/`, `contracts/`.
 
-### Phase 13: Workspaces
+### Phase 15: Workspaces
 - **Goal:** Context isolation (e.g., Personal, Orbitarium, Work).
 - **Tech:** Local-first architecture isolating chats, files, and agents per domain.
 
-### Phase 14: Model Context Protocol (MCP)
-- **Goal:** Developer-centric reuse and interoperability (only after Tools and Workspaces are mature).
-
-### Phase 15: Voice
-- **15A:** Speech To Text (Whisper)
-- **15B:** Text To Speech
-- **15C:** Realtime Voice (Separate Initiative)
-
-### Phase 16: Multi-Agent Delegation
-- **Goal:** Solve complex problems via Planner, Researcher, and Execution agents.
+### Phase 16: Model Context Protocol (MCP) & Multi-Agent
+- **Goal:** Developer-centric reuse and complex problem solving via Planner, Researcher, and Execution agents.
 
 > **Status:** All future phases (10-16) are currently PENDING. Do not begin implementation until the user explicitly dictates the start of Phase 10.
 > **Daily Driver Rule:** Experimental work MUST happen in `feature/*` branches. Merging to `develop` must never degrade the core daily usability.
