@@ -103,8 +103,12 @@ export default function ChatScreen() {
   }, [store]);
 
   const handleSend = useCallback(async (text: string, attachments?: Attachment[], isInitialPrompt: boolean = false) => {
+    logger.info("Chat.handleSend", `User initiated send. Text length: ${text.length}, Attachments: ${attachments?.length || 0}`);
     const providerCtx = getProvider();
-    if (!providerCtx) return;
+    if (!providerCtx) {
+      logger.warn("Chat.handleSend", "No provider context available. Aborting send.");
+      return;
+    }
     if (!conversationId) return;
 
     isAbortedRef.current = false;
@@ -138,6 +142,7 @@ export default function ChatScreen() {
       }
 
       for (const att of attachments) {
+        logger.info("Chat.handleSend.Attachment", `Processing attachment: ${att.name} (${att.mimeType})`);
         try {
           const ext = att.uri.split('.').pop() || 'tmp';
           const newFileName = `${generateId()}.${ext}`;
@@ -167,6 +172,7 @@ export default function ChatScreen() {
     
     const isFirstMessage = prev.length === 0 && userMessage;
 
+    logger.info("Chat.handleSend", `Displaying user message and blank assistant message (ID: ${assistantId})`);
     setMessages((currentPrev) => {
       return isInitialPrompt ? [...currentPrev, assistantMessage] : [...currentPrev, userMessage!, assistantMessage];
     });
@@ -324,6 +330,7 @@ export default function ChatScreen() {
       }
 
       try {
+        logger.info("Chat.handleSend.Stream", "Connecting to provider API stream...");
         const stream = providerCtx.provider.streamChat(providerCtx.config, {
           messages: chatHistory,
           modelId: providerCtx.modelId,
@@ -333,6 +340,7 @@ export default function ChatScreen() {
         let lastHapticTime = Date.now();
         let lastSqliteTime = Date.now();
         
+        logger.info("Chat.handleSend.Stream", "Stream established. Iterating chunks...");
         for await (const chunk of stream) {
           if (isAbortedRef.current) break;
           if (chunk.done) break;
@@ -359,6 +367,7 @@ export default function ChatScreen() {
           );
         }
 
+        logger.info("Chat.handleSend.Stream", `Stream completed successfully. Total length: ${fullContent.length}`);
         try {
           getDb().msgRepo.updateContent(assistantId, fullContent);
         } catch (err) {

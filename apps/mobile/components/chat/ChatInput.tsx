@@ -194,6 +194,7 @@ export function ChatInput({
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     
+    logger.info("ChatInput", `Submitting message. Text length: ${trimmed.length}. Attachments: ${attachments.length}`);
     onSend(trimmed, attachments);
     setText("");
     setAttachments([]);
@@ -224,6 +225,7 @@ export function ChatInput({
         });
         if (!camResult.canceled && camResult.assets[0]) {
           const asset = camResult.assets[0];
+          logger.info("ChatInput", `Camera attachment successful. URI: ${asset.uri}, MIME: ${asset.mimeType}, Size: ${asset.fileSize}`);
           setAttachments((prev) => [
             ...prev,
             { uri: asset.uri, name: asset.fileName || "photo.jpg", type: "image", mimeType: asset.mimeType, size: asset.fileSize },
@@ -245,6 +247,8 @@ export function ChatInput({
             mimeType: asset.mimeType,
             size: asset.fileSize,
           }));
+          logger.info("ChatInput", `Library attachment successful. Attached ${newAtts.length} assets.`);
+          newAtts.forEach(a => logger.info("ChatInput", `Library file attached: ${a.name}, Type: ${a.type}, Size: ${a.size}`));
           setAttachments((prev) => [...prev, ...newAtts]);
         }
         break;
