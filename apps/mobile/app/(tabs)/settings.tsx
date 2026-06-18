@@ -19,7 +19,6 @@ import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
 import { Input } from "../../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
 import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe, Vibrate, Mic, Cpu, Smartphone, Info, Database } from "lucide-react-native";
-import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
@@ -29,6 +28,7 @@ import { useHardwareDetection } from "../../hooks/useHardwareDetection";
 import { useSupportedFeatures } from "../../hooks/useSupportedFeatures";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProviderStore } from "../../store/provider-store";
+import { useSettingsManager } from "../../hooks/useSettingsManager";
 import Constants from "expo-constants";
 import { isModelDownloaded, downloadWhisperModel, deleteWhisperModel } from "../../lib/whisper";
 
@@ -68,6 +68,7 @@ export default function SettingsScreen() {
   
   const hw = useHardwareDetection();
   const features = useSupportedFeatures();
+  const { clearAllData } = useSettingsManager();
   
   const [isWhisperReady, setIsWhisperReady] = useState(false);
   const [whisperProgress, setWhisperProgress] = useState(-1);
@@ -117,16 +118,9 @@ export default function SettingsScreen() {
   };
 
   const confirmClearAll = () => {
-    try {
-      const db = openDatabase();
-      createMessageRepo(db).deleteAll();
-      createConversationRepo(db).deleteAll();
-      setShowClearConfirm(false);
-      router.replace("/");
-    } catch (err) {
-      Alert.alert("Error", "Could not delete history.");
-      setShowClearConfirm(false);
-    }
+    clearAllData();
+    setShowClearConfirm(false);
+    router.replace("/");
   };
 
   const handleTestConnection = async () => {

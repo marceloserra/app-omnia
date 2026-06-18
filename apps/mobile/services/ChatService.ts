@@ -60,12 +60,18 @@ class ChatService {
   updateConversationTitle(conversationId: string, title: string) {
     try {
       this._convRepo.update(conversationId, { title });
-    } catch (e) {}
+    } catch (e) {
+      logger.error("ChatService", "Failed to update conversation title", e);
+    }
   }
 
-  saveMessage(message: Message) {
+  saveMessage(msg: Message) {
     try {
-      this._msgRepo.create(message);
+      this._msgRepo.create({
+        ...msg,
+        timestamp: msg.timestamp || Date.now()
+      });
+      this._convRepo.update(msg.conversationId, { updatedAt: Date.now() });
     } catch (e) {
       logger.error("ChatService", "Failed to save message", e);
     }

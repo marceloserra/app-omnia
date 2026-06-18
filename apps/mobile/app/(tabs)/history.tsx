@@ -6,8 +6,8 @@ import {
 import { MessageSquare, Pin, Pencil, Trash2, Search, X } from "lucide-react-native";
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
-import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { Conversation } from "@omnia/shared-types";
+import { useHistory } from "../../hooks/useHistory";
 import { router, useFocusEffect } from "expo-router";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,18 +15,7 @@ import { Swipeable } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
 import { useSettingsStore } from "../../store/settings-store";
 
-let _db: any;
-let _convRepo: any;
-let _msgRepo: any;
-
-function getDb() {
-  if (!_db) {
-    _db = openDatabase();
-    _convRepo = createConversationRepo(_db);
-    _msgRepo = createMessageRepo(_db);
-  }
-  return { convRepo: _convRepo, msgRepo: _msgRepo };
-}
+// HistoryScreen manages the UI representation of past conversations
 
 export default function HistoryScreen() {
   const theme = useTheme();
@@ -34,7 +23,7 @@ export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
   
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { conversations, pinConversation, deleteConversation, renameConversation, refreshHistory } = useHistory();
   const [searchQuery, setSearchQuery] = useState("");
   
   const [renameConv, setRenameConv] = useState<Conversation | null>(null);
@@ -45,41 +34,24 @@ export default function HistoryScreen() {
   
   useFocusEffect(
     useCallback(() => {
-      loadConvs();
-    }, [])
+      refreshHistory();
+    }, [refreshHistory])
   );
 
-  const loadConvs = () => {
-    try {
-      setConversations(getDb().convRepo.listAll());
-    } catch (e) {}
-  };
-
   const togglePin = (conv: Conversation) => {
-    try {
-      getDb().convRepo.update(conv.id, { isPinned: !conv.isPinned });
-      loadConvs();
-    } catch (e) {}
+    pinConversation(conv.id, !conv.isPinned);
   };
 
   const handleRename = () => {
     if (renameConv && renameTitle.trim()) {
-      try {
-        getDb().convRepo.update(renameConv.id, { title: renameTitle.trim() });
-        loadConvs();
-      } catch (e) {}
+      renameConversation(renameConv.id, renameTitle.trim());
     }
     setRenameConv(null);
   };
 
   const handleDelete = () => {
     if (deleteConv) {
-      try {
-        const { msgRepo, convRepo } = getDb();
-        msgRepo.deleteByConversation(deleteConv.id);
-        convRepo.delete(deleteConv.id);
-        loadConvs();
-      } catch (e) {}
+      deleteConversation(deleteConv.id);
     }
     setDeleteConv(null);
   };

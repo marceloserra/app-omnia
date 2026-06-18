@@ -36,7 +36,8 @@ export function useHardwareDetection(): HardwareProfile {
     // Check known specs
     const brand = Device.brand || "";
     const archs = Device.supportedCpuArchitectures;
-    const specs = getDeviceSpec(model, brand, archs);
+    const designName = Device.designName || "";
+    const specs = getDeviceSpec(model, brand, archs, designName);
     
     // Evaluate Support Status
     const isSupportedCpu = specs.isSupportedCpu;
