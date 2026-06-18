@@ -75,9 +75,18 @@ Agents must not implement work from a later phase unless the user explicitly adv
 - Git Flow Adoption and Mandated PR Templates
 - Cut stable releases up to v1.0.2
 
-## Phase 10 (ACTIVE — Feature Expansion & Stabilization)
+## Phase 10 (ACTIVE — Multi-Modal Attachments)
 
-- TBD: Define next major features (e.g., Image Generation, Web client).
+- ImagePicker, DocumentPicker, Camera integration.
+- UI/UX based on Llama.cpp UI (ChatAttachmentsPreview).
+
+## Future Scope (Pending)
+
+- Phase 11: Retrieval-Augmented Generation (RAG)
+- Phase 12: WebSearch & Tool Calling
+- Phase 13: Model Context Protocol (MCP)
+- Phase 14: Voice & Text-to-Speech (TTS)
+- Phase 15: Multi-Agent Delegation
 
 ## Non Goals
 
