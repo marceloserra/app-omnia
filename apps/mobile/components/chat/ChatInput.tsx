@@ -42,6 +42,7 @@ export function ChatInput({
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isPickingFile, setIsPickingFile] = useState(false);
+  const [loadingText, setLoadingText] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
@@ -76,6 +77,8 @@ export function ChatInput({
 
   const handleAttachOption = async (option: 'camera' | 'library' | 'files') => {
     setMenuVisible(false);
+    const messages = ["working...", "bubbling...", "omning..."];
+    setLoadingText(messages[Math.floor(Math.random() * messages.length)]);
     setIsPickingFile(true);
     
     try {
@@ -162,12 +165,26 @@ export function ChatInput({
       <View style={[styles.inputCard, isFocused && styles.inputCardFocused]}>
         
         {/* Attachments UI (Pills) */}
-        {attachments.length > 0 && (
+        {(attachments.length > 0 || isPickingFile) && (
           <View style={styles.attachmentsRow}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               {attachments.map((att, idx) => (
                 <AttachmentPill key={`${att.uri}-${idx}`} attachment={att} onRemove={() => setAttachments(p => p.filter((_, i) => i !== idx))} />
               ))}
+              {isPickingFile && (
+                <View style={{ 
+                  flexDirection: "row", alignItems: "center", 
+                  backgroundColor: "rgba(99,102,241,0.1)", 
+                  paddingHorizontal: 12, paddingVertical: 8, 
+                  borderRadius: 14, borderWidth: 1, borderColor: "rgba(99,102,241,0.3)",
+                  marginRight: 8, height: 36
+                }}>
+                  <ActivityIndicator size="small" color="#6366f1" style={{ marginRight: 6 }} />
+                  <Text style={{ color: "#6366f1", fontSize: 13, fontWeight: "600", fontStyle: "italic" }}>
+                    {loadingText}
+                  </Text>
+                </View>
+              )}
             </ScrollView>
           </View>
         )}
