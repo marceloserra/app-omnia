@@ -18,15 +18,13 @@ import { router } from "expo-router";
 import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
 import { Input } from "../../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
-import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe, Vibrate, Mic, Cpu, Smartphone, Info } from "lucide-react-native";
+import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe, Vibrate, Mic } from "lucide-react-native";
 import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import * as Device from 'expo-device';
-import { useHardwareDetection } from "../../hooks/useHardwareDetection";
-import { useSupportedFeatures } from "../../hooks/useSupportedFeatures";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProviderStore } from "../../store/provider-store";
 import Constants from "expo-constants";
@@ -66,9 +64,6 @@ export default function SettingsScreen() {
   const [showWhisperDeleteConfirm, setShowWhisperDeleteConfirm] = useState(false);
   const [modelPickerVisible, setModelPickerVisible] = useState(false);
   
-  const hw = useHardwareDetection();
-  const features = useSupportedFeatures();
-  
   const [isWhisperReady, setIsWhisperReady] = useState(false);
   const [whisperProgress, setWhisperProgress] = useState(-1);
 
@@ -82,18 +77,26 @@ export default function SettingsScreen() {
     }
     
     // Hardware Capability Detection (Phase 9 Quality Gates)
-    if (!features.localWhisper.isSupported) {
-      const proceed = await new Promise<boolean>((resolve) => {
-        Alert.alert(
-          t("settings.capabilities.voice.warning.title" as any) || "Hardware Warning",
-          (t("settings.capabilities.voice.warning.msg" as any) || "Your device processor may struggle to run the Voice Engine smoothly. You may experience slow transcriptions.\n\nDo you still want to proceed?") + `\n\nReason: ${features.localWhisper.reason}`,
-          [
-            { text: t("chat.delete.cancel" as any) || "Cancel", style: "cancel", onPress: () => resolve(false) },
-            { text: "Download Anyway", style: "destructive", onPress: () => resolve(true) }
-          ]
-        );
-      });
-      if (!proceed) return;
+    if (Platform.OS === 'android') {
+      const model = Device.modelName || "";
+      const totalMemory = Device.totalMemory || 0;
+      // Exynos S21 variants (Global) are known to struggle with ggml-base
+      const isExynosS21 = model.includes("SM-G991B") || model.includes("SM-G996B") || model.includes("SM-G998B");
+      const isLowMemory = totalMemory > 0 && totalMemory < 4 * 1024 * 1024 * 1024; // < 4GB
+      
+      if (isExynosS21 || isLowMemory) {
+        const proceed = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            t("settings.capabilities.voice.warning.title" as any) || "Hardware Warning",
+            t("settings.capabilities.voice.warning.msg" as any) || "Your device processor may struggle to run the Voice Engine smoothly. You may experience slow transcriptions.\n\nDo you still want to proceed?",
+            [
+              { text: t("chat.delete.cancel" as any) || "Cancel", style: "cancel", onPress: () => resolve(false) },
+              { text: "Download Anyway", style: "destructive", onPress: () => resolve(true) }
+            ]
+          );
+        });
+        if (!proceed) return;
+      }
     }
 
     try {
@@ -527,62 +530,6 @@ export default function SettingsScreen() {
                   trackColor={{ false: theme.border, true: theme.indigo }}
                   thumbColor={Platform.OS === "android" ? "#fff" : undefined}
                 />
-              </View>
-            </View>
-          </View>
-
-          {/* Hardware & Diagnostics */}
-          <View style={{ marginTop: 24 }}>
-            <Text style={styles.sectionTitle}>Hardware & Diagnostics</Text>
-            <View style={styles.iosGroup}>
-              {/* Device Profile */}
-              <View style={styles.iosRow}>
-                <View style={[styles.iosIconContainer, { backgroundColor: theme.indigo }]}>
-                  <Smartphone size={18} color="#fff" />
-                </View>
-                <View style={{ flex: 1, paddingRight: 16 }}>
-                  <Text style={styles.iosRowLabel}>{hw.modelName}</Text>
-                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{hw.osName} {hw.osVersion}</Text>
-                </View>
-              </View>
-              <View style={styles.iosRowBorder} />
-              
-              {/* CPU / Memory */}
-              <View style={styles.iosRow}>
-                <View style={[styles.iosIconContainer, { backgroundColor: "#8b5cf6" }]}>
-                  <Cpu size={18} color="#fff" />
-                </View>
-                <View style={{ flex: 1, paddingRight: 16 }}>
-                  <Text style={styles.iosRowLabel}>System Memory</Text>
-                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>
-                    {hw.totalMemoryGB > 0 ? `${hw.totalMemoryGB} GB Unified Memory` : "Unknown"}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.iosRowBorder} />
-
-              {/* AI Engine Support */}
-              <View style={[styles.iosRow, { paddingVertical: 16 }]}>
-                <View style={[
-                  styles.iosIconContainer, 
-                  { backgroundColor: features.localWhisper.isSupported ? "#10b981" : "#f59e0b" }
-                ]}>
-                  {features.localWhisper.isSupported ? <Check size={18} color="#fff" /> : <Info size={18} color="#fff" />}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.iosRowLabel}>AI Powered STT Engine</Text>
-                  <Text style={{ 
-                    fontSize: 13, 
-                    color: features.localWhisper.isSupported ? theme.textSecondary : "#f59e0b", 
-                    marginTop: 4, 
-                    lineHeight: 18 
-                  }}>
-                    {features.localWhisper.isSupported 
-                      ? "Hardware fully supported for local transcription."
-                      : features.localWhisper.reason
-                    }
-                  </Text>
-                </View>
               </View>
             </View>
           </View>
