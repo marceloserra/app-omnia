@@ -301,22 +301,22 @@ export function ChatInput({
             <View style={styles.modalIconBg}>
               <Mic size={28} color={theme.indigo} />
             </View>
-            <Text style={styles.modalTitle}>Voice Engine Required</Text>
+            <Text style={styles.modalTitle}>{t("settings.capabilities.voice.req.title")}</Text>
             <Text style={styles.modalText}>
-              To use incredibly fast, 100% offline dictation, Omnia needs to download the 142MB Whisper AI Engine.
+              {t("settings.capabilities.voice.req.msg")}
             </Text>
             <View style={styles.modalActions}>
               <Pressable
                 onPress={() => setShowDownloadPrompt(false)}
                 style={({ pressed }) => [styles.modalBtnCancel, pressed && { opacity: 0.7 }]}
               >
-                <Text style={styles.modalBtnCancelText}>Cancel</Text>
+                <Text style={styles.modalBtnCancelText}>{t("common.cancel")}</Text>
               </Pressable>
               <Pressable
                 onPress={confirmDownload}
                 style={({ pressed }) => [styles.modalBtnConfirm, pressed && { opacity: 0.8 }]}
               >
-                <Text style={styles.modalBtnConfirmText}>Download</Text>
+                <Text style={styles.modalBtnConfirmText}>{t("settings.capabilities.voice.get")}</Text>
               </Pressable>
             </View>
           </View>

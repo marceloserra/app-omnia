@@ -429,15 +429,15 @@ export default function SettingsScreen() {
 
           {/* Capabilities Section */}
           <View style={{ marginTop: 24 }}>
-            <Text style={styles.sectionTitle}>Capabilities</Text>
+            <Text style={styles.sectionTitle}>{t("settings.capabilities.title")}</Text>
             <View style={styles.iosGroup}>
               <View style={[styles.iosRow, { paddingVertical: 16 }]}>
                 <View style={[styles.iosIconContainer, { backgroundColor: isWhisperReady ? "#10b981" : theme.textMuted }]}>
                   <Mic size={18} color="#fff" />
                 </View>
                 <View style={{ flex: 1, paddingRight: 16 }}>
-                  <Text style={styles.iosRowLabel}>Voice Dictation</Text>
-                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4, lineHeight: 18 }}>Offline Whisper AI Engine</Text>
+                  <Text style={styles.iosRowLabel}>{t("settings.capabilities.voice.title")}</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4, lineHeight: 18 }}>{t("settings.capabilities.voice.subtitle")}</Text>
                   
                   {whisperProgress >= 0 && (
                     <View style={{ marginTop: 8 }}>
@@ -445,7 +445,7 @@ export default function SettingsScreen() {
                         <View style={{ height: '100%', width: `${Math.max(5, whisperProgress * 100)}%`, backgroundColor: theme.indigo }} />
                       </View>
                       <Text style={{ fontSize: 11, color: theme.indigo, marginTop: 4 }}>
-                        Downloading Engine: {Math.round(whisperProgress * 100)}%
+                        {t("settings.capabilities.voice.downloading").replace("{progress}", Math.round(whisperProgress * 100).toString())}
                       </Text>
                     </View>
                   )}
@@ -453,7 +453,7 @@ export default function SettingsScreen() {
                 
                 {isWhisperReady ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <Text style={{ color: "#10b981", fontSize: 14, fontWeight: "600" }}>Enabled</Text>
+                    <Text style={{ color: "#10b981", fontSize: 14, fontWeight: "600" }}>{t("settings.capabilities.voice.enabled")}</Text>
                     <Pressable
                       onPress={handleDeleteWhisper}
                       style={({ pressed }) => [
@@ -475,7 +475,7 @@ export default function SettingsScreen() {
                       pressed && { opacity: 0.7 }
                     ]}
                   >
-                    <Text style={{ color: theme.indigo, fontSize: 13, fontWeight: "600" }}>Download</Text>
+                    <Text style={{ color: theme.indigo, fontSize: 13, fontWeight: "600" }}>{t("settings.capabilities.voice.get")}</Text>
                   </Pressable>
                 )}
               </View>
@@ -545,9 +545,9 @@ export default function SettingsScreen() {
 
       <ConfirmDialog
         visible={showWhisperDeleteConfirm}
-        title="Remove Voice Engine"
-        message="Are you sure you want to delete the offline dictation engine? You will need to download the ~142MB file again to use dictation."
-        confirmText="Remove"
+        title={t("settings.capabilities.voice.delete.title")}
+        message={t("settings.capabilities.voice.delete.msg")}
+        confirmText={t("settings.capabilities.voice.delete.confirm")}
         onCancel={() => setShowWhisperDeleteConfirm(false)}
         onConfirm={confirmDeleteWhisper}
       />
