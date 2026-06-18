@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { ArrowUp, Square, Plus } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
-import { useActionSheet } from "@expo/react-native-action-sheet";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
@@ -20,6 +19,7 @@ import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
 import { useSettingsStore } from "../../store/settings-store";
 import { AttachmentPill, Attachment } from "./AttachmentPill";
+import { AttachmentMenu } from "./AttachmentMenu";
 
 export interface ChatInputProps {
   onSend: (text: string, attachments?: Attachment[]) => void;
@@ -41,10 +41,10 @@ export function ChatInput({
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isFocused, setIsFocused] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
   const { t } = useTranslation();
-  const { showActionSheetWithOptions } = useActionSheet();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
 
   const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
@@ -69,76 +69,65 @@ export function ChatInput({
 
   const handleAttachPress = () => {
     Keyboard.dismiss();
-    const options = [
-      t("chat.input.attach.camera") || "Camera",
-      t("chat.input.attach.library") || "Photo Library",
-      t("chat.input.attach.files") || "Files",
-      t("common.cancel") || "Cancel",
-    ];
-    const cancelButtonIndex = 3;
+    setMenuVisible(true);
+  };
 
-    showActionSheetWithOptions(
-      {
-        options,
-        cancelButtonIndex,
-        userInterfaceStyle: theme.bg === "#05050f" ? "dark" : "light",
-      },
-      async (selectedIndex?: number) => {
-        switch (selectedIndex) {
-          case 0: { // Camera
-            const camPerm = await ImagePicker.requestCameraPermissionsAsync();
-            if (!camPerm.granted) return;
-            const camResult = await ImagePicker.launchCameraAsync({
-              mediaTypes: ['images'],
-              quality: 0.8,
-            });
-            if (!camResult.canceled && camResult.assets[0]) {
-              const asset = camResult.assets[0];
-              setAttachments((prev) => [
-                ...prev,
-                { uri: asset.uri, name: asset.fileName || "photo.jpg", type: "image", mimeType: asset.mimeType, size: asset.fileSize },
-              ]);
-            }
-            break;
-          }
-          case 1: { // Library
-            const libResult = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ['images', 'videos'],
-              quality: 0.8,
-              allowsMultipleSelection: true,
-            });
-            if (!libResult.canceled && libResult.assets) {
-              const newAtts = libResult.assets.map((asset) => ({
-                uri: asset.uri,
-                name: asset.fileName || "photo.jpg",
-                type: "image" as const,
-                mimeType: asset.mimeType,
-                size: asset.fileSize,
-              }));
-              setAttachments((prev) => [...prev, ...newAtts]);
-            }
-            break;
-          }
-          case 2: { // Files
-            const docResult = await DocumentPicker.getDocumentAsync({
-              copyToCacheDirectory: true,
-              multiple: true,
-            });
-            if (!docResult.canceled && docResult.assets) {
-              const newAtts = docResult.assets.map((asset) => ({
-                uri: asset.uri,
-                name: asset.name,
-                type: "document" as const,
-                mimeType: asset.mimeType,
-                size: asset.size,
-              }));
-              setAttachments((prev) => [...prev, ...newAtts]);
-            }
-            break;
-          }
+  const handleAttachOption = async (option: 'camera' | 'library' | 'files') => {
+    setMenuVisible(false);
+    
+    switch (option) {
+      case 'camera': {
+        const camPerm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!camPerm.granted) return;
+        const camResult = await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          quality: 0.8,
+        });
+        if (!camResult.canceled && camResult.assets[0]) {
+          const asset = camResult.assets[0];
+          setAttachments((prev) => [
+            ...prev,
+            { uri: asset.uri, name: asset.fileName || "photo.jpg", type: "image", mimeType: asset.mimeType, size: asset.fileSize },
+          ]);
         }
+        break;
       }
-    );
+      case 'library': {
+        const libResult = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images', 'videos'],
+          quality: 0.8,
+          allowsMultipleSelection: true,
+        });
+        if (!libResult.canceled && libResult.assets) {
+          const newAtts = libResult.assets.map((asset) => ({
+            uri: asset.uri,
+            name: asset.fileName || "photo.jpg",
+            type: "image" as const,
+            mimeType: asset.mimeType,
+            size: asset.fileSize,
+          }));
+          setAttachments((prev) => [...prev, ...newAtts]);
+        }
+        break;
+      }
+      case 'files': {
+        const docResult = await DocumentPicker.getDocumentAsync({
+          copyToCacheDirectory: true,
+          multiple: true,
+        });
+        if (!docResult.canceled && docResult.assets) {
+          const newAtts = docResult.assets.map((asset) => ({
+            uri: asset.uri,
+            name: asset.name,
+            type: "document" as const,
+            mimeType: asset.mimeType,
+            size: asset.size,
+          }));
+          setAttachments((prev) => [...prev, ...newAtts]);
+        }
+        break;
+      }
+    }
   };
 
   const handleStop = () => {
@@ -152,6 +141,11 @@ export function ChatInput({
 
   return (
     <View style={styles.outerContainer}>
+      <AttachmentMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onSelect={handleAttachOption}
+      />
       <View style={[styles.inputCard, isFocused && styles.inputCardFocused]}>
         
         {/* Attachments UI (Pills) */}
