@@ -20,6 +20,7 @@ import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
 import { useSettingsStore } from "../../store/settings-store";
 import * as Haptics from "expo-haptics";
+import * as FileSystem from "expo-file-system/legacy";
 
 let _db: any;
 let _msgRepo: any;
@@ -119,12 +120,33 @@ export default function ChatScreen() {
       timestamp: Date.now(),
     };
 
+    const processedAttachments: Attachment[] = [];
+    if (attachments && attachments.length > 0) {
+      const attachmentDir = (FileSystem.documentDirectory || "file:///tmp/") + 'omnia_attachments/';
+      try {
+        const dirInfo = await FileSystem.getInfoAsync(attachmentDir);
+        if (!dirInfo.exists) {
+          await FileSystem.makeDirectoryAsync(attachmentDir, { intermediates: true });
+        }
+        for (const att of attachments) {
+          const ext = att.uri.split('.').pop() || 'tmp';
+          const newFileName = `${generateId()}.${ext}`;
+          const destUri = attachmentDir + newFileName;
+          await FileSystem.copyAsync({ from: att.uri, to: destUri });
+          processedAttachments.push({ ...att, uri: destUri });
+        }
+      } catch (err) {
+        logger.error("FileSystem", "Failed to persist attachments", err);
+      }
+    }
+
     const userMessage: Message | null = isInitialPrompt ? null : {
       id: generateId(),
       conversationId: conversationId,
       role: "user",
       content: text,
       timestamp: Date.now(),
+      attachments: processedAttachments.length > 0 ? processedAttachments : undefined,
     };
 
     const prev = messagesRef.current;
