@@ -124,6 +124,86 @@ Releases should carry descriptive titles based on the current phase completion:
 
 ---
 
+## Release Notes Standard
+
+Release notes are a public product artifact. They should explain the user/developer outcome, not just list commits.
+
+Use this source order:
+
+1.  `CHANGELOG.md [Unreleased]` is the editorial source of truth.
+2.  Git commits since the previous tag are the audit trail.
+3.  Merged PRs provide review context and issue numbers.
+4.  Manual notes cover compatibility, setup, known limitations, and rollout risk.
+
+Do not publish release notes that are only raw commit output. Commit output can seed the draft, but the final body must be grouped by user-facing area and release-engineering impact.
+
+### Mechanical Inputs
+
+Use these commands to gather the raw release material:
+
+```bash
+# Last reachable tag before HEAD
+git describe --tags --abbrev=0 HEAD^
+
+# Commits between two releases
+git log vX.Y.Z..vA.B.C --oneline --decorate
+
+# Commit subjects for drafting grouped notes
+git log vX.Y.Z..vA.B.C --pretty=format:"- %s"
+
+# Merge commits / PR references, when present
+git log vX.Y.Z..vA.B.C --merges --pretty=format:"- %s"
+```
+
+For a hotfix, compare the previous production tag with the new tag. For a normal release, compare the previous production tag with the release tag created from `main`.
+
+### Public Release Notes Template
+
+Use this structure for GitHub Releases:
+
+```markdown
+**Omnia vX.Y.Z** is a <focused patch | minor feature | major release> that <primary outcome>.
+
+<One short paragraph explaining why this release matters to users or developers.>
+
+### Notes
+- <Important usage note>
+- <Compatibility, migration, or setup note>
+- <Known limitation, rollout note, or operational note>
+
+### CHANGELOG
+
+**<Area 1>**
+- **<Change>**: <What changed and why it matters>.
+- **<Fix>**: <Impact before and after>.
+
+**<Area 2>**
+- **<Engineering/process change>**: <What changed and what it protects>.
+
+**Bug Fixes**
+- <Fix 1>.
+- <Fix 2>.
+
+### Verification
+- `<command>` passed.
+- `<command>` passed.
+- Release artifact generated from tag `vX.Y.Z`.
+
+### Thanks to
+- <Framework, tool, or community>
+```
+
+### Release Notes Rules
+
+*   Mention the tag and whether the release is a hotfix, patch, minor, or major release.
+*   Put user-facing behavior first, release/process changes second, and internal cleanup last.
+*   Include local provider/networking notes when Android cleartext, LAN IPs, provider settings, or APK behavior are involved.
+*   Include verification evidence for release-critical changes. At minimum, include the tag and workflow-generated artifact.
+*   Do not include unexplained placeholders in a published release body.
+*   After publishing a release, move relevant `CHANGELOG.md [Unreleased]` entries into a versioned section, or document why the release notes were generated directly from a hotfix tag.
+
+---
+
 ## Success Criteria
 A release is considered successful when:
 1.  Git tag is created and pushed.

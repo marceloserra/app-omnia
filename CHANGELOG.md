@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. See [standa
 - Add documented Git Flow conventions for `feature/*`, `bugfix/*`, `hotfix/*`, `chore/*`, `docs/*`, `release/vX.Y.Z`, `develop`, and `main`.
 - Add Hotfix Back-Merge automation to open a `main` to `develop` PR after a `hotfix/*` PR merges into `main`.
 - Add branch, PR, main, release APK, and hotfix back-merge workflow documentation.
+- Add a release notes standard and GitHub Release template based on changelog entries, commits, PRs, and manual rollout notes.
 
 ### Changed
 

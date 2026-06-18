@@ -223,6 +223,7 @@ Hotfix propagation terminology:
   pnpm test
   ```
 - **Never move or delete a tag without documenting the reason in `docs/architecture/release-strategy.md`.**
+- **Use the release notes template in `docs/architecture/release-strategy.md`** when creating annotated tags or GitHub Release descriptions. Draft from `CHANGELOG.md [Unreleased]`, commits since the previous tag, and merged PRs; do not publish raw commit output as final release notes.
 - **Never add `@babel/core` as a direct dependency to `apps/mobile/package.json`.** It is managed at the workspace root. Verify with `pnpm list @babel/core --filter mobile`.
 - **Update `CHANGELOG.md` in the same branch** for user-facing behavior, bug fixes, release workflow changes, CI/CD changes, architecture/process changes, and dependency changes. If no entry is needed, explain that in the PR.
 - **One concern per branch.** Do not mix feature work with dependency upgrades.

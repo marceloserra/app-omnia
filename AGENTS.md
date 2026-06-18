@@ -37,8 +37,8 @@ Active phase: **Phase 9 ACTIVE**
 - Implemented Main Validation Pipeline (`.github/workflows/main-validation.yml`).
 - Implemented automated Release APK Pipeline with APK & SHA256 generation (`.github/workflows/release-apk.yml`).
 - Implemented Hotfix Back-Merge automation (`.github/workflows/hotfix-backmerge.yml`).
-- Cut stable release `v1.0.0`.
-- Cut patch release `v1.0.1`.
+- Cut patch release `v1.0.1` (CI fixes, cleartext HTTP, bugfixes).
+- Cut patch release `v1.0.2`.
 
 **Remaining / Adjusted:**
 - Full UI/UX refactoring for Theme and Language injection across all components.
@@ -62,6 +62,7 @@ Disallowed in Phase 9:
 - Use pnpm workspaces and Turborepo root scripts.
 - Keep `pnpm-lock.yaml` synchronized with package changes.
 - Keep CI commands aligned with root scripts.
+- **Use the release notes template in `docs/architecture/release-strategy.md`** when creating annotated tags or GitHub Release descriptions. Draft from `CHANGELOG.md [Unreleased]`, commits since the previous tag, and merged PRs; do not publish raw commit output as final release notes.
 - Add ADRs for structural or technology decisions.
 - Update documentation in the same change as behavior or workflow changes.
 - Update `CHANGELOG.md` in the same change for user-facing behavior, bug fixes, release workflow changes, CI/CD changes, architecture/process changes, and dependency changes. If no changelog entry is needed, state why in the PR.
