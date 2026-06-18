@@ -81,6 +81,7 @@ export function ChatInput({
   const [menuVisible, setMenuVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isDownloadingModel, setIsDownloadingModel] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(-1);
   const [whisperSession, setWhisperSession] = useState<{ stop: () => Promise<void> } | null>(null);
   const textBeforeDictation = useRef("");
   const inputRef = useRef<TextInput>(null);
@@ -154,12 +155,15 @@ export function ChatInput({
             onPress: async () => {
               try {
                 setIsDownloadingModel(true);
-                await downloadWhisperModel();
+                setDownloadProgress(0);
+                await downloadWhisperModel((p) => setDownloadProgress(p));
                 setIsDownloadingModel(false);
+                setDownloadProgress(-1);
                 startWhisperDictation();
               } catch (e) {
                 Alert.alert("Error", "Download failed. Check your connection.");
                 setIsDownloadingModel(false);
+                setDownloadProgress(-1);
               }
             } 
           }
@@ -324,73 +328,78 @@ export function ChatInput({
             )}
           </Pressable>
 
-          {/* Text field AND Recording UI */}
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', position: 'relative' }}>
-            <TextInput
-              ref={inputRef}
-              value={text}
-              onChangeText={setText}
-              placeholder={isDownloadingModel ? "Downloading AI Engine..." : t("chat.input.placeholder")}
-              placeholderTextColor={isDownloadingModel ? theme.indigo : theme.textMuted}
-              multiline
-              maxLength={4000}
-              style={[styles.textInput, { paddingRight: isRecording ? 100 : 40 }]}
-              onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
-              blurOnSubmit={false}
-              editable={!isRecording && !isDownloadingModel}
-              returnKeyType="send"
-              enablesReturnKeyAutomatically
-              scrollEnabled
-              onFocus={() => {
-                setIsFocused(true);
-                if (onFocus) onFocus();
-              }}
-              onBlur={() => setIsFocused(false)}
-              testID="chat-input"
-            />
-            
-            {isRecording ? (
-              <View style={{ position: 'absolute', right: 8, bottom: 6, flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ color: theme.red, fontSize: 12, fontWeight: '600', marginRight: 8 }}>
-                  {t("chat.input.listening") || "Listening..."}
-                </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, height: 16 }}>
-                  <WaveformBar delay={0} isRecording={isRecording} theme={theme} />
-                  <WaveformBar delay={150} isRecording={isRecording} theme={theme} />
-                  <WaveformBar delay={300} isRecording={isRecording} theme={theme} />
-                  <WaveformBar delay={100} isRecording={isRecording} theme={theme} />
-                  <WaveformBar delay={250} isRecording={isRecording} theme={theme} />
-                </View>
-                <Pressable 
-                  onPress={handleDictation}
-                  style={({ pressed }) => [
-                    styles.stopDictationBtn,
-                    pressed && { opacity: 0.7 }
-                  ]}
-                  accessibilityLabel="Stop dictation"
-                >
-                  <Square size={14} color={theme.red} fill={theme.red} />
-                </Pressable>
-              </View>
-            ) : (
-              <Pressable 
-                onPress={handleDictation} 
-                disabled={isDownloadingModel}
-                style={({ pressed }) => [
-                  { position: 'absolute', right: 8, bottom: 6, width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
-                  pressed && { backgroundColor: theme.activeBg },
-                  isDownloadingModel && { opacity: 0.5 }
-                ]}
-                accessibilityLabel="Dictate message"
-              >
-                {isDownloadingModel ? (
-                  <ActivityIndicator size="small" color={theme.indigo} />
+            {/* Text field AND Recording UI */}
+            <View style={{ flex: 1, position: 'relative' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-end', position: 'relative' }}>
+                <TextInput
+                  ref={inputRef}
+                  value={text}
+                  onChangeText={setText}
+                  placeholder={isDownloadingModel ? "Downloading AI Engine..." : t("chat.input.placeholder")}
+                  placeholderTextColor={isDownloadingModel ? theme.indigo : theme.textMuted}
+                  multiline
+                  maxLength={4000}
+                  style={[styles.textInput, { paddingRight: isRecording ? 100 : 40, paddingBottom: isDownloadingModel ? 14 : 12 }]}
+                  onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
+                  blurOnSubmit={false}
+                  editable={!isRecording && !isDownloadingModel}
+                  returnKeyType="send"
+                  enablesReturnKeyAutomatically
+                  scrollEnabled
+                  onFocus={() => {
+                    setIsFocused(true);
+                    if (onFocus) onFocus();
+                  }}
+                  onBlur={() => setIsFocused(false)}
+                  testID="chat-input"
+                />
+                
+                {isRecording ? (
+                  <View style={{ position: 'absolute', right: 8, bottom: 6, flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ color: theme.red, fontSize: 12, fontWeight: '600', marginRight: 8 }}>
+                      {t("chat.input.listening") || "Listening..."}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, height: 16 }}>
+                      <WaveformBar delay={0} isRecording={isRecording} theme={theme} />
+                      <WaveformBar delay={150} isRecording={isRecording} theme={theme} />
+                      <WaveformBar delay={300} isRecording={isRecording} theme={theme} />
+                      <WaveformBar delay={100} isRecording={isRecording} theme={theme} />
+                      <WaveformBar delay={250} isRecording={isRecording} theme={theme} />
+                    </View>
+                    <Pressable 
+                      onPress={handleDictation}
+                      style={({ pressed }) => [
+                        styles.stopDictationBtn,
+                        pressed && { opacity: 0.7 }
+                      ]}
+                      accessibilityLabel="Stop dictation"
+                    >
+                      <Square size={14} color={theme.red} fill={theme.red} />
+                    </Pressable>
+                  </View>
                 ) : (
-                  <Mic size={20} color={theme.textMuted} />
+                  <Pressable 
+                    onPress={handleDictation} 
+                    disabled={isDownloadingModel}
+                    style={({ pressed }) => [
+                      { position: 'absolute', right: 8, bottom: 6, width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
+                      pressed && { backgroundColor: theme.activeBg },
+                      isDownloadingModel && { opacity: 0.5 }
+                    ]}
+                    accessibilityLabel="Dictate message"
+                  >
+                    <Mic size={20} color={isDownloadingModel ? theme.indigo : theme.textMuted} />
+                  </Pressable>
                 )}
-              </Pressable>
-            )}
-          </View>
+              </View>
+
+              {/* Elegant Thin Progress Bar at the bottom of the input */}
+              {isDownloadingModel && downloadProgress >= 0 && (
+                <View style={{ position: 'absolute', bottom: 0, left: 16, right: 16, height: 2, backgroundColor: 'transparent', overflow: 'hidden', borderRadius: 1 }}>
+                  <View style={{ height: '100%', width: `${Math.max(5, downloadProgress * 100)}%`, backgroundColor: theme.indigo }} />
+                </View>
+              )}
+            </View>
 
           {/* Action button column */}
           <View style={styles.actionCol}>
