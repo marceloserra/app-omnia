@@ -45,26 +45,29 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [1.0.3] - Voice STT, Hardware Intelligence & Arch Refactoring
 
-**Omnia v1.0.3** finalizes the Phase 9 stabilization by bringing Local AI Voice Dictation, FAANG-grade hardware profiling, and a massive architectural decouple using Domain-Driven Bounded Contexts.
+**Omnia v1.0.3** finalizes Phase 9 stabilization by bringing Local AI Voice Dictation, FAANG-grade hardware profiling, and a massive architectural decouple using Domain-Driven Bounded Contexts.
 
 ### Added
 
-- Add **Local AI Voice Dictation (STT)** powered by `whisper.rn` using the `ggml-tiny.bin` model directly from HuggingFace (Gerganov). Transcriptions run 100% locally and offline.
-- Add Native System Dictation fallback for devices that do not support the local Whisper engine.
-- Add **Hardware Details** and **Supported Features** panels to the Settings screen, visually separating device profiling from actionable capabilities.
-- Add an advanced OS-level Hardware Profiler (`deviceSpecs.ts` and `useHardwareDetection.ts`) that reads the exact System on a Chip (SoC) / Board name for Android GPUs and cross-references an internal mapping of Apple Silicon processors to evaluate AI capability thresholds.
-- Add explicit Domain-Driven Hooks (`useHistory` and `useSettingsManager`) to encapsulate SQLite logic and prevent Database Leaks in the View layer.
+- Add **Local AI Voice Dictation (STT)** powered by `whisper.rn`. Integrates the `ggml-tiny.bin` (~75MB) model trained by OpenAI and hosted by HuggingFace (Link: `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin`). Transcriptions run 100% locally and offline.
+- Add **Native System Dictation (Cloud STT)** as a seamless fallback for devices that do not support or haven't downloaded the local Whisper engine.
+- Add **Microphone UI in ChatInput**: Users can now trigger dictation directly from the chat box. Includes a stop button, automatic text injection after dictation, and real-time **Waveform Animations** using `react-native-reanimated`.
+- Add **App Capabilities Menu** to the Settings screen, allowing users to actively monitor, download, and delete the Voice Dictation offline model.
+- Add **Device Profile Menu** featuring an advanced OS-level Hardware Profiler (`deviceSpecs.ts`) that reads the exact System on a Chip (SoC), mapping precise CPU/GPU/NPU details (e.g., Exynos, Lahaina, Apple Silicon).
+- Add **Hardware Supported Features Menu** that explicitly maps device support for STT AI Engines based on hardware capabilities.
 
 ### Changed
 
-- Complete the Strict Theming UI sweep: Replaced all legacy hardcoded hex codes and `rgba()` values in Chat, Model Picker, Settings, and Menus with standard `ThemePalette` tokens.
-- Refactor the Settings UI to gracefully gray out and mark Voice Dictation as "Unsupported" dynamically based on the Hardware Profiler instead of using interruptive `Alert.alert()` dialogues.
-- Refactor `history.tsx` and `settings.tsx` to completely remove direct `@omnia/storage` imports, routing all DB operations through explicit custom hooks.
-- Refactor the generic CPU fallback for unmapped Androids to dynamically pull the `Device.designName` and `Device.supportedCpuArchitectures`, allowing the app to output precise chip names like "Lahaina" or "Exynos2100".
+- Complete a massive **Architectural Decoupling**: Replaced "God Object" AppServices with strict **Domain-Driven Bounded Contexts**. Logic is now isolated into specialized hooks (`useDictation.ts`, `useHistory.ts`, `useChat.ts`) paired with the Repository Pattern.
+- Refactor `history.tsx` and `settings.tsx` to completely remove direct `@omnia/storage` imports, routing all database operations through explicit boundaries.
+- Complete the Strict Theming UI sweep: Replaced all legacy hardcoded hex codes in Chat and Menus with standard `ThemePalette` tokens.
 
 ### Fixed
 
-- Fix memory calculation logic where 12GB RAM Android devices were being identified as 10GB due to OS kernel/GiB reservations. RAM reads now gracefully ceil to advertised commercial tiers (6, 8, 12, 16).
+- Fix a catastrophic React infinite render loop (`Maximum update depth exceeded`) caused by an unstable `t` function in `useTranslation`. Stabilized i18n hooks using `useCallback` to prevent cascading render explosions during dictation.
+- Fix complete UI layout destruction in `ChatInput` ("indo pra esquerda", overlapping stop buttons) by removing the Cloud Dictation hint `<Text>` from inside the strict flex row and deleting obsolete legacy overlays.
+- Fix silent `expo-sqlite` crash and failure to create new conversations by ensuring `updatedAt` is explicitly passed in the SQLite `INSERT` parameter array.
+- Fix memory calculation logic where 12GB RAM Android devices were being identified as 10GB due to OS kernel reservations. RAM reads now gracefully ceil to advertised commercial tiers.
 - Fix a regression where running the app on a Virtual Device/Simulator hard-disabled Voice Dictation. Simulators can now test local voice models.
 
 ## [1.0.1] - The Omnia Design Update
