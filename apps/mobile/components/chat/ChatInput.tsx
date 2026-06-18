@@ -10,6 +10,7 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  PermissionsAndroid,
 } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence, withDelay } from 'react-native-reanimated';
 import { ArrowUp, Square, Plus, FileText, Mic } from "lucide-react-native";
@@ -17,8 +18,7 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as Localization from "expo-localization";
-import { Audio } from "expo-av";
-import { getWhisperContext, isModelDownloaded, downloadWhisperModel } from "../../lib/whisper";
+import { getWhisperContext, isModelDownloaded, downloadWhisperModel, startWhisperRealtime } from "../../lib/whisper";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -82,6 +82,7 @@ export function ChatInput({
   const [isRecording, setIsRecording] = useState(false);
   const [isDownloadingModel, setIsDownloadingModel] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(-1);
+  const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
   const [whisperSession, setWhisperSession] = useState<{ stop: () => Promise<void> } | null>(null);
   const textBeforeDictation = useRef("");
   const inputRef = useRef<TextInput>(null);
@@ -95,31 +96,29 @@ export function ChatInput({
   const startWhisperDictation = async () => {
     try {
       setIsDownloadingModel(true);
-      const whisperContext = await getWhisperContext();
+      await getWhisperContext(); // Ensure model is loaded
       setIsDownloadingModel(false);
       
       setIsRecording(true);
       textBeforeDictation.current = text;
       
-      const { stop, subscribe } = await whisperContext.transcribeRealtime({
-        language: 'pt',
-        realtimeAudioSec: 60,
-        realtimeAudioSliceSec: 1, // Emit results frequently
-      });
-      
-      setWhisperSession({ stop });
-      
-      subscribe((evt: any) => {
-        const transcript = evt.data?.result;
+      const { stop } = await startWhisperRealtime((transcript, isCapturing) => {
         if (transcript) {
           const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
           setText(prefix + transcript.trim());
         }
-        if (!evt.isCapturing) {
+        if (!isCapturing) {
           setIsRecording(false);
           setWhisperSession(null);
         }
+      }, (err) => {
+        console.warn("Whisper STT Error:", err);
+        setIsRecording(false);
+        setWhisperSession(null);
       });
+      
+      setWhisperSession({ stop });
+      
     } catch (err: any) {
       console.warn("Whisper STT Error:", err);
       setIsDownloadingModel(false);
@@ -137,42 +136,37 @@ export function ChatInput({
     }
     
     // Request Microphone Permission
-    const { status } = await Audio.requestPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(t("chat.input.mic_permission_denied") || "Microphone permission is required.");
-      return;
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        Alert.alert(t("chat.input.mic_permission_denied") || "Microphone permission is required.");
+        return;
+      }
     }
 
     const downloaded = await isModelDownloaded();
     if (!downloaded) {
-      Alert.alert(
-        "Voice Engine Required",
-        "To use offline dictation, Omnia needs to download the 75MB Whisper AI Engine.\n\nWould you like to download it now?",
-        [
-          { text: "Cancel", style: "cancel" },
-          { 
-            text: "Download", 
-            onPress: async () => {
-              try {
-                setIsDownloadingModel(true);
-                setDownloadProgress(0);
-                await downloadWhisperModel((p) => setDownloadProgress(p));
-                setIsDownloadingModel(false);
-                setDownloadProgress(-1);
-                startWhisperDictation();
-              } catch (e) {
-                Alert.alert("Error", "Download failed. Check your connection.");
-                setIsDownloadingModel(false);
-                setDownloadProgress(-1);
-              }
-            } 
-          }
-        ]
-      );
+      setShowDownloadPrompt(true);
       return;
     }
 
     startWhisperDictation();
+  };
+
+  const confirmDownload = async () => {
+    setShowDownloadPrompt(false);
+    try {
+      setIsDownloadingModel(true);
+      setDownloadProgress(0);
+      await downloadWhisperModel((p) => setDownloadProgress(p));
+      setIsDownloadingModel(false);
+      setDownloadProgress(-1);
+      startWhisperDictation();
+    } catch (e) {
+      Alert.alert("Error", "Download failed. Check your connection.");
+      setIsDownloadingModel(false);
+      setDownloadProgress(-1);
+    }
   };
 
   const handleSendPress = () => {
@@ -282,6 +276,36 @@ export function ChatInput({
 
   return (
     <View style={styles.outerContainer}>
+      
+      {/* Premium Download Modal */}
+      <Modal visible={showDownloadPrompt} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalIconBg}>
+              <Mic size={28} color={theme.indigo} />
+            </View>
+            <Text style={styles.modalTitle}>Voice Engine Required</Text>
+            <Text style={styles.modalText}>
+              To use incredibly fast, 100% offline dictation, Omnia needs to download the 75MB Whisper AI Engine.
+            </Text>
+            <View style={styles.modalActions}>
+              <Pressable
+                onPress={() => setShowDownloadPrompt(false)}
+                style={({ pressed }) => [styles.modalBtnCancel, pressed && { opacity: 0.7 }]}
+              >
+                <Text style={styles.modalBtnCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={confirmDownload}
+                style={({ pressed }) => [styles.modalBtnConfirm, pressed && { opacity: 0.8 }]}
+              >
+                <Text style={styles.modalBtnConfirmText}>Download</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <AttachmentMenu
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
@@ -561,5 +585,86 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
     letterSpacing: 0.2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  modalContent: {
+    width: "100%",
+    maxWidth: 340,
+    backgroundColor: theme.surface2,
+    borderRadius: 24,
+    padding: 24,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 30,
+    elevation: 24,
+  },
+  modalIconBg: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: theme.indigo + '15',
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: theme.textPrimary,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalText: {
+    fontSize: 15,
+    color: theme.textSecondary,
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  modalBtnCancel: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: theme.activeBg,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  modalBtnCancelText: {
+    color: theme.textPrimary,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  modalBtnConfirm: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: theme.indigo,
+    alignItems: "center",
+    shadowColor: theme.indigo,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  modalBtnConfirmText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "600",
   },
 });

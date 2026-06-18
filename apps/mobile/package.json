@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo/metro-runtime": "^56.0.15",
     "@expo/react-native-action-sheet": "^4.1.1",
+    "@fugood/react-native-audio-pcm-stream": "^1.1.4",
     "@omnia/logger": "workspace:*",
     "@omnia/providers": "workspace:*",
     "@omnia/shared-types": "workspace:*",

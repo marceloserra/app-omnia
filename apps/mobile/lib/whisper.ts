@@ -1,7 +1,10 @@
 import * as FileSystem from 'expo-file-system/legacy';
 // @ts-ignore
 import { initWhisper } from 'whisper.rn';
-
+// @ts-ignore
+import { RealtimeTranscriber } from 'whisper.rn/src/realtime-transcription/RealtimeTranscriber';
+// @ts-ignore
+import { AudioPcmStreamAdapter } from 'whisper.rn/src/realtime-transcription/adapters/AudioPcmStreamAdapter';
 const MODEL_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin';
 export const MODEL_FILE_PATH = `${(FileSystem as any).documentDirectory}ggml-tiny.bin`;
 
@@ -47,4 +50,53 @@ export async function getWhisperContext(): Promise<any> {
   });
   
   return globalWhisperContext;
+}
+
+let globalTranscriber: any = null;
+
+export async function startWhisperRealtime(
+  onResult: (text: string, isCapturing: boolean) => void,
+  onError?: (err: any) => void
+): Promise<{ stop: () => Promise<void> }> {
+  const context = await getWhisperContext();
+
+  if (!globalTranscriber) {
+    const audioStream = new AudioPcmStreamAdapter();
+    globalTranscriber = new RealtimeTranscriber(
+      {
+        whisperContext: context,
+        audioStream,
+      },
+      {
+        audioSliceSec: 60,
+        realtimeProcessingPauseMs: 200,
+        initRealtimeAfterMs: 200,
+      },
+      {
+        onTranscribe: (evt: any) => {
+          onResult(evt.data?.result || "", evt.isCapturing);
+        },
+        onError: (err: any) => {
+          if (onError) onError(err);
+        }
+      }
+    );
+  } else {
+    globalTranscriber.updateCallbacks({
+      onTranscribe: (evt: any) => {
+        onResult(evt.data?.result || "", evt.isCapturing);
+      },
+      onError: (err: any) => {
+        if (onError) onError(err);
+      }
+    });
+  }
+
+  await globalTranscriber.start();
+
+  return {
+    stop: async () => {
+      await globalTranscriber.stop();
+    }
+  };
 }
