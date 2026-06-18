@@ -2,24 +2,28 @@
 
 <!-- 2-4 bullets. State the customer/developer outcome, not the implementation trivia. -->
 
-- TBD
+<!-- Replace this comment with concrete bullets before requesting review. -->
 
 ## Context
 
 <!-- Why does this PR exist? Link the issue, release blocker, incident, phase requirement, or user report. Include constraints that shaped the solution. -->
 
-- Problem: TBD
-- Impact: TBD
-- Constraints: TBD
-- Out of scope: TBD
+<!--
+- Problem:
+- Impact:
+- Constraints:
+- Out of scope:
+-->
 
 ## Review Strategy
 
 <!-- Tell reviewers how to read this PR efficiently. Point to the highest-signal files first. -->
 
-1. TBD
-2. TBD
-3. TBD
+<!--
+1. Highest-signal file or area to review first.
+2. Next most important area.
+3. Tests, docs, or rollout details to inspect last.
+-->
 
 ## Key Changes
 
@@ -27,25 +31,27 @@
 
 ### Product Behavior
 
-- TBD
+<!-- Replace with user-visible behavior changes. Write "None." if not applicable. -->
 
 ### Implementation
 
-- TBD
+<!-- Replace with implementation changes. -->
 
 ### Documentation and Process
 
-- TBD
+<!-- Replace with documentation and process changes. Write "None." if not applicable. -->
 
 ## Architecture and Decisions
 
 <!-- Required for native config, workflows, package boundaries, persistence, provider contracts, navigation, shared abstractions, or security posture. Otherwise write "None." -->
 
-- Decision record: TBD
-- Architectural impact: TBD
-- Invariants preserved: TBD
-- Alternatives considered: TBD
-- Tradeoffs accepted: TBD
+<!--
+- Decision record:
+- Architectural impact:
+- Invariants preserved:
+- Alternatives considered:
+- Tradeoffs accepted:
+-->
 
 ## Plan Executed
 
@@ -77,50 +83,56 @@
 
 <!-- Examples: generated manifest inspection, APK install test, screenshot, migration dry run, release workflow run, telemetry trace. -->
 
-- TBD
+<!-- Replace with concrete evidence beyond the required gates. Write "None." if not applicable. -->
 
 ### Skipped or Failed Checks
 
 <!-- Required. If none, write "None." -->
 
-- Command: TBD
-- Reason: TBD
-- Residual risk: TBD
-- Follow-up owner: TBD
+<!--
+- Command:
+- Reason:
+- Residual risk:
+- Follow-up owner:
+-->
 
 ## Release and Rollout
 
 <!-- Required for user-facing, release, hotfix, native, persistence, or workflow changes. -->
 
-- Target branch: TBD
-- Release type: TBD
-- Rollout steps: TBD
-- Rollback plan: TBD
-- Manual QA: TBD
+<!--
+- Target branch:
+- Release type:
+- Rollout steps:
+- Rollback plan:
+- Manual QA:
+-->
 
 ## Risk Review
 
 <!-- Be explicit. Reviewers should not have to infer the blast radius. -->
 
-- User impact: TBD
-- Security/privacy: TBD
-- Native/platform: TBD
-- Data/persistence: TBD
-- Performance: TBD
-- Compatibility: TBD
-- Operational risk: TBD
+<!--
+- User impact:
+- Security/privacy:
+- Native/platform:
+- Data/persistence:
+- Performance:
+- Compatibility:
+- Operational risk:
+-->
 
 ## Documentation
 
 <!-- Link all updated docs. Write "None" only when documentation is genuinely irrelevant. -->
 
-- TBD
+<!-- Link all updated docs, ADRs, plans, or runbooks. -->
 
 ## Follow-Ups
 
 <!-- List follow-ups that should not block this PR. Write "None" if there are none. -->
 
-- TBD
+<!-- List follow-ups that should not block this PR. Write "None." if there are none. -->
 
 ## Merge Readiness
 
