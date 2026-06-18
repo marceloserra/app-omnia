@@ -96,8 +96,23 @@ git push origin bugfix/my-fix
 ### Merging to develop
 - PR must pass all CI checks (lint, typecheck, test).
 - PR must use `.github/pull_request_template.md` and fill every relevant section. Do not leave placeholder bullets, empty headings, or unexplained skipped checks in the final PR body.
-- Squash merge is preferred to keep history clean.
+- Squash merge is preferred for ordinary `feature/*`, `bugfix/*`, `chore/*`, and `docs/*` PRs into `develop`.
+- Use a merge commit for release-sync and back-merge PRs into `develop` when the PR exists to preserve branch ancestry, such as `main -> develop` after a hotfix or release stabilization propagation.
 - Delete the branch after merge.
+
+### Merge Strategy by Target
+
+| Target | Required strategy | Reason |
+| --- | --- | --- |
+| `main` | Squash merge through PR | Keeps production history concise and makes each release or hotfix land as one auditable commit. |
+| `develop` | Squash merge for normal work | Keeps integration history readable while work is still active. |
+| `develop` | Merge commit for `main -> develop` back-merges and release-sync PRs | Preserves propagation history and makes it clear when production code was reconciled into integration. |
+| `release/vX.Y.Z` | Merge commit when syncing from `main`; squash only for scoped stabilization PRs | Keeps release candidate ancestry visible while allowing small fixes to stay tidy. |
+
+Rules:
+- Do not use rebase merge for PRs into `main`.
+- Do not merge directly into `main` from the command line. `main` receives changes only through reviewed PRs.
+- A squash merge into `main` does not break hotfix back-merge. The back-merge PR carries the squash commit from `main` into `develop`.
 
 ### CI Coverage by Branch
 
@@ -118,18 +133,25 @@ git checkout -b release/v1.1.0
 # 2. Only stabilization commits go here (version bumps, final fixes)
 # No new features.
 
-# 3. Merge into main when ready
+# 3. Open PR: release/v1.1.0 -> main
+# Merge with squash after PR validation passes.
+
+# 4. Tag the release from main after the PR merges
 git checkout main
-git merge release/v1.1.0 --no-ff
+git pull origin main
 git tag -a v1.1.0 -m "Omnia v1.1.0 — <Title> ..."
-git push origin main --tags
+git push origin v1.1.0
 
-# 4. Back-merge into develop to keep them in sync
+# 5. Open a release-sync PR to develop to keep branches in sync
 git checkout develop
-git merge release/v1.1.0 --no-ff
-git push origin develop
+git pull origin develop
+git checkout -b chore/backmerge-main-v1.1.0
+git merge main --no-ff
+git push origin chore/backmerge-main-v1.1.0
+# Open PR: chore/backmerge-main-v1.1.0 -> develop
+# Merge with a merge commit after PR validation passes.
 
-# 5. Delete the release branch
+# 6. Delete the release branch
 git push origin --delete release/v1.1.0
 ```
 
@@ -151,6 +173,7 @@ git checkout -b hotfix/critical-crash
 git commit -m "fix(scope): emergency fix description"
 git push origin hotfix/critical-crash
 # Open PR: hotfix/critical-crash -> main
+# Merge with squash after PR validation passes.
 
 # 3. Merge into main through PR, then tag the patch release
 git checkout main
@@ -159,17 +182,23 @@ git tag -a vX.Y.Z -m "Omnia vX.Y.Z — Hotfix: ..."
 git push origin vX.Y.Z
 
 # 4. Back-merge main into develop
+# The hotfix-backmerge workflow should open this PR automatically.
+# If automation fails, create it manually:
 git checkout develop
 git pull origin develop
+git checkout -b chore/backmerge-main-vX.Y.Z
 git merge main --no-ff
-git push origin develop
+git push origin chore/backmerge-main-vX.Y.Z
+# Open PR: chore/backmerge-main-vX.Y.Z -> develop
+# Merge with a merge commit after PR validation passes.
 ```
 
 Hotfix rules:
 - PR target is `main`.
 - Do not create a `release/vX.Y.Z` branch for urgent production patch releases.
 - The patch tag is created from `main` after the hotfix PR is merged.
-- Back-merge `main` into `develop` immediately after tagging so future release candidates include the fix.
+- Hotfix PRs into `main` use squash merge.
+- Back-merge `main` into `develop` immediately after tagging so future release candidates include the fix. Prefer the automated `hotfix-backmerge` PR; create a manual `chore/backmerge-main-vX.Y.Z` PR only if automation fails.
 - If the work started on `bugfix/*` but is reclassified as production-critical, rename the branch to `hotfix/*` before opening the PR.
 
 Hotfix propagation terminology:
@@ -183,6 +212,8 @@ Hotfix propagation terminology:
 ## Agent Rules
 
 - **Never commit directly to `main` or `develop`.**
+- **Never merge directly into `main` from the CLI.** Open a PR and use squash merge.
+- **Use the documented merge strategy by PR target.** Squash into `main`; squash normal work into `develop`; use merge commits for `main -> develop` back-merges and release-sync PRs.
 - **Fix directly related documentation divergences when you find them.** If the divergence is real but outside the current task, mention it in the handoff with the file path.
 - **Always verify the full quality gate before opening a PR:**
   ```bash

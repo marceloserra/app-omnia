@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. See [standa
 - Rename CI workflow files to purpose-driven names: `branch-validation.yml`, `pr-validation.yml`, `main-validation.yml`, `release-apk.yml`, and `hotfix-backmerge.yml`.
 - Expand CI coverage for pushes to `feature/**`, `bugfix/**`, `hotfix/**`, `chore/**`, `docs/**`, `release/**`, and `develop`.
 - Make changelog updates mandatory for user-facing, release, CI/CD, architectural, process, and bugfix changes.
+- Document merge strategy rules: squash PRs into `main`, squash normal work into `develop`, and use merge commits for release-sync and hotfix back-merge PRs.
 
 ### Fixed
 

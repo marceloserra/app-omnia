@@ -44,6 +44,7 @@ Release work follows `docs/process/git-flow.md`.
 *   `feature/*`, `bugfix/*`, `chore/*`, and `docs/*` branches target `develop`.
 *   `release/vX.Y.Z` branches stabilize a release from `develop` before merging to `main` and tagging.
 *   `hotfix/*` branches are reserved for urgent fixes from `main` and must be back-merged to `develop`.
+*   PRs into `main` use squash merge. Back-merge and release-sync PRs into `develop` use merge commits.
 
 ---
 
@@ -166,14 +167,13 @@ pnpm lint
 pnpm typecheck
 pnpm test
 
-# 3. Merge the release branch into main
+# 3. Open PR: release/vX.Y.Z -> main
+# Merge with squash after PR validation passes.
+
+# 4. Ensure main is clean after the PR merge
 git checkout main
 git pull origin main
-git merge release/vX.Y.Z --no-ff
-
-# 4. Ensure main is clean and pushed
 git status
-git push origin main
 
 # 5. Create an annotated tag with the release body inline
 git tag -a vX.Y.Z -m "Omnia vX.Y.Z — <Title>
@@ -183,11 +183,14 @@ git tag -a vX.Y.Z -m "Omnia vX.Y.Z — <Title>
 # 6. Push the tag — this triggers the Release APK workflow automatically
 git push origin vX.Y.Z
 
-# 7. Back-merge release stabilization into develop
+# 7. Open a release-sync PR to develop
 git checkout develop
 git pull origin develop
-git merge release/vX.Y.Z --no-ff
-git push origin develop
+git checkout -b chore/backmerge-main-vX.Y.Z
+git merge main --no-ff
+git push origin chore/backmerge-main-vX.Y.Z
+# Open PR: chore/backmerge-main-vX.Y.Z -> develop
+# Merge with a merge commit after PR validation passes.
 ```
 
 The GitHub Actions Release APK workflow will then:
@@ -214,6 +217,7 @@ git checkout -b hotfix/<short-description>
 git commit -m "fix(scope): short description"
 git push origin hotfix/<short-description>
 # Open PR: hotfix/<short-description> -> main
+# Merge with squash after PR validation passes.
 
 # 3. After the PR merges, tag the patch release from main
 git checkout main
@@ -224,20 +228,26 @@ git tag -a vX.Y.Z -m "Omnia vX.Y.Z — Hotfix: <Title>
 git push origin vX.Y.Z
 
 # 4. Back-merge main into develop immediately
+# The hotfix-backmerge workflow should open this PR automatically.
+# If automation fails, create it manually:
 git checkout develop
 git pull origin develop
+git checkout -b chore/backmerge-main-vX.Y.Z
 git merge main --no-ff
-git push origin develop
+git push origin chore/backmerge-main-vX.Y.Z
+# Open PR: chore/backmerge-main-vX.Y.Z -> develop
+# Merge with a merge commit after PR validation passes.
 ```
 
 Hotfix acceptance criteria:
 
 1. The hotfix PR uses `.github/pull_request_template.md`.
 2. The PR target is `main`.
-3. The patch tag is created from `main`, not from the hotfix branch.
-4. The Release APK workflow publishes a downloadable APK and checksum.
-5. `main` is back-merged into `develop` after the tag is pushed.
-6. Any skipped local release-build checks are documented with residual risk.
+3. The PR is merged with squash.
+4. The patch tag is created from `main`, not from the hotfix branch.
+5. The Release APK workflow publishes a downloadable APK and checksum.
+6. `main` is back-merged into `develop` after the tag is pushed, preferably through the automated back-merge PR.
+7. Any skipped local release-build checks are documented with residual risk.
 
 Hotfix propagation rule:
 
