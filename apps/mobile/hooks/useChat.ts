@@ -67,8 +67,9 @@ export function useChat(conversationId: string | undefined, initialPrompt?: stri
       attachments: processedAttachments.length > 0 ? processedAttachments : undefined,
     };
 
-    const snapshotForApi = isInitialPrompt ? [...messages] : [...messages, userMessage!];
-    const isFirstMessage = messages.length === 0 && userMessage;
+    const currentMessages = chatService.listMessages(conversationId);
+    const snapshotForApi = isInitialPrompt ? [...currentMessages] : [...currentMessages, userMessage!];
+    const isFirstMessage = currentMessages.length === 0 && userMessage;
 
     setMessages((currentPrev) => {
       return isInitialPrompt ? [...currentPrev, assistantMessage] : [...currentPrev, userMessage!, assistantMessage];
@@ -98,10 +99,9 @@ export function useChat(conversationId: string | undefined, initialPrompt?: stri
         if (extractingInterval) clearInterval(extractingInterval);
         // @ts-ignore
         const errorMsg = `_${t("chat.status.extractionFailed")}_`;
-        setMessages(cur => cur.map(m => m.id === assistantId ? { ...m, content: errorMsg } : m));
+        setMessages((cur) => cur.map((m) => (m.id === assistantId ? { ...m, content: errorMsg } : m)));
         chatService.updateMessageContent(assistantId, errorMsg);
         setIsStreaming(false);
-        isAbortedRef.current = false;
         return;
       }
       
@@ -180,7 +180,7 @@ export function useChat(conversationId: string | undefined, initialPrompt?: stri
         isAbortedRef.current = false;
       }
     })();
-  }, [conversationId, messages, store, t]);
+  }, [conversationId, store, t]);
 
   useEffect(() => {
     if (!conversationId) return;
