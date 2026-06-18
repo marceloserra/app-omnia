@@ -208,10 +208,16 @@ export default function ChatScreen() {
             }
           }
         }
-        // If it only had documents or reading failed, fallback to text
-        if (contentParts.length === 0) {
-           return { role: m.role as "user" | "assistant" | "system", content: m.content };
+        // If there are no images, we MUST flatten the text parts into a single string.
+        // Many local non-vision models (like Llama-3) via LMStudio will reject or misparse
+        // array-based payloads if they are not explicitly vision requests.
+        const hasImages = contentParts.some(p => p.type === 'image_url');
+        
+        if (!hasImages) {
+          const fullText = contentParts.map(p => p.text).join('\n');
+          return { role: m.role as "user" | "assistant" | "system", content: fullText };
         }
+
         return {
           role: m.role as "user" | "assistant" | "system",
           content: contentParts,
