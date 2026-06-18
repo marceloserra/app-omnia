@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 // @ts-ignore
 import { initWhisper } from 'whisper.rn';
 
