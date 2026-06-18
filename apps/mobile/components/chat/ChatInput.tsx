@@ -142,12 +142,14 @@ export function ChatInput({
     }
     
     if (isStartingDictation.current) return;
+    isStartingDictation.current = true;
     
     // Request Microphone Permission
     if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
         Alert.alert(t("chat.input.mic_permission_denied") || "Microphone permission is required.");
+        isStartingDictation.current = false;
         return;
       }
     }
@@ -155,10 +157,10 @@ export function ChatInput({
     const downloaded = await isModelDownloaded();
     if (!downloaded) {
       setShowDownloadPrompt(true);
+      isStartingDictation.current = false;
       return;
     }
 
-    isStartingDictation.current = true;
     try {
       await startWhisperDictation();
     } finally {
@@ -174,7 +176,9 @@ export function ChatInput({
       await downloadWhisperModel((p) => setDownloadProgress(p));
       setIsDownloadingModel(false);
       setDownloadProgress(-1);
-      startWhisperDictation();
+      
+      // Let the user tap mic manually after download is complete
+      Alert.alert("Success", "Engine downloaded! Tap the mic to begin dictation.");
     } catch (e) {
       Alert.alert("Error", "Download failed. Check your connection.");
       setIsDownloadingModel(false);

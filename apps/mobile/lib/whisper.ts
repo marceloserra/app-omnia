@@ -6,8 +6,8 @@ import { RealtimeTranscriber } from 'whisper.rn/realtime-transcription/RealtimeT
 // @ts-ignore
 import { AudioPcmStreamAdapter } from 'whisper.rn/realtime-transcription/adapters/AudioPcmStreamAdapter.js';
 import { logger } from '@omnia/logger';
-const MODEL_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q5_1.bin';
-export const MODEL_FILE_PATH = `${(FileSystem as any).documentDirectory}ggml-base-q5_1.bin`;
+const MODEL_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin';
+export const MODEL_FILE_PATH = `${(FileSystem as any).documentDirectory}ggml-tiny.bin`;
 
 let globalWhisperContext: any = null;
 
@@ -30,8 +30,8 @@ export async function downloadWhisperModel(onProgress?: (progress: number) => vo
     }
   );
 
-  console.log("[Whisper] Downloading ggml-base-q5_1.bin model (~57MB)...");
-  logger.info("Whisper", "Downloading ggml-base-q5_1.bin model (~57MB)...");
+  console.log("[Whisper] Downloading ggml-tiny.bin model (~75MB)...");
+  logger.info("Whisper", "Downloading ggml-tiny.bin model (~75MB)...");
   await downloadResumable.downloadAsync();
   logger.info("Whisper", "Download complete!");
 }
