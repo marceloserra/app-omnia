@@ -142,7 +142,11 @@ export function ChatInput({
 
   const handleDictation = async () => {
     if (isRecording && whisperSession) {
-      await whisperSession.stop();
+      try {
+        await whisperSession.stop();
+      } catch (e) {
+        logger.error("ChatInput", "Error stopping whisper session", e);
+      }
       if (partialDictationText.current.length > 0) {
         const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
         setText(prefix + partialDictationText.current);
