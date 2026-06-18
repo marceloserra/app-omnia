@@ -10,7 +10,6 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
-  InteractionManager,
 } from "react-native";
 import { ArrowUp, Square, Plus, FileText } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
@@ -83,12 +82,11 @@ export function ChatInput({
     setIsPickingFile(true);
     
     // ── PRINCIPAL FAANG FIX ──
-    // Relying on arbitrary `setTimeout(300)` is a code smell. Slower devices will break,
-    // and faster devices will waste time. Instead, we hook into React Native's bridge.
-    // `runAfterInteractions` waits precisely until the Modal's close animation completes
-    // and the JS thread yields, guaranteeing the Native Activity is 100% idle before 
-    // launching the File Picker Intent.
-    await new Promise<void>(resolve => InteractionManager.runAfterInteractions(() => resolve()));
+    // `InteractionManager` was deprecated in RN 0.76+. The modern standard for yielding 
+    // to animations before launching heavyweight Intents without arbitrary long delays
+    // is combining requestAnimationFrame (waits for next layout/paint) with a tiny setTimeout
+    // (pushes execution to the back of the JS task queue).
+    await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 50)));
     
     try {
       switch (option) {
