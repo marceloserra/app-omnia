@@ -113,11 +113,12 @@ export default function ChatScreen() {
     const baseTimestamp = Date.now();
 
     const assistantId = generateId();
+    const hasDocuments = attachments && attachments.some(a => a.type === 'document');
     const assistantMessage: Message = {
       id: assistantId,
       conversationId: conversationId,
       role: "assistant",
-      content: "",
+      content: hasDocuments ? "_Extracting documents..._" : "",
       providerId: store.activeProviderId ?? undefined,
       modelId: providerCtx.modelId,
       timestamp: baseTimestamp + 1,
@@ -171,6 +172,8 @@ export default function ChatScreen() {
           contentParts.push({ type: "text", text: m.content });
         }
         for (const att of m.attachments) {
+          if (isAbortedRef.current) break;
+          
           if (att.type === 'image') {
             try {
               const base64 = await FileSystem.readAsStringAsync(att.uri, { encoding: FileSystem.EncodingType.Base64 });
@@ -258,7 +261,20 @@ export default function ChatScreen() {
         logger.error("SQLite", "Failed to save message", err);
       }
 
+      if (isAbortedRef.current) {
+        const stoppedMsg = "_[Stopped]_";
+        setMessages((cur) => cur.map((m) => m.id === assistantId ? { ...m, content: stoppedMsg } : m));
+        try { getDb().msgRepo.updateContent(assistantId, stoppedMsg); } catch(e){}
+        setIsStreaming(false);
+        isAbortedRef.current = false;
+        return;
+      }
+
       let fullContent = "";
+      if (hasDocuments) {
+        setMessages((cur) => cur.map((m) => m.id === assistantId ? { ...m, content: "" } : m));
+      }
+
       try {
         const stream = providerCtx.provider.streamChat(providerCtx.config, {
           messages: chatHistory,
@@ -340,8 +356,11 @@ export default function ChatScreen() {
           }
         }
       } finally {
-        // Reset failures on success if we reached the end of the loop without entering catch
-        if (!isAbortedRef.current && fullContent.length > 0) {
+        if (isAbortedRef.current && fullContent === "") {
+          const stoppedMsg = "_[Stopped]_";
+          setMessages((cur) => cur.map((m) => m.id === assistantId ? { ...m, content: stoppedMsg } : m));
+          try { getDb().msgRepo.updateContent(assistantId, stoppedMsg); } catch(e){}
+        } else if (!isAbortedRef.current && fullContent.length > 0) {
           consecutiveFailuresRef.current = 0;
         }
         setIsStreaming(false);
