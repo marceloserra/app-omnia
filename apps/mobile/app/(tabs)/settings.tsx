@@ -520,7 +520,7 @@ export default function SettingsScreen() {
 
           {/* Hardware & Diagnostics */}
           <View style={{ marginTop: 24 }}>
-            <Text style={styles.sectionTitle}>Hardware Details</Text>
+            <Text style={styles.sectionTitle}>Device Profile</Text>
             <View style={styles.iosGroup}>
               {/* Device Profile */}
               <View style={styles.iosRow}>
@@ -585,7 +585,7 @@ export default function SettingsScreen() {
 
           {/* Supported Features Diagnostics */}
           <View style={{ marginTop: 24 }}>
-            <Text style={styles.sectionTitle}>Supported Features</Text>
+            <Text style={styles.sectionTitle}>Hardware Compatibility</Text>
             <View style={styles.iosGroup}>
               {/* AI Engine Diagnostics */}
               <View style={[styles.iosRow, { paddingVertical: 16 }]}>

@@ -89,7 +89,7 @@ const en = {
   "settings.provider.set": "Set as Active Provider",
   "settings.provider.disconnect": "Disconnect Provider",
   
-  "settings.capabilities.title": "Capabilities",
+  "settings.capabilities.title": "App Capabilities",
   "settings.capabilities.voice.title": "Voice Dictation",
   "settings.capabilities.voice.subtitle": "Offline Whisper AI Engine",
   "settings.capabilities.voice.downloading": "Downloading Engine: {progress}%",
@@ -196,7 +196,7 @@ const pt: typeof en = {
   "settings.provider.set": "Definir como Ativo",
   "settings.provider.disconnect": "Desconectar Provedor",
 
-  "settings.capabilities.title": "Recursos",
+  "settings.capabilities.title": "Recursos do App",
   "settings.capabilities.voice.title": "Ditado por Voz",
   "settings.capabilities.voice.subtitle": "Motor Offline Whisper AI",
   "settings.capabilities.voice.downloading": "Baixando Motor: {progress}%",
@@ -303,7 +303,7 @@ const es: typeof en = {
   "settings.provider.set": "Establecer como Activo",
   "settings.provider.disconnect": "Desconectar Proveedor",
 
-  "settings.capabilities.title": "Capacidades",
+  "settings.capabilities.title": "Capacidades de la App",
   "settings.capabilities.voice.title": "Dictado por Voz",
   "settings.capabilities.voice.subtitle": "Motor Offline Whisper AI",
   "settings.capabilities.voice.downloading": "Descargando Motor: {progress}%",
