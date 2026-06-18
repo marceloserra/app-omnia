@@ -96,11 +96,7 @@ export async function startWhisperRealtime(
     globalTranscriber = null;
   }
 
-  // Do not use language-specific prompts as they force Whisper to translate instead of transcribe.
-  // Just seed the AI's name so it recognizes 'Omnia' instead of 'Omni' or 'Amnia'.
-  const promptHint = "Omnia.";
-
-  logger.info("Whisper", `Initializing RealtimeTranscriber with promptHint: "${promptHint}"`);
+  logger.info("Whisper", "Initializing RealtimeTranscriber without prompt bias");
 
   const audioStream = new AudioPcmStreamAdapter();
   globalTranscriber = new RealtimeTranscriber(
@@ -114,7 +110,6 @@ export async function startWhisperRealtime(
       // Process every 800ms instead of 200ms to eliminate CPU choke and UI lag
       realtimeProcessingPauseMs: 800,
       initRealtimeAfterMs: 500,
-      initialPrompt: promptHint,
       transcribeOptions: {
         language: 'auto',
         temperature: 0.0,
