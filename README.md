@@ -95,6 +95,14 @@ Most AI clients crash or lose your long prompt when you switch apps. Omnia is en
 
 ---
 
+## System Requirements
+
+Omnia is built on React Native and Expo SDK 56, leveraging modern native bridges. The minimum supported OS versions are:
+- **iOS:** 15.1 or newer
+- **Android:** 7.0 (API Level 24) or newer
+
+---
+
 ## Quickstart
 
 Omnia uses `pnpm` and `Turborepo` for monorepo orchestration.
