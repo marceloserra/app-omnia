@@ -75,7 +75,13 @@ export async function startWhisperRealtime(
   onResult: (text: string, isCapturing: boolean) => void,
   onError?: (err: any) => void
 ): Promise<{ stop: () => Promise<void> }> {
+  console.log(`[Whisper] startWhisperRealtime requested. UI Language: ${language}`);
+  
   const context = await getWhisperContext();
+  if (!context) {
+    console.error("[Whisper] Failed to start: Context is not initialized.");
+    throw new Error("Whisper context not initialized");
+  }
 
   // Always recreate the transcriber to ensure clean state and avoid "only works first time" bug
   if (globalTranscriber) {
@@ -91,7 +97,9 @@ export async function startWhisperRealtime(
   // while still allowing it to auto-detect and transcribe other languages.
   let promptHint = "The user is speaking in English. Here is the transcription:";
   if (language === 'pt') promptHint = "O usuário está falando em português. Aqui está a transcrição precisa e natural:";
-  else if (language === 'es') promptHint = "El usuario está hablando en español. Aquí está la transcripción precisa y natural:";
+  else if (language === 'es') promptHint = "El usuario está hablando en español. Aquí está la transcripción precisa e natural:";
+
+  console.log(`[Whisper] Initializing RealtimeTranscriber with promptHint: "${promptHint}"`);
 
   const audioStream = new AudioPcmStreamAdapter();
   globalTranscriber = new RealtimeTranscriber(
@@ -115,18 +123,35 @@ export async function startWhisperRealtime(
     },
     {
       onTranscribe: (evt: any) => {
-        let text = (evt.data?.result || "").trim();
+        const rawResult = evt.data?.result || "";
+        const detectedLang = evt.data?.language || "unknown";
+        const processTime = evt.processTime;
+        const recordingTime = evt.recordingTime;
+        const sliceIndex = evt.sliceIndex;
+        
+        console.log(`\n[Whisper.onTranscribe] --- EVENT: ${evt.type} ---`);
+        console.log(`[Whisper.onTranscribe] Slice: ${sliceIndex} | RecTime: ${recordingTime}ms | ProcTime: ${processTime}ms`);
+        console.log(`[Whisper.onTranscribe] Detected Lang: ${detectedLang}`);
+        console.log(`[Whisper.onTranscribe] Raw Text: "${rawResult}"`);
+
+        let text = rawResult.trim();
         
         // Anti-hallucination filter for common Whisper artifacts during silence
         const lowerText = text.toLowerCase().replace(/[^a-z]/g, '');
         const hallucinations = ["thankyou", "thanksforwatching", "pleasesubscribe", "obrigado", "gracias", "silence", "music"];
         if (hallucinations.includes(lowerText)) {
+          console.log(`[Whisper.onTranscribe] FILTERED OUT hallucination: "${text}"`);
           text = "";
         }
         
         // Also strip text inside brackets like [Música] or (silêncio)
+        const oldText = text;
         text = text.replace(/\[.*?\]|\(.*?\)/g, '').trim();
+        if (oldText !== text && oldText.length > 0) {
+          console.log(`[Whisper.onTranscribe] STRIPPED BRACKETS. Old: "${oldText}" -> New: "${text}"`);
+        }
 
+        console.log(`[Whisper.onTranscribe] Final Text Emitted: "${text}" | isCapturing: ${evt.isCapturing}`);
         onResult(text, evt.isCapturing);
       },
       onError: (err: any) => {
