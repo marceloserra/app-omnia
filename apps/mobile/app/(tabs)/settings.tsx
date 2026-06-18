@@ -27,6 +27,7 @@ import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProviderStore } from "../../store/provider-store";
 import Constants from "expo-constants";
+import { isModelDownloaded, downloadWhisperModel } from "../../lib/whisper";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -60,6 +61,28 @@ export default function SettingsScreen() {
   const [testResult, setTestResult] = useState<{ ok: boolean; msg?: string; models: string[] } | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [modelPickerVisible, setModelPickerVisible] = useState(false);
+  
+  const [isWhisperReady, setIsWhisperReady] = useState(false);
+  const [whisperProgress, setWhisperProgress] = useState(-1);
+
+  React.useEffect(() => {
+    isModelDownloaded().then(setIsWhisperReady);
+  }, []);
+
+  const handleDownloadWhisper = async () => {
+    if (useSettingsStore.getState().hapticsEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    try {
+      setWhisperProgress(0);
+      await downloadWhisperModel((p) => setWhisperProgress(p));
+      setIsWhisperReady(true);
+    } catch (e) {
+      Alert.alert("Download Error", "Could not download the Voice Engine. Check your connection.");
+    } finally {
+      setWhisperProgress(-1);
+    }
+  };
 
   // Sync testResult when store hydrates asynchronously
   React.useEffect(() => {
@@ -397,14 +420,41 @@ export default function SettingsScreen() {
           <View style={{ marginTop: 24 }}>
             <Text style={styles.sectionTitle}>Capabilities</Text>
             <View style={styles.iosGroup}>
-              <View style={styles.iosRow}>
-                <View style={[styles.iosIconContainer, { backgroundColor: "#10b981" }]}>
+              <View style={[styles.iosRow, { paddingVertical: 14 }]}>
+                <View style={[styles.iosIconContainer, { backgroundColor: isWhisperReady ? "#10b981" : theme.textMuted }]}>
                   <Mic size={18} color="#fff" />
                 </View>
                 <View style={{ flex: 1, paddingRight: 16 }}>
                   <Text style={styles.iosRowLabel}>Voice Dictation</Text>
                   <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>Powered by OpenAI Whisper (On-Device)</Text>
+                  
+                  {whisperProgress >= 0 && (
+                    <View style={{ marginTop: 8 }}>
+                      <View style={{ height: 4, backgroundColor: theme.border, borderRadius: 2, overflow: 'hidden' }}>
+                        <View style={{ height: '100%', width: `${Math.max(5, whisperProgress * 100)}%`, backgroundColor: theme.indigo }} />
+                      </View>
+                      <Text style={{ fontSize: 11, color: theme.indigo, marginTop: 4 }}>
+                        Downloading Engine: {Math.round(whisperProgress * 100)}%
+                      </Text>
+                    </View>
+                  )}
                 </View>
+                
+                {isWhisperReady ? (
+                  <Text style={{ color: "#10b981", fontSize: 14, fontWeight: "600" }}>Enabled</Text>
+                ) : whisperProgress >= 0 ? (
+                  <ActivityIndicator size="small" color={theme.indigo} />
+                ) : (
+                  <Pressable
+                    onPress={handleDownloadWhisper}
+                    style={({ pressed }) => [
+                      { backgroundColor: theme.activeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+                      pressed && { opacity: 0.7 }
+                    ]}
+                  >
+                    <Text style={{ color: theme.indigo, fontSize: 13, fontWeight: "600" }}>Get (75MB)</Text>
+                  </Pressable>
+                )}
               </View>
             </View>
           </View>
