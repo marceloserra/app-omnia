@@ -21,6 +21,8 @@ import * as DocumentPicker from "expo-document-picker";
 import * as Localization from "expo-localization";
 import { logger } from "@omnia/logger";
 import { getWhisperContext, isModelDownloaded, downloadWhisperModel, startWhisperRealtime } from "../../lib/whisper";
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
+import * as Device from "expo-device";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -89,6 +91,8 @@ export function ChatInput({
   const textBeforeDictation = useRef("");
   const partialDictationText = useRef("");
   const isStartingDictation = useRef(false);
+  const isUsingCloudSTT = useRef(false);
+  const [cloudHintVisible, setCloudHintVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
   const { t, language } = useTranslation();
@@ -96,13 +100,64 @@ export function ChatInput({
 
   const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
 
-  // Real-time Whisper Dictation
+  const commitDictationText = () => {
+    if (partialDictationText.current.length > 0) {
+      const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
+      setText(prefix + partialDictationText.current);
+    }
+    setIsRecording(false);
+    setWhisperSession(null);
+    isUsingCloudSTT.current = false;
+    setCloudHintVisible(false);
+  };
+
+  useSpeechRecognitionEvent("result", (event) => {
+    if (!isUsingCloudSTT.current) return;
+    const transcript = event.results[0]?.transcript || "";
+    partialDictationText.current = transcript.trim();
+    if (event.isFinal) {
+      commitDictationText();
+    }
+  });
+
+  useSpeechRecognitionEvent("error", (event) => {
+    if (!isUsingCloudSTT.current) return;
+    logger.error("ChatInput", "Cloud STT Error", event);
+    setIsRecording(false);
+    isUsingCloudSTT.current = false;
+    setCloudHintVisible(false);
+  });
+
+  const startCloudDictation = async () => {
+    try {
+      const perms = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (!perms.granted) {
+        Alert.alert(t("chat.input.mic_permission_denied") || "Microphone permission is required.");
+        return;
+      }
+      
+      setIsRecording(true);
+      textBeforeDictation.current = text;
+      partialDictationText.current = "";
+      isUsingCloudSTT.current = true;
+      setCloudHintVisible(true);
+      
+      await ExpoSpeechRecognitionModule.start({
+        lang: language === 'auto' ? 'en-US' : language, // expo-speech-recognition prefers specific locales, default to OS
+        interimResults: true,
+      });
+      
+    } catch (err: any) {
+      logger.error("ChatInput", "Cloud Dictation Setup Error", err);
+      setIsRecording(false);
+      isUsingCloudSTT.current = false;
+      setCloudHintVisible(false);
+      Alert.alert("Dictation Error", err?.message || String(err));
+    }
+  };
+
   const startWhisperDictation = async () => {
     try {
-      const isDownloaded = await isModelDownloaded();
-      if (!isDownloaded) {
-        setIsDownloadingModel(true);
-      }
       await getWhisperContext(); // Ensure model is loaded
       setIsDownloadingModel(false);
       
@@ -116,13 +171,7 @@ export function ChatInput({
           partialDictationText.current = transcript.trim();
         }
         if (!isCapturing) {
-          // Fallback if the native layer decides to stop on its own
-          if (partialDictationText.current.length > 0) {
-            const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
-            setText(prefix + partialDictationText.current);
-          }
-          setIsRecording(false);
-          setWhisperSession(null);
+          commitDictationText();
         }
       }, (err) => {
         logger.error("ChatInput", "Whisper STT Callback Error", err);
@@ -141,18 +190,18 @@ export function ChatInput({
   };
 
   const handleDictation = async () => {
-    if (isRecording && whisperSession) {
-      try {
-        await whisperSession.stop();
-      } catch (e) {
-        logger.error("ChatInput", "Error stopping whisper session", e);
+    if (isRecording) {
+      if (isUsingCloudSTT.current) {
+        await ExpoSpeechRecognitionModule.stop();
+        commitDictationText();
+      } else if (whisperSession) {
+        try {
+          await whisperSession.stop();
+        } catch (e) {
+          logger.error("ChatInput", "Error stopping whisper session", e);
+        }
+        commitDictationText();
       }
-      if (partialDictationText.current.length > 0) {
-        const prefix = textBeforeDictation.current ? textBeforeDictation.current + (textBeforeDictation.current.endsWith(" ") ? "" : " ") : "";
-        setText(prefix + partialDictationText.current);
-      }
-      setIsRecording(false);
-      setWhisperSession(null);
       return;
     }
     
@@ -170,14 +219,14 @@ export function ChatInput({
     }
 
     const downloaded = await isModelDownloaded();
-    if (!downloaded) {
-      setShowDownloadPrompt(true);
-      isStartingDictation.current = false;
-      return;
-    }
-
+    
     try {
-      await startWhisperDictation();
+      if (!downloaded) {
+        // Fallback to Cloud Dictation
+        await startCloudDictation();
+      } else {
+        await startWhisperDictation();
+      }
     } finally {
       isStartingDictation.current = false;
     }
@@ -461,7 +510,23 @@ export function ChatInput({
               )}
             </View>
 
-          {/* Action button column */}
+          {/* Action column */}
+          {isRecording && (
+            <View style={styles.recordingOverlay}>
+              <AnimatedRecordingIndicator delay={0} />
+              <AnimatedRecordingIndicator delay={300} />
+              <AnimatedRecordingIndicator delay={600} />
+              <Text style={styles.recordingText}>Listening...</Text>
+              <Pressable style={styles.stopDictationBtn} onPress={handleDictation} hitSlop={10}>
+                <Square size={14} color={theme.red} fill={theme.red} />
+              </Pressable>
+            </View>
+          )}
+          
+          {cloudHintVisible && (
+             <Text style={styles.hint}>Cloud Dictation active. Download offline engine in Settings for speed & privacy.</Text>
+          )}
+          
           <View style={styles.actionCol}>
             {isRecording ? null : isStreaming ? (
               <Pressable

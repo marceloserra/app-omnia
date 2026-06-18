@@ -38,6 +38,13 @@
         {
           "appleTeamId": "XXXXX"
         }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow Omnia to access the microphone for dictation.",
+          "speechRecognitionPermission": "Allow Omnia to securely recognize user speech."
+        }
       ]
     ]
   }
