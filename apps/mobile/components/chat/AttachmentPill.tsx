@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { X, FileText } from 'lucide-react-native';
+import { Image } from 'expo-image';
 import { useTheme, ThemePalette } from '../../lib/theme';
 
 export interface Attachment {
@@ -25,25 +26,27 @@ export function AttachmentPill({ attachment, onRemove }: Props) {
   return (
     <View style={styles.container}>
       {isImage ? (
-        <Image source={{ uri: attachment.uri }} style={styles.imagePreview} />
+        <Image 
+          source={{ uri: attachment.uri }} 
+          style={styles.imagePreview} 
+          contentFit="cover"
+          transition={200}
+        />
       ) : (
-        <View style={styles.iconContainer}>
-          <FileText size={18} color={theme.textPrimary} />
+        <View style={styles.documentPreview}>
+          <FileText size={28} color={theme.indigo} />
+          <Text style={styles.documentName} numberOfLines={1} ellipsizeMode="middle">
+            {attachment.name}
+          </Text>
         </View>
       )}
-      
-      <View style={styles.textContainer}>
-        <Text style={styles.name} numberOfLines={1} ellipsizeMode="middle">
-          {attachment.name}
-        </Text>
-      </View>
 
       <Pressable 
         onPress={onRemove}
-        style={({ pressed }) => [styles.removeBtn, pressed && { opacity: 0.6 }]}
-        hitSlop={12}
+        style={({ pressed }) => [styles.removeBtn, pressed && { opacity: 0.7 }]}
+        hitSlop={8}
       >
-        <X size={14} color={theme.textSecondary} />
+        <X size={12} color="#ffffff" strokeWidth={3} />
       </Pressable>
     </View>
   );
@@ -51,48 +54,52 @@ export function AttachmentPill({ attachment, onRemove }: Props) {
 
 const createStyles = (theme: ThemePalette) => StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.surface2,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: theme.border,
-    paddingLeft: 6,
-    paddingRight: 8,
-    paddingVertical: 6,
-    marginRight: 8,
-    maxWidth: 160,
+    marginRight: 12,
+    marginTop: 8,
+    position: 'relative',
   },
   imagePreview: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 72,
+    height: 72,
+    borderRadius: 16,
     backgroundColor: theme.surface,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
-  iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: theme.surface,
+  documentPreview: {
+    width: 72,
+    height: 72,
+    borderRadius: 16,
+    backgroundColor: theme.surface2,
+    borderWidth: 1,
+    borderColor: theme.border,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 8,
   },
-  textContainer: {
-    flex: 1,
-    marginLeft: 8,
-    marginRight: 8,
-  },
-  name: {
-    fontSize: 13,
-    color: theme.textPrimary,
+  documentName: {
+    fontSize: 10,
+    color: theme.textSecondary,
     fontWeight: '500',
+    marginTop: 4,
+    textAlign: 'center',
   },
   removeBtn: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: theme.activeBg,
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: theme.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.surface2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 4,
   },
 });
