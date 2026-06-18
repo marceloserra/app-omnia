@@ -109,6 +109,8 @@ export default function ChatScreen() {
     isAbortedRef.current = false;
     setIsScrolledUp(false);
 
+    const baseTimestamp = Date.now();
+
     const assistantId = generateId();
     const assistantMessage: Message = {
       id: assistantId,
@@ -117,7 +119,7 @@ export default function ChatScreen() {
       content: "",
       providerId: store.activeProviderId ?? undefined,
       modelId: providerCtx.modelId,
-      timestamp: Date.now(),
+      timestamp: baseTimestamp + 1,
     };
 
     const processedAttachments: Attachment[] = [];
@@ -150,7 +152,7 @@ export default function ChatScreen() {
       conversationId: conversationId,
       role: "user",
       content: text,
-      timestamp: Date.now(),
+      timestamp: baseTimestamp,
       attachments: processedAttachments.length > 0 ? processedAttachments : undefined,
     };
 
