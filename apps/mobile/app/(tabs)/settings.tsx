@@ -431,13 +431,13 @@ export default function SettingsScreen() {
           <View style={{ marginTop: 24 }}>
             <Text style={styles.sectionTitle}>Capabilities</Text>
             <View style={styles.iosGroup}>
-              <View style={[styles.iosRow, { paddingVertical: 14 }]}>
+              <View style={[styles.iosRow, { paddingVertical: 16 }]}>
                 <View style={[styles.iosIconContainer, { backgroundColor: isWhisperReady ? "#10b981" : theme.textMuted }]}>
                   <Mic size={18} color="#fff" />
                 </View>
                 <View style={{ flex: 1, paddingRight: 16 }}>
                   <Text style={styles.iosRowLabel}>Voice Dictation</Text>
-                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>Powered by OpenAI Whisper (On-Device)</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4, lineHeight: 18 }}>Powered by OpenAI Whisper (On-Device)</Text>
                   
                   {whisperProgress >= 0 && (
                     <View style={{ marginTop: 8 }}>
