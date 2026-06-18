@@ -433,8 +433,9 @@ export default function SettingsScreen() {
 
           {/* Capabilities Section */}
           <View style={{ marginTop: 24 }}>
-            <Text style={styles.sectionTitle}>{t("settings.capabilities.title")}</Text>
+            <Text style={styles.sectionTitle}>Supported Features</Text>
             <View style={styles.iosGroup}>
+              {/* Voice Dictation Status */}
               <View style={[styles.iosRow, { paddingVertical: 16, opacity: features.localWhisper.isSupported ? 1 : 0.5 }]} pointerEvents={features.localWhisper.isSupported ? "auto" : "none"}>
                 <View style={[styles.iosIconContainer, { backgroundColor: isWhisperReady ? "#10b981" : theme.textMuted }]}>
                   <Mic size={18} color="#fff" />
@@ -487,6 +488,32 @@ export default function SettingsScreen() {
                   </Pressable>
                 )}
               </View>
+              
+              <View style={styles.iosRowBorder} />
+
+              {/* AI Engine Diagnostics */}
+              <View style={[styles.iosRow, { paddingVertical: 16 }]}>
+                <View style={[
+                  styles.iosIconContainer, 
+                  { backgroundColor: features.localWhisper.isSupported ? "#10b981" : "#f59e0b" }
+                ]}>
+                  {features.localWhisper.isSupported ? <Check size={18} color="#fff" /> : <Info size={18} color="#fff" />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.iosRowLabel}>AI Powered STT Engine</Text>
+                  <Text style={{ 
+                    fontSize: 13, 
+                    color: features.localWhisper.isSupported ? theme.textSecondary : "#f59e0b", 
+                    marginTop: 4, 
+                    lineHeight: 18 
+                  }}>
+                    {features.localWhisper.isSupported 
+                      ? "Hardware fully supported for local transcription."
+                      : features.localWhisper.reason
+                    }
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
 
@@ -519,7 +546,7 @@ export default function SettingsScreen() {
 
           {/* Hardware & Diagnostics */}
           <View style={{ marginTop: 24 }}>
-            <Text style={styles.sectionTitle}>Hardware & Diagnostics</Text>
+            <Text style={styles.sectionTitle}>Hardware Details</Text>
             <View style={styles.iosGroup}>
               {/* Device Profile */}
               <View style={styles.iosRow}>
@@ -576,31 +603,6 @@ export default function SettingsScreen() {
                   <Text style={styles.iosRowLabel}>System Memory</Text>
                   <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>
                     {hw.totalMemoryGB > 0 ? `${hw.totalMemoryGB} GB Unified Memory` : "Unknown"}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.iosRowBorder} />
-
-              {/* AI Engine Support */}
-              <View style={[styles.iosRow, { paddingVertical: 16 }]}>
-                <View style={[
-                  styles.iosIconContainer, 
-                  { backgroundColor: features.localWhisper.isSupported ? "#10b981" : "#f59e0b" }
-                ]}>
-                  {features.localWhisper.isSupported ? <Check size={18} color="#fff" /> : <Info size={18} color="#fff" />}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.iosRowLabel}>AI Powered STT Engine</Text>
-                  <Text style={{ 
-                    fontSize: 13, 
-                    color: features.localWhisper.isSupported ? theme.textSecondary : "#f59e0b", 
-                    marginTop: 4, 
-                    lineHeight: 18 
-                  }}>
-                    {features.localWhisper.isSupported 
-                      ? "Hardware fully supported for local transcription."
-                      : features.localWhisper.reason
-                    }
                   </Text>
                 </View>
               </View>

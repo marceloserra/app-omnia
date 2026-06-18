@@ -40,11 +40,15 @@ export function getDeviceSpec(modelName: string, brand: string, archs: string[] 
   // Generic Fallback
   const archString = archs && archs.length > 0 ? archs[0].toUpperCase() : "ARM";
   const brandString = brand ? brand.charAt(0).toUpperCase() + brand.slice(1) : "Generic";
-  const gpuString = designName && designName !== "null" ? `Board/SoC: ${designName}` : "Integrated GPU";
   
+  // designName often contains the exact SoC codename (e.g. 'exynos2100', 'lahaina')
+  const exactCpuName = designName && designName !== "null" 
+    ? designName.charAt(0).toUpperCase() + designName.slice(1) 
+    : `${brandString} ${archString}`;
+    
   return {
-    cpu: `${brandString} ${archString} Processor`,
-    gpu: gpuString,
+    cpu: `${exactCpuName} Processor`,
+    gpu: "Integrated GPU",
     npu: "Unsupported",
     isSupportedCpu: true, // Assume true for unknown Androids unless RAM fails
   };
