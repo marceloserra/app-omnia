@@ -118,7 +118,8 @@ export default function ChatScreen() {
       id: assistantId,
       conversationId: conversationId,
       role: "assistant",
-      content: hasDocuments ? "_Extracting documents..._" : "",
+      // @ts-ignore
+      content: hasDocuments ? `_${t("chat.status.extracting")}..._` : "",
       providerId: store.activeProviderId ?? undefined,
       modelId: providerCtx.modelId,
       timestamp: baseTimestamp + 1,
@@ -177,7 +178,8 @@ export default function ChatScreen() {
         let dots = 1;
         extractingInterval = setInterval(() => {
           dots = (dots % 3) + 1;
-          const pulsingText = `_Extracting documents${".".repeat(dots)}_`;
+          // @ts-ignore
+          const pulsingText = `_${t("chat.status.extracting")}${".".repeat(dots)}_`;
           setMessages((cur) => cur.map((m) => m.id === assistantId ? { ...m, content: pulsingText } : m));
         }, 500);
       }
@@ -259,7 +261,8 @@ export default function ChatScreen() {
       } catch (err: any) {
         if (extractingInterval) clearInterval(extractingInterval);
         
-        let errorMsg = "_[Extraction Failed]_";
+        // @ts-ignore
+        let errorMsg = `_[${t("chat.status.extractionFailed")}]_`;
         if (err.message && err.message.startsWith("PDF_EXTRACTION_FAILED")) {
           const fileName = err.message.split(":")[1];
           // @ts-ignore - dynamic key
@@ -280,7 +283,8 @@ export default function ChatScreen() {
         if (isInitialPrompt && !convRepo.getById(conversationId)) {
           convRepo.create({
             id: conversationId,
-            title: "New Chat", // Will be updated by AI later
+            // @ts-ignore
+            title: t("chat.defaultTitle"), // Will be updated by AI later
             createdAt: Date.now(),
           });
         }
@@ -295,7 +299,8 @@ export default function ChatScreen() {
       }
 
       if (isAbortedRef.current) {
-        const stoppedMsg = "_[Stopped]_";
+        // @ts-ignore
+        const stoppedMsg = `_[${t("chat.status.stopped")}]_`;
         setMessages((cur) => cur.map((m) => m.id === assistantId ? { ...m, content: stoppedMsg } : m));
         try { getDb().msgRepo.updateContent(assistantId, stoppedMsg); } catch(e){}
         setIsStreaming(false);
@@ -364,7 +369,8 @@ export default function ChatScreen() {
           consecutiveFailuresRef.current = 0; // Reset breaker
           
           // Show graceful fallback message
-          const fallbackMsg = `Network unstable. Switched to Local AI. Please resend your message.`;
+          // @ts-ignore
+          const fallbackMsg = t("chat.error.networkUnstable");
           setMessages((cur) =>
             cur.map((m) => m.id === assistantId ? { ...m, content: fallbackMsg } : m)
           );
@@ -378,7 +384,8 @@ export default function ChatScreen() {
           // Auto-switch to local model
           store.setActiveProvider("openai-compatible");
         } else {
-          const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
+          // @ts-ignore
+          const errorMsg = `${t("chat.error.prefix")}: ${e?.message ?? t("chat.error.generic")}`;
           setMessages((cur) =>
             cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m)
           );
@@ -390,7 +397,8 @@ export default function ChatScreen() {
         }
       } finally {
         if (isAbortedRef.current && fullContent === "") {
-          const stoppedMsg = "_[Stopped]_";
+          // @ts-ignore
+          const stoppedMsg = `_[${t("chat.status.stopped")}]_`;
           setMessages((cur) => cur.map((m) => m.id === assistantId ? { ...m, content: stoppedMsg } : m));
           try { getDb().msgRepo.updateContent(assistantId, stoppedMsg); } catch(e){}
         } else if (!isAbortedRef.current && fullContent.length > 0) {
