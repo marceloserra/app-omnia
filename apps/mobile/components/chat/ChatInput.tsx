@@ -303,7 +303,7 @@ export function ChatInput({
             </View>
             <Text style={styles.modalTitle}>Voice Engine Required</Text>
             <Text style={styles.modalText}>
-              To use incredibly fast, 100% offline dictation, Omnia needs to download the 75MB Whisper AI Engine.
+              To use incredibly fast, 100% offline dictation, Omnia needs to download the 142MB Whisper AI Engine.
             </Text>
             <View style={styles.modalActions}>
               <Pressable

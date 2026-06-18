@@ -475,7 +475,7 @@ export default function SettingsScreen() {
                       pressed && { opacity: 0.7 }
                     ]}
                   >
-                    <Text style={{ color: theme.indigo, fontSize: 13, fontWeight: "600" }}>Get (75MB)</Text>
+                    <Text style={{ color: theme.indigo, fontSize: 13, fontWeight: "600" }}>Get (142MB)</Text>
                   </Pressable>
                 )}
               </View>
