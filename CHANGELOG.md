@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [Unreleased]
 
+## [1.1.0] - Phase 10: Multi-Modal Attachments (2026-06-18)
+
+**Omnia v1.1.0** officially delivers Phase 10, bringing Multi-Modal Attachments to the app. Users can now attach photos, PDFs, and raw text files directly into the context window, processed fully on-device without exposing files to third-party endpoints.
+
 ### Added
 
 - Add a repository PR template requiring summary, context, review strategy, architecture notes, executed plan, verification evidence, rollout, risk review, documentation, follow-ups, and merge readiness.
@@ -16,6 +20,9 @@ All notable changes to this project will be documented in this file. See [standa
 - Extend SQLite schema (v3) to store attachment metadata JSON efficiently, avoiding base64 blobs in the database.
 - Integrate `expo-image` into `MessageBubble` for ultra-performant, cached image rendering within chat bubbles.
 - Implement Local Native Text Extraction for PDFs (`expo-pdf-text-extract`) and raw text files (`.txt`, `.md`, `.csv`, `.json`), injecting content directly into the AI prompt to support document Q&A without waiting for Phase 13 RAG.
+- Implement a Skeleton Loader (Shimmer effect) for pending document attachments, preventing layout jumps and eliminating phantom UI states.
+- Implement Dynamic Animated Extraction Text (`_Extraindo documentos..._`) that smoothly cycles through 4 distinct phases to maintain user engagement during long PDF reads.
+- Inject seamless AI System Warnings when PDFs exceed the 30,000-character context limit, allowing the LLM to gracefully inform the user of the truncation.
 
 ### Changed
 
@@ -23,6 +30,8 @@ All notable changes to this project will be documented in this file. See [standa
 - Expand CI coverage for pushes to `feature/**`, `bugfix/**`, `hotfix/**`, `chore/**`, `docs/**`, `release/**`, and `develop`.
 - Make changelog updates mandatory for user-facing, release, CI/CD, architectural, process, and bugfix changes.
 - Document merge strategy rules: squash PRs into `main`, squash normal work into `develop`, and use merge commits for release-sync and hotfix back-merge PRs.
+- Replace arbitrary hardcoded `setTimeout` delays with React Native `InteractionManager` (and `requestAnimationFrame`) to ensure Native OS Intents only launch when the GPU is 100% idle.
+- Decouple all remaining hardcoded UI and System strings from the Chat Screen into the English, Portuguese, and Spanish `i18n.ts` dictionaries.
 
 ### Fixed
 
@@ -32,6 +41,7 @@ All notable changes to this project will be documented in this file. See [standa
 - Fix chat history rendering where network or filesystem delays caused user messages to be sorted below AI responses due to asynchronous timestamps.
 - Fix low contrast of the assistant bubble and typing indicator in light mode by adding adaptive opacity and borders.
 - Fix attachment persistence failure on Android by implementing per-item graceful fallback to the cache URI if the Sandbox copy fails.
+- Fix silent PDF extraction failures by throwing strongly typed errors and rendering a localized Red Error Alert natively within the AI chat bubble, immediately aborting API requests.
 
 ## [1.0.1] - The Omnia Design Update
 
