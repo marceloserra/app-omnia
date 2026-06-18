@@ -25,3 +25,11 @@ As the Omnia codebase matures, we are encountering scaling bottlenecks associate
 - No component is permitted to declare static hex codes.
 - All colors must map to the `ThemePalette` (e.g., `theme.surface`, `theme.indigo`, `theme.red`).
 - This guarantees uniform UI updates, respects systemic light/dark OS transitions, and facilitates future white-labeling or user-defined accent colors.
+
+## 4. Domain-Driven Custom Hooks (Bounded Contexts)
+**Context:** Components were manually instantiating `openDatabase()` and Repositories (`createConversationRepo`) leading to "Database Leaks" in the presentation layer. Centralizing everything into a single `AppService` would create an untestable "God Object."
+**Pattern:** We employ **Domain-Driven Hooks** to isolate SQLite interactions into specific Bounded Contexts.
+**Implementation:**
+- The View layer never imports `@omnia/storage`.
+- Database operations are grouped by feature domain. For example, `history.tsx` delegates solely to `useHistory()`, which encapsulates `loadHistory`, `pinConversation`, and `deleteConversation`.
+- Complex, destructive actions (like wiping the entire database) are encapsulated in dedicated domain managers (e.g., `useSettingsManager`).

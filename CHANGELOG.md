@@ -43,6 +43,30 @@ All notable changes to this project will be documented in this file. See [standa
 - Fix attachment persistence failure on Android by implementing per-item graceful fallback to the cache URI if the Sandbox copy fails.
 - Fix silent PDF extraction failures by throwing strongly typed errors and rendering a localized Red Error Alert natively within the AI chat bubble, immediately aborting API requests.
 
+## [1.0.3] - Voice STT, Hardware Intelligence & Arch Refactoring
+
+**Omnia v1.0.3** finalizes the Phase 9 stabilization by bringing Local AI Voice Dictation, FAANG-grade hardware profiling, and a massive architectural decouple using Domain-Driven Bounded Contexts.
+
+### Added
+
+- Add **Local AI Voice Dictation (STT)** powered by `whisper.rn` using the `ggml-tiny.bin` model directly from HuggingFace (Gerganov). Transcriptions run 100% locally and offline.
+- Add Native System Dictation fallback for devices that do not support the local Whisper engine.
+- Add **Hardware Details** and **Supported Features** panels to the Settings screen, visually separating device profiling from actionable capabilities.
+- Add an advanced OS-level Hardware Profiler (`deviceSpecs.ts` and `useHardwareDetection.ts`) that reads the exact System on a Chip (SoC) / Board name for Android GPUs and cross-references an internal mapping of Apple Silicon processors to evaluate AI capability thresholds.
+- Add explicit Domain-Driven Hooks (`useHistory` and `useSettingsManager`) to encapsulate SQLite logic and prevent Database Leaks in the View layer.
+
+### Changed
+
+- Complete the Strict Theming UI sweep: Replaced all legacy hardcoded hex codes and `rgba()` values in Chat, Model Picker, Settings, and Menus with standard `ThemePalette` tokens.
+- Refactor the Settings UI to gracefully gray out and mark Voice Dictation as "Unsupported" dynamically based on the Hardware Profiler instead of using interruptive `Alert.alert()` dialogues.
+- Refactor `history.tsx` and `settings.tsx` to completely remove direct `@omnia/storage` imports, routing all DB operations through explicit custom hooks.
+- Refactor the generic CPU fallback for unmapped Androids to dynamically pull the `Device.designName` and `Device.supportedCpuArchitectures`, allowing the app to output precise chip names like "Lahaina" or "Exynos2100".
+
+### Fixed
+
+- Fix memory calculation logic where 12GB RAM Android devices were being identified as 10GB due to OS kernel/GiB reservations. RAM reads now gracefully ceil to advertised commercial tiers (6, 8, 12, 16).
+- Fix a regression where running the app on a Virtual Device/Simulator hard-disabled Voice Dictation. Simulators can now test local voice models.
+
 ## [1.0.1] - The Omnia Design Update
 
 **Omnia v1.0.1** establishes our official **Omnia Design System (ODS)**, bringing extreme FAANG-tier polish, native gesture ergonomics, and offline resilience to the UI.
