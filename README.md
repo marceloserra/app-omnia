@@ -1,4 +1,4 @@
-<h1 align="center">Omnia AI</h1>
+<h1 align="center">Omnia: The Ultimate Local LLM & Self-Hosted AI Mobile Client</h1>
 
 <p align="center">
   <img
@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <strong>A fast, offline-capable native client for your Self-Hosted and Cloud AI models.</strong>
+  <strong>Omnia is a premium, open-source mobile application designed for privacy-conscious users and AI enthusiasts. Whether you want to connect to your own self-hosted local LLMs, run offline Speech-to-Text (STT) engines directly on your device, or fallback to cloud-native providers, Omnia delivers a secure, FAANG-grade UI/UX experience on both iOS and Android.</strong>
 </p>
 
 <p align="center">

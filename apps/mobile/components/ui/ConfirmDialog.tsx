@@ -41,7 +41,7 @@ export function ConfirmDialog({
         Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
       ]).start(() => setShow(false));
     }
-  }, [visible]);
+  }, [visible, fadeAnim, scaleAnim]);
 
   if (!show) return null;
 

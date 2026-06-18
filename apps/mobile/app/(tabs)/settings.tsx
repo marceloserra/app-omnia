@@ -111,7 +111,7 @@ export default function SettingsScreen() {
     if (store.activeProviderId === activeTab && store.isConnected && !testResult) {
       setTestResult({ ok: true, msg: "Connection Established", models: store.availableModels });
     }
-  }, [store.activeProviderId, activeTab, store.isConnected, store.availableModels]);
+  }, [store.activeProviderId, activeTab, store.isConnected, store.availableModels, testResult]);
 
   const handleClearAll = () => {
     setShowClearConfirm(true);

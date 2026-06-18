@@ -42,7 +42,7 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, visible,
     if (visible) {
       panY.setValue(0);
     }
-  }, [visible]);
+  }, [visible, panY]);
 
   const panResponder = React.useRef(
     PanResponder.create({

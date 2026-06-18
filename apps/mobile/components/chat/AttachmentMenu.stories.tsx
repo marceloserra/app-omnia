@@ -14,26 +14,28 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+const RenderAttachmentMenu = () => {
+  const [visible, setVisible] = useState(false);
+  return (
+    <View style={{ flex: 1, backgroundColor: '#1a1a24', justifyContent: 'center', alignItems: 'center' }}>
+      <Button title="Open Attachment Menu" onPress={() => setVisible(true)} />
+      <AttachmentMenu 
+        visible={visible} 
+        onClose={() => setVisible(false)} 
+        onSelect={(opt) => {
+          console.log("Selected:", opt);
+          setVisible(false);
+        }} 
+      />
+    </View>
+  );
+};
+
 export const Default: Story = {
   args: {
     visible: false,
     onClose: () => {},
     onSelect: () => {},
   },
-  render: () => {
-    const [visible, setVisible] = useState(false);
-    return (
-      <View style={{ flex: 1, backgroundColor: '#1a1a24', justifyContent: 'center', alignItems: 'center' }}>
-        <Button title="Open Attachment Menu" onPress={() => setVisible(true)} />
-        <AttachmentMenu 
-          visible={visible} 
-          onClose={() => setVisible(false)} 
-          onSelect={(opt) => {
-            console.log("Selected:", opt);
-            setVisible(false);
-          }} 
-        />
-      </View>
-    );
-  },
+  render: RenderAttachmentMenu,
 };
