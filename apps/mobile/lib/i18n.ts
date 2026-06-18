@@ -30,6 +30,8 @@ const en = {
   // Chat
   "chat.empty.title": "What can I help with?",
   "chat.input.placeholder": "Message Omnia...",
+  "chat.input.listening": "Listening...",
+  "chat.drawer.title": "Conversations",
   "chat.delete.title": "Delete Chat",
   "chat.delete.message": "will be permanently deleted. This cannot be undone.",
   "chat.delete.confirm": "Delete",
@@ -121,7 +123,9 @@ const pt: typeof en = {
   "settings.appearance.haptics.desc": "Vibração leve ao gerar respostas",
   
   "chat.empty.title": "Como posso ajudar?",
-  "chat.input.placeholder": "Mensagem Omnia...",
+  "chat.input.placeholder": "Mensagem para Omnia...",
+  "chat.input.listening": "Ouvindo...",
+  "chat.drawer.title": "Conversas",
   "chat.delete.title": "Apagar Conversa",
   "chat.delete.message": "será permanentemente apagada. Esta ação não pode ser desfeita.",
   "chat.delete.confirm": "Apagar",
@@ -212,7 +216,9 @@ const es: typeof en = {
   "settings.appearance.haptics.desc": "Vibración ligera al generar respuestas",
   
   "chat.empty.title": "¿En qué puedo ayudarte?",
-  "chat.input.placeholder": "Mensaje Omnia...",
+  "chat.input.placeholder": "Mensaje para Omnia...",
+  "chat.input.listening": "Escuchando...",
+  "chat.drawer.title": "Conversaciones",
   "chat.delete.title": "Eliminar Chat",
   "chat.delete.message": "se eliminará permanentemente. Esta acción no se puede deshacer.",
   "chat.delete.confirm": "Eliminar",

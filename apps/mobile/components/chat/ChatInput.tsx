@@ -57,7 +57,7 @@ export function ChatInput({
   const [isFocused, setIsFocused] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const textBeforeDictation = useRef("");
+  const pendingTranscript = useRef("");
   const inputRef = useRef<TextInput>(null);
   const theme = useTheme();
   const { t } = useTranslation();
@@ -66,19 +66,25 @@ export function ChatInput({
   const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
 
   useSpeechRecognitionEvent("start", () => {
-    textBeforeDictation.current = text;
+    pendingTranscript.current = "";
     setIsRecording(true);
   });
 
   useSpeechRecognitionEvent("end", () => {
     setIsRecording(false);
+    if (pendingTranscript.current) {
+      setText((prev) => {
+        const prefix = prev.length > 0 && !prev.endsWith(" ") ? prev + " " : prev;
+        return prefix + pendingTranscript.current;
+      });
+      pendingTranscript.current = "";
+    }
   });
 
   useSpeechRecognitionEvent("result", (event) => {
     const transcript = event.results[0]?.transcript;
     if (transcript) {
-      const prefix = textBeforeDictation.current ? textBeforeDictation.current + " " : "";
-      setText(prefix + transcript);
+      pendingTranscript.current = transcript;
     }
   });
 
@@ -287,41 +293,60 @@ export function ChatInput({
             )}
           </Pressable>
 
-          {/* Text field */}
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', position: 'relative' }}>
-            <TextInput
-              ref={inputRef}
-              value={text}
-              onChangeText={setText}
-              placeholder={t("chat.input.placeholder")}
-              placeholderTextColor={theme.textMuted}
-              multiline
-              maxLength={4000}
-              style={[styles.textInput, { paddingRight: 40 }]}
-              onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
-              blurOnSubmit={false}
-              editable={true}
-              returnKeyType="send"
-              enablesReturnKeyAutomatically
-              scrollEnabled
-              onFocus={() => {
-                setIsFocused(true);
-                if (onFocus) onFocus();
-              }}
-              onBlur={() => setIsFocused(false)}
-              testID="chat-input"
-            />
-            <Pressable 
-              onPress={handleDictation} 
-              style={({ pressed }) => [
-                { position: 'absolute', right: 8, bottom: 6, width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
-                pressed && { backgroundColor: theme.activeBg }
-              ]}
-              accessibilityLabel="Dictate message"
-            >
-              <Mic size={20} color={isRecording ? theme.red : theme.textMuted} />
-            </Pressable>
-          </View>
+          {/* Text field or Recording UI */}
+          {isRecording ? (
+            <View style={styles.recordingOverlay}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                <View style={styles.recordingPulse} />
+                <Text style={styles.recordingText}>{t("chat.input.listening") || "Listening..."}</Text>
+              </View>
+              <Pressable 
+                onPress={handleDictation}
+                style={({ pressed }) => [
+                  styles.stopDictationBtn,
+                  pressed && { opacity: 0.7 }
+                ]}
+                accessibilityLabel="Stop dictation"
+              >
+                <Square size={14} color={theme.red} fill={theme.red} />
+              </Pressable>
+            </View>
+          ) : (
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', position: 'relative' }}>
+              <TextInput
+                ref={inputRef}
+                value={text}
+                onChangeText={setText}
+                placeholder={t("chat.input.placeholder")}
+                placeholderTextColor={theme.textMuted}
+                multiline
+                maxLength={4000}
+                style={[styles.textInput, { paddingRight: 40 }]}
+                onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
+                blurOnSubmit={false}
+                editable={true}
+                returnKeyType="send"
+                enablesReturnKeyAutomatically
+                scrollEnabled
+                onFocus={() => {
+                  setIsFocused(true);
+                  if (onFocus) onFocus();
+                }}
+                onBlur={() => setIsFocused(false)}
+                testID="chat-input"
+              />
+              <Pressable 
+                onPress={handleDictation} 
+                style={({ pressed }) => [
+                  { position: 'absolute', right: 8, bottom: 6, width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
+                  pressed && { backgroundColor: theme.activeBg }
+                ]}
+                accessibilityLabel="Dictate message"
+              >
+                <Mic size={20} color={theme.textMuted} />
+              </Pressable>
+            </View>
+          )}
 
           {/* Action button column */}
           <View style={styles.actionCol}>
@@ -449,6 +474,40 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
+  },
+  recordingOverlay: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    height: 40,
+    backgroundColor: theme.red + '10', // Extremely faint red tint
+    borderRadius: 20,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: theme.red + '40',
+  },
+  recordingPulse: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.red,
+    marginRight: 10,
+  },
+  recordingText: {
+    color: theme.red,
+    fontSize: 15,
+    fontWeight: '500',
+    flex: 1,
+  },
+  stopDictationBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: theme.red + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   hint: {
     color: theme.textMuted,
