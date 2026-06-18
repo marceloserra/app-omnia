@@ -80,6 +80,9 @@ export async function startWhisperRealtime(
       audioSliceSec: 60,
       realtimeProcessingPauseMs: 200,
       initRealtimeAfterMs: 200,
+      transcribeOptions: {
+        language: 'pt',
+      }
     },
     {
       onTranscribe: (evt: any) => {
