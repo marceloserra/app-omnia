@@ -57,6 +57,7 @@ const en = {
   "chat.empty.cta": "Configure Provider",
   "chat.error.disconnected": "Provider Disconnected",
   "chat.error.reconnect": "Reconnect",
+  "chat.error.pdfExtraction": "🚨 **Read Error**\n\nCould not extract text from file **{fileName}**. It may be corrupted, password protected, or a rasterized image PDF without OCR.",
 
   "chat.input.disabled": "No provider connected",
   "chat.input.hint": "Omnia can make mistakes. Check important info.",
@@ -137,6 +138,7 @@ const pt: typeof en = {
   "chat.empty.cta": "Configurar Provedor",
   "chat.error.disconnected": "Provedor Desconectado",
   "chat.error.reconnect": "Reconectar",
+  "chat.error.pdfExtraction": "🚨 **Falha na Leitura**\n\nNão foi possível extrair texto do arquivo **{fileName}**. Ele pode estar corrompido, protegido por senha, ou ser um PDF apenas com imagens rasterizadas sem OCR.",
 
   "chat.input.disabled": "Nenhum provedor conectado",
   "chat.input.hint": "O Omnia pode cometer erros. Verifique informações importantes.",
@@ -217,6 +219,7 @@ const es: typeof en = {
   "chat.empty.cta": "Configurar Proveedor",
   "chat.error.disconnected": "Proveedor Desconectado",
   "chat.error.reconnect": "Reconectar",
+  "chat.error.pdfExtraction": "🚨 **Error de Lectura**\n\nNo se pudo extraer texto del archivo **{fileName}**. Puede estar corrupto, protegido con contraseña o ser un PDF de imágenes sin OCR.",
 
   "chat.input.disabled": "Ningún proveedor conectado",
   "chat.input.hint": "Omnia puede cometer errores. Verifica información importante.",

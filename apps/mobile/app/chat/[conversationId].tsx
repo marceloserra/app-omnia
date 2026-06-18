@@ -262,7 +262,8 @@ export default function ChatScreen() {
         let errorMsg = "_[Extraction Failed]_";
         if (err.message && err.message.startsWith("PDF_EXTRACTION_FAILED")) {
           const fileName = err.message.split(":")[1];
-          errorMsg = `🚨 **Falha na Leitura**\n\nNão foi possível extrair texto do arquivo **${fileName}**. Ele pode estar corrompido, protegido por senha, ou ser um PDF apenas com imagens rasterizadas sem OCR.`;
+          // @ts-ignore - dynamic key
+          errorMsg = t("chat.error.pdfExtraction").replace("{fileName}", fileName);
         }
         
         setMessages((cur) => cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m));
