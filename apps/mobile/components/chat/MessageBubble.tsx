@@ -385,9 +385,10 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     flexShrink: 1,
     borderRadius: 20,
     borderBottomLeftRadius: 6,
-    borderWidth: 0, // Removed border for cleaner glass look
+    borderWidth: 1, 
+    borderColor: theme.bg === "#05050f" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)",
     overflow: "hidden",
-    backgroundColor: theme.bg === "#05050f" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
+    backgroundColor: theme.bg === "#05050f" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
   },
   text: {
     color: theme.textPrimary,
