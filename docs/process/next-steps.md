@@ -21,24 +21,45 @@ Do not suggest, build, or implement any further visual design changes unless spe
 
 ---
 
-## Future Scope (Post Stable APK Verification)
+## Future Scope: The AI Workspace Evolution
 
-Once the stable APK is published and verified on physical devices, the project may transition from a traditional chat application into an **Agentic AI Assistant**.
+Once the stable APK is published and verified on physical devices, the project will transition from a traditional chat application into an **AI Workspace** and eventually an **AI Operating Environment**.
 
-### Phase 10: Retrieval-Augmented Generation (RAG)
-- **Goal:** Allow users to upload PDFs, text files, and images.
-- **Tech:** `@omnia/rag` package with local embeddings generation (Xenova/transformers.js) or relying on OpenAI embeddings, plus a local vector search implementation (SQLite `vss` or pure JS cosine similarity).
+For full strategic details, read `docs/roadmap/strategic-roadmap-review.md`.
 
-### Phase 11: WebFetch & Browsing
-- **Goal:** Enable the LLM to search the web and scrape real-time data.
-- **Tech:** Tool calling interfaces to execute proxy-based or native HTTPS requests to fetch webpage content and summarize it.
+> **Inspiration Benchmark:** Agents MUST review world-class FAANG UIs (ChatGPT, Claude, Apple Intelligence) and open-source benchmarks like `/Users/marceloserra/Documents/coding/projects/open-source/llama.cpp/tools/ui` for UX inspiration. The goal is a premium, zero-friction experience for attachments, capabilities, and tool execution.
 
-### Phase 12: Model Context Protocol (MCP)
-- **Goal:** Full Agentic execution via MCP tools.
-- **Tech:** Implement native MCP clients so the local or remote LLM can execute device actions (Calendar, Contacts, filesystem).
+### Phase 10: Multi-Modal Attachments
+- **Goal:** Image → Model, PDF → Model, Camera → Model.
+- **Value:** Interact naturally with contracts, invoices, screenshots.
+- **Inspiration:** ChatGPT/Claude attachment pill UI, Apple Messages camera integration, and Llama.cpp attachment menus.
 
-### Phase 13: Voice & Speech-to-Text
-- **Goal:** Hands-free interaction.
-- **Tech:** Expo Audio, Whisper (local or remote), and TTS engine.
+### Phase 11: Voice (Microphone / STT)
+- **Goal:** Allow users to speak to the model instead of typing.
+- **Tech Options:** 
+  - *Native/Free:* `SFSpeechRecognizer` (iOS) & `SpeechRecognizer` (Android) — Zero cost, works offline.
+  - *Modern/LLM-grade:* Whisper API (via Groq for 0 latency free-tier) or Whisper.cpp (local execution).
 
-> **Status:** All future phases are currently PENDING. Do not begin implementation until the user explicitly dictates the start of Phase 10.
+### Phase 12: WebSearch
+- **Goal:** Enable the LLM to search the web and fetch live data.
+- **Tech Options:**
+  - *100% Free:* DuckDuckGo HTML scraping proxy (zero API keys).
+  - *Agentic/Free-Tier:* Tavily API (built for LLMs, 1000 free searches/month) or Brave Search API.
+
+### Phase 13: Knowledge Base
+- **Goal:** Persistent knowledge collections ("My Knowledge").
+- **Tech:** Local embeddings, chunking, SQLite vector search.
+
+### Phase 14: Skills & Capabilities
+- **Goal:** Reusable building blocks independent of the execution layer.
+- **Tech:** `capabilities/`, `registry/`, `contracts/`.
+
+### Phase 15: Workspaces
+- **Goal:** Context isolation (e.g., Personal, Orbitarium, Work).
+- **Tech:** Local-first architecture isolating chats, files, and agents per domain.
+
+### Phase 16: Model Context Protocol (MCP) & Multi-Agent
+- **Goal:** Developer-centric reuse and complex problem solving via Planner, Researcher, and Execution agents.
+
+> **Status:** All future phases (10-16) are currently PENDING. Do not begin implementation until the user explicitly dictates the start of Phase 10.
+> **Daily Driver Rule:** Experimental work MUST happen in `feature/*` branches. Merging to `develop` must never degrade the core daily usability.

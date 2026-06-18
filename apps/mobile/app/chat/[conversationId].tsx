@@ -1,15 +1,13 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { View, FlatList, Text, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable, StyleSheet, Modal, TextInput } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { Message } from "@omnia/shared-types";
 import { MessageBubble } from "../../components/chat/MessageBubble";
 import { ChatInput } from "../../components/chat/ChatInput";
+import { Attachment } from "../../components/chat/AttachmentPill";
 import { ModelPickerSheet, getModelIcon } from "../../components/chat/ModelPickerSheet";
 import { ModelChip } from "../../components/chat/ModelChip";
 import { useProviderStore } from "../../store/provider-store";
-import { OpenAIProvider } from "@omnia/providers";
-import { OpenAICompatibleProvider } from "@omnia/providers";
-import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
 import { logger } from "@omnia/logger";
 import { BlurView } from "expo-blur";
 import { ArrowDown, ChevronLeft, Settings, ChevronDown, Search, X, Check } from "lucide-react-native";
@@ -18,272 +16,26 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
 import { useSettingsStore } from "../../store/settings-store";
-import * as Haptics from "expo-haptics";
-
-let _db: any;
-let _msgRepo: any;
-let _convRepo: any;
-
-function getDb() {
-  if (!_db) {
-    _db = openDatabase();
-    _msgRepo = createMessageRepo(_db);
-    _convRepo = createConversationRepo(_db);
-  }
-  return { db: _db, msgRepo: _msgRepo, convRepo: _convRepo };
-}
-
-function generateId() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
+import { useChat } from "../../hooks/useChat";
 // ─── Chat Screen ──────────────────────────────────────────────────────────────
 
 export default function ChatScreen() {
   const { conversationId, initialPrompt } = useLocalSearchParams<{ conversationId: string; initialPrompt?: string }>();
-  const hasTriggeredPrompt = useRef(false);
   const store = useProviderStore();
   const theme = useTheme();
   const { t } = useTranslation();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
-  const headerHeight = insets.top + 44;
-  const [messages, setMessages] = useState<Message[]>(() => {
-    if (!conversationId) return [];
-    try {
-      return getDb().msgRepo.listByConversation(conversationId);
-    } catch {
-      return [];
-    }
-  });
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [convTitle, setConvTitle] = useState(() => {
-    if (!conversationId) return "Chat";
-    try {
-      const conv = getDb().convRepo.getById(conversationId);
-      return conv?.title || "Chat";
-    } catch {
-      return "Chat";
-    }
-  });
+  
+  const { messages, isStreaming, convTitle, handleSend, handleStop } = useChat(conversationId, initialPrompt);
+
   const [modelPickerVisible, setModelPickerVisible] = useState(false);
   const isDark = theme.bg === "#05050f";
 
   // UX States
   const [isScrolledUp, setIsScrolledUp] = useState(false);
   const flatListRef = useRef<FlatList>(null);
-  const messagesRef = useRef<Message[]>([]);
-  messagesRef.current = messages;
-  const isAbortedRef = useRef(false);
   const scrollOffsetRef = useRef(0); // track position to restore after keyboard hides
-
-  // Circuit Breaker State
-  const consecutiveFailuresRef = useRef(0);
-  const CIRCUIT_BREAKER_THRESHOLD = 2;
-
-  // No manual keyboard scroll listeners needed when using inverted FlatList
-
-  const getProvider = useCallback(() => {
-    if (store.activeProviderId === "openai") {
-      return {
-        provider: new OpenAIProvider(),
-        config: { apiKey: store.openaiApiKey },
-        modelId: store.openaiModelId,
-      };
-    } else if (store.activeProviderId === "openai-compatible") {
-      return {
-        provider: new OpenAICompatibleProvider(),
-        config: { baseUrl: store.compatibleBaseUrl, apiKey: store.compatibleApiKey || undefined },
-        modelId: store.compatibleModelId,
-      };
-    }
-    return null;
-  }, [store]);
-
-  const handleSend = useCallback(async (text: string, isInitialPrompt: boolean = false) => {
-    const providerCtx = getProvider();
-    if (!providerCtx) return;
-    if (!conversationId) return;
-
-    isAbortedRef.current = false;
-    setIsScrolledUp(false);
-
-    const assistantId = generateId();
-    const assistantMessage: Message = {
-      id: assistantId,
-      conversationId: conversationId,
-      role: "assistant",
-      content: "",
-      providerId: store.activeProviderId ?? undefined,
-      modelId: providerCtx.modelId,
-      timestamp: Date.now(),
-    };
-
-    const userMessage: Message | null = isInitialPrompt ? null : {
-      id: generateId(),
-      conversationId: conversationId,
-      role: "user",
-      content: text,
-      timestamp: Date.now(),
-    };
-
-    const prev = messagesRef.current;
-    const snapshotForApi = isInitialPrompt ? [...prev] : [...prev, userMessage!];
-    const chatHistory = snapshotForApi.map((m) => ({
-      role: m.role as "user" | "assistant" | "system",
-      content: m.content,
-    }));
-    const isFirstMessage = prev.length === 0 && userMessage;
-
-    setMessages((currentPrev) => {
-      return isInitialPrompt ? [...currentPrev, assistantMessage] : [...currentPrev, userMessage!, assistantMessage];
-    });
-
-    // Fire and forget the stream OUTSIDE the state updater to prevent React StrictMode duplicate side-effects
-    (async () => {
-      try {
-        const { convRepo, msgRepo } = getDb();
-        if (isInitialPrompt && !convRepo.getById(conversationId)) {
-          convRepo.create({
-            id: conversationId,
-            title: "New Chat", // Will be updated by AI later
-            createdAt: Date.now(),
-          });
-        }
-        if (userMessage) msgRepo.create(userMessage);
-        msgRepo.create(assistantMessage);
-        if (isFirstMessage) {
-          convRepo.update(conversationId, { title: text.slice(0, 40) });
-          setConvTitle(text.slice(0, 40));
-        }
-      } catch (err) {
-        logger.error("SQLite", "Failed to save message", err);
-      }
-
-      let fullContent = "";
-      try {
-        const stream = providerCtx.provider.streamChat(providerCtx.config, {
-          messages: chatHistory,
-          modelId: providerCtx.modelId,
-          stream: true,
-        });
-
-        let lastHapticTime = Date.now();
-        let lastSqliteTime = Date.now();
-        
-        for await (const chunk of stream) {
-          if (isAbortedRef.current) break;
-          if (chunk.done) break;
-          fullContent += chunk.content;
-          
-          const now = Date.now();
-
-          if (useSettingsStore.getState().hapticsEnabled) {
-            if (now - lastHapticTime > 80) {
-              Haptics.selectionAsync();
-              lastHapticTime = now;
-            }
-          }
-
-          if (now - lastSqliteTime > 500) {
-            try {
-              getDb().msgRepo.updateContent(assistantId, fullContent);
-            } catch (err) {}
-            lastSqliteTime = now;
-          }
-
-          setMessages((cur) =>
-            cur.map((m) => m.id === assistantId ? { ...m, content: fullContent } : m)
-          );
-        }
-
-        try {
-          getDb().msgRepo.updateContent(assistantId, fullContent);
-        } catch (err) {
-          logger.error("SQLite", "Failed to update assistant message content", err);
-        }
-      } catch (e: any) {
-        if (isAbortedRef.current) {
-          // If aborted, the network request might throw. Save whatever partial content we have.
-          try {
-            getDb().msgRepo.updateContent(assistantId, fullContent);
-          } catch (err) {}
-          return;
-        }
-
-        // Circuit Breaker Logic
-        consecutiveFailuresRef.current += 1;
-        if (store.activeProviderId === "openai" && consecutiveFailuresRef.current >= CIRCUIT_BREAKER_THRESHOLD) {
-          consecutiveFailuresRef.current = 0; // Reset breaker
-          
-          // Show graceful fallback message
-          const fallbackMsg = `Network unstable. Switched to Local AI. Please resend your message.`;
-          setMessages((cur) =>
-            cur.map((m) => m.id === assistantId ? { ...m, content: fallbackMsg } : m)
-          );
-          try { getDb().msgRepo.updateContent(assistantId, fallbackMsg); } catch (err) {}
-          
-          // Haptic feedback for circuit trip
-          if (useSettingsStore.getState().hapticsEnabled) {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          }
-          
-          // Auto-switch to local model
-          store.setActiveProvider("openai-compatible");
-        } else {
-          const errorMsg = `Error: ${e?.message ?? "Something went wrong."}`;
-          setMessages((cur) =>
-            cur.map((m) => m.id === assistantId ? { ...m, content: errorMsg } : m)
-          );
-          try {
-            getDb().msgRepo.updateContent(assistantId, errorMsg);
-          } catch (err) {
-            logger.error("SQLite", "Failed to log assistant stream error", err);
-          }
-        }
-      } finally {
-        // Reset failures on success if we reached the end of the loop without entering catch
-        if (!isAbortedRef.current && fullContent.length > 0) {
-          consecutiveFailuresRef.current = 0;
-        }
-        setIsStreaming(false);
-        isAbortedRef.current = false;
-      }
-    })();
-
-    setIsStreaming(true);
-  }, [conversationId, store, getProvider]);
-
-  // Load messages from SQLite on conversationId change.
-  // No setMessages([]) here — keep previous messages visible during transition.
-  useEffect(() => {
-    if (!conversationId) return;
-    try {
-      const { convRepo, msgRepo } = getDb();
-      const conv = convRepo.getById(conversationId);
-      if (conv) setConvTitle(conv.title);
-      const history = msgRepo.listByConversation(conversationId);
-      setMessages(history);
-      if (initialPrompt && !hasTriggeredPrompt.current) {
-        hasTriggeredPrompt.current = true;
-        setTimeout(() => { handleSend(initialPrompt, true); }, 300);
-      }
-    } catch (err) {
-      logger.error("SQLite", "Failed to load chat history", err);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId, initialPrompt]); // handleSend intentionally omitted — guarded by hasTriggeredPrompt ref
-
-  // Abort stream if the component unmounts (e.g., user hits back button)
-  useEffect(() => {
-    return () => {
-      isAbortedRef.current = true;
-    };
-  }, []);
-
-  const handleStop = () => {
-    isAbortedRef.current = true;
-    setIsStreaming(false);
-  };
 
   const scrollToBottom = () => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -310,7 +62,7 @@ export default function ChatScreen() {
             <BlurView 
               intensity={isDark ? 60 : 100} 
               tint={isDark ? "dark" : "light"} 
-              style={[styles.floatingBtnInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
+              style={styles.floatingBtnInner}
             >
               <ChevronLeft size={20} color={theme.textPrimary} strokeWidth={2.5} />
             </BlurView>
@@ -325,16 +77,15 @@ export default function ChatScreen() {
           />
 
           <Pressable
-            onPress={() => router.push("/settings")}
-            accessibilityLabel="Settings"
+            onPress={() => setModelPickerVisible(true)}
             style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
           >
             <BlurView 
               intensity={isDark ? 60 : 100} 
               tint={isDark ? "dark" : "light"} 
-              style={[styles.floatingBtnInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
+              style={[styles.floatingBtnInner, { width: 36, height: 36 }]}
             >
-              <Settings size={18} color={theme.textPrimary} strokeWidth={2} />
+              <Settings size={18} color={theme.textPrimary} strokeWidth={2.5} />
             </BlurView>
           </Pressable>
         </View>
@@ -343,7 +94,7 @@ export default function ChatScreen() {
           <View style={{ position: 'absolute', top: insets.top + 60, left: 16, right: 16, alignItems: 'center', zIndex: 5 }} pointerEvents="box-none">
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: theme.red, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, shadowColor: theme.red, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4, maxWidth: "100%" }}>
               <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "600", marginRight: 12, flexShrink: 1 }} numberOfLines={2}>{t("chat.error.disconnected")}</Text>
-              <Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [{ backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, flexShrink: 0 }, pressed && { opacity: 0.7 }]}>
+              <Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [{ backgroundColor: theme.activeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, flexShrink: 0 }, pressed && { opacity: 0.7 }]}>
                 <Text style={{ color: "#ffffff", fontSize: 12, fontWeight: "700" }}>{t("chat.error.reconnect")}</Text>
               </Pressable>
             </View>
@@ -462,13 +213,14 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     borderRadius: 18,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: theme.glassBorder,
   },
   floatingBtnInner: {
     width: 36,
     height: 36,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: theme.glassBg,
   },
   floatingChipContainer: {
     borderRadius: 18,

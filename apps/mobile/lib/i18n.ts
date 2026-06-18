@@ -1,5 +1,6 @@
 import { useSettingsStore } from "../store/settings-store";
 import { getLocales } from "expo-localization";
+import { useCallback } from "react";
 
 const en = {
   // Navigation
@@ -29,7 +30,11 @@ const en = {
   
   // Chat
   "chat.empty.title": "What can I help with?",
-  "chat.input.placeholder": "Message Omnia...",
+  "chat.input.placeholder": "Message for Omnia...",
+  "chat.input.listening": "Listening...",
+  "chat.input.mic_permission_denied": "Microphone permission is required.",
+  "chat.input.attachments.max": "Maximum of 4 attachments allowed",
+  "chat.drawer.title": "Conversations",
   "chat.delete.title": "Delete Chat",
   "chat.delete.message": "will be permanently deleted. This cannot be undone.",
   "chat.delete.confirm": "Delete",
@@ -57,11 +62,26 @@ const en = {
   "chat.empty.cta": "Configure Provider",
   "chat.error.disconnected": "Provider Disconnected",
   "chat.error.reconnect": "Reconnect",
+  "chat.error.pdfExtraction": "🚨 **Read Error**\n\nCould not extract text from file **{fileName}**. It may be corrupted, password protected, or a rasterized image PDF without OCR.",
+  "chat.error.networkUnstable": "Network unstable. Switched to Local AI. Please resend your message.",
+  "chat.error.prefix": "Error",
+  "chat.error.generic": "Something went wrong.",
+  "chat.status.extracting.1": "Reading file",
+  "chat.status.extracting.2": "Processing pages",
+  "chat.status.extracting.3": "Extracting text",
+  "chat.status.extracting.4": "Preparing context",
+  "chat.status.extractionFailed": "Extraction Failed",
+  "chat.status.stopped": "Stopped",
+  "chat.defaultTitle": "New Chat",
 
   "chat.input.disabled": "No provider connected",
   "chat.input.hint": "Omnia can make mistakes. Check important info.",
   "chat.input.attach.title": "Coming Soon",
   "chat.input.attach.msg": "File attachments will be available in Phase 11.",
+  "chat.input.attach.camera": "Camera",
+  "chat.input.attach.library": "Photo Library",
+  "chat.input.attach.files": "Files",
+  "common.cancel": "Cancel",
 
   "settings.model.select": "Select Model",
   "settings.model.none": "None",
@@ -69,6 +89,18 @@ const en = {
   "settings.provider.update": "Update Active Provider",
   "settings.provider.set": "Set as Active Provider",
   "settings.provider.disconnect": "Disconnect Provider",
+  
+  "settings.capabilities.title": "App Capabilities",
+  "settings.capabilities.voice.title": "Voice Dictation",
+  "settings.capabilities.voice.subtitle": "Offline Whisper AI Engine",
+  "settings.capabilities.voice.downloading": "Downloading Engine: {progress}%",
+  "settings.capabilities.voice.enabled": "Enabled",
+  "settings.capabilities.voice.get": "Get (142MB)",
+  "settings.capabilities.voice.delete.title": "Remove Voice Engine",
+  "settings.capabilities.voice.delete.msg": "Are you sure you want to delete the offline dictation engine? You will need to download the ~142MB file again to use dictation.",
+  "settings.capabilities.voice.delete.confirm": "Remove",
+  "settings.capabilities.voice.req.title": "Voice Engine Required",
+  "settings.capabilities.voice.req.msg": "To use incredibly fast, 100% offline dictation, Omnia needs to download the 142MB Whisper AI Engine.",
   
   "settings.data.title": "Data Management",
   "settings.data.deleteall": "Delete All History",
@@ -106,7 +138,11 @@ const pt: typeof en = {
   "settings.appearance.haptics.desc": "Vibração leve ao gerar respostas",
   
   "chat.empty.title": "Como posso ajudar?",
-  "chat.input.placeholder": "Mensagem Omnia...",
+  "chat.input.placeholder": "Mensagem para Omnia...",
+  "chat.input.listening": "Gravando...",
+  "chat.input.mic_permission_denied": "Permissão de microfone é necessária.",
+  "chat.input.attachments.max": "Máximo de 4 anexos permitidos",
+  "chat.drawer.title": "Conversas",
   "chat.delete.title": "Apagar Conversa",
   "chat.delete.message": "será permanentemente apagada. Esta ação não pode ser desfeita.",
   "chat.delete.confirm": "Apagar",
@@ -133,11 +169,26 @@ const pt: typeof en = {
   "chat.empty.cta": "Configurar Provedor",
   "chat.error.disconnected": "Provedor Desconectado",
   "chat.error.reconnect": "Reconectar",
+  "chat.error.pdfExtraction": "🚨 **Falha na Leitura**\n\nNão foi possível extrair texto do arquivo **{fileName}**. Ele pode estar corrompido, protegido por senha, ou ser um PDF apenas com imagens rasterizadas sem OCR.",
+  "chat.error.networkUnstable": "Rede instável. Trocando para IA Local. Por favor, reenvie a mensagem.",
+  "chat.error.prefix": "Erro",
+  "chat.error.generic": "Algo deu errado.",
+  "chat.status.extracting.1": "Lendo arquivo",
+  "chat.status.extracting.2": "Processando páginas",
+  "chat.status.extracting.3": "Extraindo texto",
+  "chat.status.extracting.4": "Preparando contexto",
+  "chat.status.extractionFailed": "Falha na Extração",
+  "chat.status.stopped": "Parado",
+  "chat.defaultTitle": "Nova Conversa",
 
   "chat.input.disabled": "Nenhum provedor conectado",
   "chat.input.hint": "O Omnia pode cometer erros. Verifique informações importantes.",
   "chat.input.attach.title": "Em Breve",
   "chat.input.attach.msg": "O envio de arquivos estará disponível na Fase 11.",
+  "chat.input.attach.camera": "Câmera",
+  "chat.input.attach.library": "Galeria de Fotos",
+  "chat.input.attach.files": "Arquivos",
+  "common.cancel": "Cancelar",
 
   "settings.model.select": "Selecionar Modelo",
   "settings.model.none": "Nenhum",
@@ -145,6 +196,18 @@ const pt: typeof en = {
   "settings.provider.update": "Atualizar Provedor",
   "settings.provider.set": "Definir como Ativo",
   "settings.provider.disconnect": "Desconectar Provedor",
+
+  "settings.capabilities.title": "Recursos do App",
+  "settings.capabilities.voice.title": "Ditado por Voz",
+  "settings.capabilities.voice.subtitle": "Motor Offline Whisper AI",
+  "settings.capabilities.voice.downloading": "Baixando Motor: {progress}%",
+  "settings.capabilities.voice.enabled": "Ativado",
+  "settings.capabilities.voice.get": "Baixar (142MB)",
+  "settings.capabilities.voice.delete.title": "Remover Motor de Voz",
+  "settings.capabilities.voice.delete.msg": "Tem certeza de que deseja apagar o motor de ditado offline? Você precisará baixar o arquivo de ~142MB novamente para usar o ditado.",
+  "settings.capabilities.voice.delete.confirm": "Remover",
+  "settings.capabilities.voice.req.title": "Motor de Voz Necessário",
+  "settings.capabilities.voice.req.msg": "Para usar o ditado 100% offline e incrivelmente rápido, o Omnia precisa baixar o Motor de IA Whisper de 142MB.",
 
   "settings.data.title": "Gerenciamento de Dados",
   "settings.data.deleteall": "Apagar Todo o Histórico",
@@ -182,7 +245,11 @@ const es: typeof en = {
   "settings.appearance.haptics.desc": "Vibración ligera al generar respuestas",
   
   "chat.empty.title": "¿En qué puedo ayudarte?",
-  "chat.input.placeholder": "Mensaje Omnia...",
+  "chat.input.placeholder": "Mensaje para Omnia...",
+  "chat.input.listening": "Escuchando...",
+  "chat.input.mic_permission_denied": "Se requiere permiso de micrófono.",
+  "chat.input.attachments.max": "Máximo de 4 adjuntos permitidos",
+  "chat.drawer.title": "Conversaciones",
   "chat.delete.title": "Eliminar Chat",
   "chat.delete.message": "se eliminará permanentemente. Esta acción no se puede deshacer.",
   "chat.delete.confirm": "Eliminar",
@@ -209,11 +276,26 @@ const es: typeof en = {
   "chat.empty.cta": "Configurar Proveedor",
   "chat.error.disconnected": "Proveedor Desconectado",
   "chat.error.reconnect": "Reconectar",
+  "chat.error.pdfExtraction": "🚨 **Error de Lectura**\n\nNo se pudo extraer texto del archivo **{fileName}**. Puede estar corrupto, protegido con contraseña o ser un PDF de imágenes sin OCR.",
+  "chat.error.networkUnstable": "Red inestable. Cambiando a IA Local. Por favor, reenvía tu mensaje.",
+  "chat.error.prefix": "Error",
+  "chat.error.generic": "Algo salió mal.",
+  "chat.status.extracting.1": "Leyendo archivo",
+  "chat.status.extracting.2": "Procesando páginas",
+  "chat.status.extracting.3": "Extrayendo texto",
+  "chat.status.extracting.4": "Preparando contexto",
+  "chat.status.extractionFailed": "Extracción Fallida",
+  "chat.status.stopped": "Detenido",
+  "chat.defaultTitle": "Nuevo Chat",
 
   "chat.input.disabled": "Ningún proveedor conectado",
   "chat.input.hint": "Omnia puede cometer errores. Verifica información importante.",
   "chat.input.attach.title": "Próximamente",
   "chat.input.attach.msg": "El envío de archivos estará disponible en la Fase 11.",
+  "chat.input.attach.camera": "Cámara",
+  "chat.input.attach.library": "Fototeca",
+  "chat.input.attach.files": "Archivos",
+  "common.cancel": "Cancelar",
 
   "settings.model.select": "Seleccionar Modelo",
   "settings.model.none": "Ninguno",
@@ -221,6 +303,18 @@ const es: typeof en = {
   "settings.provider.update": "Actualizar Proveedor",
   "settings.provider.set": "Establecer como Activo",
   "settings.provider.disconnect": "Desconectar Proveedor",
+
+  "settings.capabilities.title": "Capacidades de la App",
+  "settings.capabilities.voice.title": "Dictado por Voz",
+  "settings.capabilities.voice.subtitle": "Motor Offline Whisper AI",
+  "settings.capabilities.voice.downloading": "Descargando Motor: {progress}%",
+  "settings.capabilities.voice.enabled": "Activado",
+  "settings.capabilities.voice.get": "Bajar (142MB)",
+  "settings.capabilities.voice.delete.title": "Quitar Motor de Voz",
+  "settings.capabilities.voice.delete.msg": "¿Estás seguro de que quieres eliminar el motor de dictado offline? Necesitarás descargar el archivo de ~142MB nuevamente para usar el dictado.",
+  "settings.capabilities.voice.delete.confirm": "Quitar",
+  "settings.capabilities.voice.req.title": "Motor de Voz Requerido",
+  "settings.capabilities.voice.req.msg": "Para usar el dictado increíblemente rápido y 100% offline, Omnia necesita descargar el Motor de IA Whisper de 142MB.",
 
   "settings.data.title": "Gestión de Datos",
   "settings.data.deleteall": "Eliminar Todo el Historial",
@@ -252,7 +346,7 @@ export function useTranslation() {
 
   const dict = dictionaries[activeLang as keyof typeof dictionaries] || dictionaries.en;
 
-  const t = (key: DictionaryKey) => dict[key] || en[key] || key;
+  const t = useCallback((key: DictionaryKey) => dict[key] || en[key] || key, [dict]);
 
   return { t, language: activeLang };
 }

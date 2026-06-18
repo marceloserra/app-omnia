@@ -8,8 +8,8 @@ export function createMessageRepo(db: SQLite.SQLiteDatabase) {
      */
     create(message: Message): void {
       db.runSync(
-        `INSERT INTO messages (id, conversation_id, role, content, provider_id, model_id, prompt_tokens, completion_tokens, timestamp)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT INTO messages (id, conversation_id, role, content, provider_id, model_id, prompt_tokens, completion_tokens, timestamp, attachments)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.conversationId,
@@ -19,7 +19,8 @@ export function createMessageRepo(db: SQLite.SQLiteDatabase) {
           message.modelId ?? null,
           message.metadata?.promptTokens ?? null,
           message.metadata?.completionTokens ?? null,
-          message.timestamp
+          message.timestamp,
+          message.attachments ? JSON.stringify(message.attachments) : null
         ]
       );
     },
@@ -51,9 +52,19 @@ export function createMessageRepo(db: SQLite.SQLiteDatabase) {
         prompt_tokens: number | null;
         completion_tokens: number | null;
         timestamp: number;
+        attachments: string | null;
       }>(query, params);
 
-      return rows.map((r) => ({
+      return rows.map((r) => {
+        let parsedAttachments;
+        if (r.attachments) {
+          try {
+            parsedAttachments = JSON.parse(r.attachments);
+          } catch (e) {
+            console.error("Failed to parse attachments", e);
+          }
+        }
+        return {
         id: r.id,
         conversationId: r.conversation_id,
         role: r.role as Message["role"],
@@ -70,7 +81,9 @@ export function createMessageRepo(db: SQLite.SQLiteDatabase) {
                   (r.prompt_tokens ?? 0) + (r.completion_tokens ?? 0),
               }
             : undefined,
-      }));
+        attachments: parsedAttachments,
+        };
+      });
     },
 
     /**

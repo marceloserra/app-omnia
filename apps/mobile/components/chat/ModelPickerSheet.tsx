@@ -42,7 +42,7 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, visible,
     if (visible) {
       panY.setValue(0);
     }
-  }, [visible]);
+  }, [visible, panY]);
 
   const panResponder = React.useRef(
     PanResponder.create({
@@ -79,7 +79,7 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, visible,
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+        <View style={{ flex: 1, backgroundColor: theme.overlay, justifyContent: "flex-end" }}>
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
           <Animated.View style={{ 
             width: "100%", height: "65%", 
@@ -125,9 +125,7 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, visible,
                   paddingHorizontal: 16,
                   marginVertical: 3,
                   borderRadius: 14,
-                  backgroundColor: isSelected
-                    ? (isDark ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.07)")
-                    : "transparent",
+                  backgroundColor: isSelected ? theme.activeBg : "transparent",
                 }, pressed && { opacity: 0.7 }]}
               >
                 <View style={{ 
@@ -175,7 +173,7 @@ export function ModelPickerSheet({ models, selected, onSelect, onClose, visible,
         <View style={{
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+          backgroundColor: theme.activeBg,
           borderRadius: 16,
           paddingHorizontal: 16,
           height: 48,

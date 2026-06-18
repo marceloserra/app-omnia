@@ -4,12 +4,55 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [Unreleased]
 
+## [1.2.0] - Voice STT, Hardware Intelligence & Arch Refactoring
+
+**Omnia v1.2.0** finalizes Phase 9 stabilization by bringing Local AI Voice Dictation, FAANG-grade hardware profiling, and a massive architectural decouple using Domain-Driven Bounded Contexts.
+
+### Added
+
+- Add **Local AI Voice Dictation (STT)** powered by `whisper.rn`. Integrates the `ggml-tiny.bin` (~75MB) model trained by OpenAI and hosted by HuggingFace (Link: `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin`). Transcriptions run 100% locally and offline.
+- Add **Native System Dictation (Cloud STT)** as a seamless fallback for devices that do not support or haven't downloaded the local Whisper engine.
+- Add **Microphone UI in ChatInput**: Users can now trigger dictation directly from the chat box. Includes a stop button, automatic text injection after dictation, and real-time **Waveform Animations** using `react-native-reanimated`.
+- Add **App Capabilities Menu** to the Settings screen, allowing users to actively monitor, download, and delete the Voice Dictation offline model.
+- Add **Device Profile Menu** featuring an advanced OS-level Hardware Profiler (`deviceSpecs.ts`) that reads the exact System on a Chip (SoC), mapping precise CPU/GPU/NPU details (e.g., Exynos, Lahaina, Apple Silicon).
+- Add **Hardware Supported Features Menu** that explicitly maps device support for STT AI Engines based on hardware capabilities.
+- Add **Husky Pre-commit Hooks** globally across the monorepo. It validates all commits via `lint-staged` and `turbo`, ensuring `pnpm lint` and `pnpm typecheck` pass flawlessly before pushing code to GitHub Actions.
+
+### Changed
+
+- Complete a massive **Architectural Decoupling**: Replaced "God Object" AppServices with strict **Domain-Driven Bounded Contexts**. Logic is now isolated into specialized hooks (`useDictation.ts`, `useHistory.ts`, `useChat.ts`) paired with the Repository Pattern.
+- Refactor `history.tsx` and `settings.tsx` to completely remove direct `@omnia/storage` imports, routing all database operations through explicit boundaries.
+- Complete the Strict Theming UI sweep: Replaced all legacy hardcoded hex codes in Chat and Menus with standard `ThemePalette` tokens.
+
+### Fixed
+
+- Fix a catastrophic React infinite render loop (`Maximum update depth exceeded`) caused by an unstable `t` function in `useTranslation`. Stabilized i18n hooks using `useCallback` to prevent cascading render explosions during dictation.
+- Fix complete UI layout destruction in `ChatInput` ("indo pra esquerda", overlapping stop buttons) by removing the Cloud Dictation hint `<Text>` from inside the strict flex row and deleting obsolete legacy overlays.
+- Fix silent `expo-sqlite` crash and failure to create new conversations by ensuring `updatedAt` is explicitly passed in the SQLite `INSERT` parameter array.
+- Fix memory calculation logic where 12GB RAM Android devices were being identified as 10GB due to OS kernel reservations. RAM reads now gracefully ceil to advertised commercial tiers.
+- Fix a regression where running the app on a Virtual Device/Simulator hard-disabled Voice Dictation. Simulators can now test local voice models.
+- Fix strict `exhaustive-deps` and `rules-of-hooks` React warnings caught by CI pipelines (`settings.tsx`, `ModelPickerSheet.tsx`, `ConfirmDialog.tsx` and `AttachmentMenu.stories.tsx`), ensuring a 100% clean ESLint state.
+
+
+## [1.1.0] - Phase 10: Multi-Modal Attachments (2026-06-18)
+
+**Omnia v1.1.0** officially delivers Phase 10, bringing Multi-Modal Attachments to the app. Users can now attach photos, PDFs, and raw text files directly into the context window, processed fully on-device without exposing files to third-party endpoints.
+
 ### Added
 
 - Add a repository PR template requiring summary, context, review strategy, architecture notes, executed plan, verification evidence, rollout, risk review, documentation, follow-ups, and merge readiness.
 - Add documented Git Flow conventions for `feature/*`, `bugfix/*`, `hotfix/*`, `chore/*`, `docs/*`, `release/vX.Y.Z`, `develop`, and `main`.
 - Add Hotfix Back-Merge automation to open a `main` to `develop` PR after a `hotfix/*` PR merges into `main`.
 - Add branch, PR, main, release APK, and hotfix back-merge workflow documentation.
+- Add a release notes standard and GitHub Release template based on changelog entries, commits, PRs, and manual rollout notes.
+- Implement Phase 10 Multi-Modal Attachments: Users can now attach photos and files using a premium, FAANG-style custom floating `AttachmentMenu`.
+- Add persistent storage for attachments: Files are copied securely to the `FileSystem.documentDirectory` to survive OS cache purges.
+- Extend SQLite schema (v3) to store attachment metadata JSON efficiently, avoiding base64 blobs in the database.
+- Integrate `expo-image` into `MessageBubble` for ultra-performant, cached image rendering within chat bubbles.
+- Implement Local Native Text Extraction for PDFs (`expo-pdf-text-extract`) and raw text files (`.txt`, `.md`, `.csv`, `.json`), injecting content directly into the AI prompt to support document Q&A without waiting for Phase 13 RAG.
+- Implement a Skeleton Loader (Shimmer effect) for pending document attachments, preventing layout jumps and eliminating phantom UI states.
+- Implement Dynamic Animated Extraction Text (`_Extraindo documentos..._`) that smoothly cycles through 4 distinct phases to maintain user engagement during long PDF reads.
+- Inject seamless AI System Warnings when PDFs exceed the 30,000-character context limit, allowing the LLM to gracefully inform the user of the truncation.
 
 ### Changed
 
@@ -17,12 +60,18 @@ All notable changes to this project will be documented in this file. See [standa
 - Expand CI coverage for pushes to `feature/**`, `bugfix/**`, `hotfix/**`, `chore/**`, `docs/**`, `release/**`, and `develop`.
 - Make changelog updates mandatory for user-facing, release, CI/CD, architectural, process, and bugfix changes.
 - Document merge strategy rules: squash PRs into `main`, squash normal work into `develop`, and use merge commits for release-sync and hotfix back-merge PRs.
+- Replace arbitrary hardcoded `setTimeout` delays with React Native `InteractionManager` (and `requestAnimationFrame`) to ensure Native OS Intents only launch when the GPU is 100% idle.
+- Decouple all remaining hardcoded UI and System strings from the Chat Screen into the English, Portuguese, and Spanish `i18n.ts` dictionaries.
 
 ### Fixed
 
 - Harden Android release APK support for HTTP local AI providers by injecting a native network security config during Expo prebuild.
 - Restore the Android adaptive launcher icon asset so release APK installs show the Omnia icon instead of the default Android Studio icon.
 - Fix CI typecheck/test resolution for mobile Jest files by excluding tests from the production TypeScript program and making React Native Testing Library available to the root test runner.
+- Fix chat history rendering where network or filesystem delays caused user messages to be sorted below AI responses due to asynchronous timestamps.
+- Fix low contrast of the assistant bubble and typing indicator in light mode by adding adaptive opacity and borders.
+- Fix attachment persistence failure on Android by implementing per-item graceful fallback to the cache URI if the Sandbox copy fails.
+- Fix silent PDF extraction failures by throwing strongly typed errors and rendering a localized Red Error Alert natively within the AI chat bubble, immediately aborting API requests.
 
 ## [1.0.1] - The Omnia Design Update
 

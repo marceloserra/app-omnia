@@ -14,6 +14,12 @@ export interface ThemePalette {
   red: string;
   activeBg: string;
   purple: string;
+  overlay: string;
+  glassBg: string;
+  glassBorder: string;
+  messageBg: string;
+  messageBorder: string;
+  textOnIndigo: string;
 }
 
 export const DarkPalette: ThemePalette = {
@@ -28,6 +34,12 @@ export const DarkPalette: ThemePalette = {
   red: "#ef4444",
   activeBg: "rgba(255,255,255,0.08)",
   purple: "#a855f7",
+  overlay: "rgba(0,0,0,0.5)",
+  glassBg: "rgba(255,255,255,0.05)",
+  glassBorder: "rgba(255,255,255,0.1)",
+  messageBg: "rgba(255,255,255,0.05)",
+  messageBorder: "rgba(255,255,255,0.05)",
+  textOnIndigo: "#ffffff",
 };
 
 export const LightPalette: ThemePalette = {
@@ -42,6 +54,12 @@ export const LightPalette: ThemePalette = {
   red: "#EF4444", 
   activeBg: "rgba(0,0,0,0.06)",
   purple: "#AF52DE",
+  overlay: "rgba(0,0,0,0.3)",
+  glassBg: "rgba(0,0,0,0.03)",
+  glassBorder: "rgba(0,0,0,0.06)",
+  messageBg: "rgba(0,0,0,0.04)",
+  messageBorder: "rgba(0,0,0,0.06)",
+  textOnIndigo: "#ffffff",
 };
 
 export function useTheme(): ThemePalette {

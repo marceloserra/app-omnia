@@ -18,14 +18,19 @@ import { router } from "expo-router";
 import { ModelPickerSheet } from "../../components/chat/ModelPickerSheet";
 import { Input } from "../../components/ui/Input";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
-import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe, Vibrate } from "lucide-react-native";
-import { openDatabase, createConversationRepo, createMessageRepo } from "@omnia/storage";
+import { CheckCircle2, AlertCircle, Server, Check, KeySquare, Network, Trash2, ChevronRight, Search, X, Box, Monitor, Moon, Sun, Globe, Vibrate, Mic, Cpu, Smartphone, Info, Database } from "lucide-react-native";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import * as Device from 'expo-device';
+import { useHardwareDetection } from "../../hooks/useHardwareDetection";
+import { useSupportedFeatures } from "../../hooks/useSupportedFeatures";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProviderStore } from "../../store/provider-store";
+import { useSettingsManager } from "../../hooks/useSettingsManager";
+import Constants from "expo-constants";
+import { isModelDownloaded, downloadWhisperModel, deleteWhisperModel } from "../../lib/whisper";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -58,30 +63,64 @@ export default function SettingsScreen() {
   const [isValidating, setIsValidating] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg?: string; models: string[] } | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showWhisperDeleteConfirm, setShowWhisperDeleteConfirm] = useState(false);
   const [modelPickerVisible, setModelPickerVisible] = useState(false);
+  
+  const hw = useHardwareDetection();
+  const features = useSupportedFeatures();
+  const { clearAllData } = useSettingsManager();
+  
+  const [isWhisperReady, setIsWhisperReady] = useState(false);
+  const [whisperProgress, setWhisperProgress] = useState(-1);
+
+  React.useEffect(() => {
+    isModelDownloaded().then(setIsWhisperReady);
+  }, []);
+
+  const handleDownloadWhisper = async () => {
+    if (useSettingsStore.getState().hapticsEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    
+    // Hardware Capability Detection (Phase 9 Quality Gates)
+    if (!features.localWhisper.isSupported) return;
+
+    try {
+      setWhisperProgress(0);
+      await downloadWhisperModel((p) => setWhisperProgress(p));
+      setIsWhisperReady(true);
+    } catch (e) {
+      Alert.alert("Download Error", "Could not download the Voice Engine. Check your connection.");
+    } finally {
+      setWhisperProgress(-1);
+    }
+  };
+
+  const handleDeleteWhisper = () => {
+    setShowWhisperDeleteConfirm(true);
+  };
+
+  const confirmDeleteWhisper = async () => {
+    await deleteWhisperModel();
+    setIsWhisperReady(false);
+    setShowWhisperDeleteConfirm(false);
+  };
 
   // Sync testResult when store hydrates asynchronously
   React.useEffect(() => {
     if (store.activeProviderId === activeTab && store.isConnected && !testResult) {
       setTestResult({ ok: true, msg: "Connection Established", models: store.availableModels });
     }
-  }, [store.activeProviderId, activeTab, store.isConnected, store.availableModels]);
+  }, [store.activeProviderId, activeTab, store.isConnected, store.availableModels, testResult]);
 
   const handleClearAll = () => {
     setShowClearConfirm(true);
   };
 
   const confirmClearAll = () => {
-    try {
-      const db = openDatabase();
-      createMessageRepo(db).deleteAll();
-      createConversationRepo(db).deleteAll();
-      setShowClearConfirm(false);
-      router.replace("/");
-    } catch (err) {
-      Alert.alert("Error", "Could not delete history.");
-      setShowClearConfirm(false);
-    }
+    clearAllData();
+    setShowClearConfirm(false);
+    router.replace("/");
   };
 
   const handleTestConnection = async () => {
@@ -392,6 +431,66 @@ export default function SettingsScreen() {
             </View>
           </View>
 
+          {/* Capabilities Section */}
+          <View style={{ marginTop: 24 }}>
+            <Text style={styles.sectionTitle}>{t("settings.capabilities.title")}</Text>
+            <View style={styles.iosGroup}>
+              {/* Voice Dictation Status */}
+              <View style={[styles.iosRow, { paddingVertical: 16, opacity: features.localWhisper.isSupported ? 1 : 0.5 }]} pointerEvents={features.localWhisper.isSupported ? "auto" : "none"}>
+                <View style={[styles.iosIconContainer, { backgroundColor: isWhisperReady ? "#10b981" : theme.textMuted }]}>
+                  <Mic size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>{t("settings.capabilities.voice.title")}</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4, lineHeight: 18 }}>{t("settings.capabilities.voice.subtitle")}</Text>
+                  
+                  {whisperProgress >= 0 && (
+                    <View style={{ marginTop: 8 }}>
+                      <View style={{ height: 4, backgroundColor: theme.border, borderRadius: 2, overflow: 'hidden' }}>
+                        <View style={{ height: '100%', width: `${Math.max(5, whisperProgress * 100)}%`, backgroundColor: theme.indigo }} />
+                      </View>
+                      <Text style={{ fontSize: 11, color: theme.indigo, marginTop: 4 }}>
+                        {t("settings.capabilities.voice.downloading").replace("{progress}", Math.round(whisperProgress * 100).toString())}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                
+                {isWhisperReady ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Text style={{ color: "#10b981", fontSize: 14, fontWeight: "600" }}>{t("settings.capabilities.voice.enabled")}</Text>
+                    <Pressable
+                      onPress={handleDeleteWhisper}
+                      style={({ pressed }) => [
+                        { padding: 8, backgroundColor: theme.red + '15', borderRadius: 12 },
+                        pressed && { opacity: 0.7 }
+                      ]}
+                      accessibilityLabel="Delete voice engine"
+                    >
+                      <Trash2 size={16} color={theme.red} />
+                    </Pressable>
+                  </View>
+                ) : whisperProgress >= 0 ? (
+                  <ActivityIndicator size="small" color={theme.indigo} />
+                ) : !features.localWhisper.isSupported ? (
+                  <View style={{ backgroundColor: theme.activeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}>
+                    <Text style={{ color: theme.textMuted, fontSize: 13, fontWeight: "600" }}>Unsupported</Text>
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={handleDownloadWhisper}
+                    style={({ pressed }) => [
+                      { backgroundColor: theme.activeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+                      pressed && { opacity: 0.7 }
+                    ]}
+                  >
+                    <Text style={{ color: theme.indigo, fontSize: 13, fontWeight: "600" }}>{t("settings.capabilities.voice.get")}</Text>
+                  </Pressable>
+                )}
+              </View>
+            </View>
+          </View>
+
           {/* Chat Behavior */}
           <View style={{ marginTop: 24 }}>
             <Text style={styles.sectionTitle}>Chat Behavior</Text>
@@ -419,6 +518,101 @@ export default function SettingsScreen() {
             </View>
           </View>
 
+          {/* Hardware & Diagnostics */}
+          <View style={{ marginTop: 24 }}>
+            <Text style={styles.sectionTitle}>Device Profile</Text>
+            <View style={styles.iosGroup}>
+              {/* Device Profile */}
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: theme.indigo }]}>
+                  <Smartphone size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>{hw.modelName}</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{hw.osName} {hw.osVersion}</Text>
+                </View>
+              </View>
+              <View style={styles.iosRowBorder} />
+              
+              {/* Processors */}
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#8b5cf6" }]}>
+                  <Cpu size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>CPU Architecture</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{hw.cpu}</Text>
+                </View>
+              </View>
+              <View style={styles.iosRowBorder} />
+
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#f43f5e" }]}>
+                  <Monitor size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>GPU Graphics</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{hw.gpu}</Text>
+                </View>
+              </View>
+              <View style={styles.iosRowBorder} />
+
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#06b6d4" }]}>
+                  <Box size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>Neural Processing Unit</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{hw.npu}</Text>
+                </View>
+              </View>
+              <View style={styles.iosRowBorder} />
+
+              {/* Memory */}
+              <View style={styles.iosRow}>
+                <View style={[styles.iosIconContainer, { backgroundColor: "#10b981" }]}>
+                  <Database size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 16 }}>
+                  <Text style={styles.iosRowLabel}>System Memory</Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>
+                    {hw.totalMemoryGB > 0 ? `${hw.totalMemoryGB} GB Unified Memory` : "Unknown"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Supported Features Diagnostics */}
+          <View style={{ marginTop: 24 }}>
+            <Text style={styles.sectionTitle}>Hardware Compatibility</Text>
+            <View style={styles.iosGroup}>
+              {/* AI Engine Diagnostics */}
+              <View style={[styles.iosRow, { paddingVertical: 16 }]}>
+                <View style={[
+                  styles.iosIconContainer, 
+                  { backgroundColor: features.localWhisper.isSupported ? "#10b981" : "#f59e0b" }
+                ]}>
+                  {features.localWhisper.isSupported ? <Check size={18} color="#fff" /> : <Info size={18} color="#fff" />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.iosRowLabel}>AI Powered STT Engine</Text>
+                  <Text style={{ 
+                    fontSize: 13, 
+                    color: features.localWhisper.isSupported ? theme.textSecondary : "#f59e0b", 
+                    marginTop: 4, 
+                    lineHeight: 18 
+                  }}>
+                    {features.localWhisper.isSupported 
+                      ? "Hardware fully supported for local transcription."
+                      : features.localWhisper.reason
+                    }
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
           {/* Data Management */}
           <View style={{ marginTop: 32, marginBottom: 40 }}>
             <Text style={styles.sectionTitle}>{t("settings.data.title")}</Text>
@@ -435,6 +629,12 @@ export default function SettingsScreen() {
             </View>
           </View>
 
+          {/* Version Info (FAANG style footer) */}
+          <View style={{ marginTop: 16, marginBottom: 40, alignItems: "center", opacity: 0.6 }}>
+            <Text style={{ fontSize: 15, fontWeight: "600", color: theme.textPrimary, marginBottom: 4 }}>Omnia AI</Text>
+            <Text style={{ fontSize: 13, color: theme.textSecondary }}>v{Constants.expoConfig?.version || "1.0.0"}</Text>
+          </View>
+
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -445,6 +645,15 @@ export default function SettingsScreen() {
         confirmText={t("chat.delete.confirm")}
         onCancel={() => setShowClearConfirm(false)}
         onConfirm={confirmClearAll}
+      />
+
+      <ConfirmDialog
+        visible={showWhisperDeleteConfirm}
+        title={t("settings.capabilities.voice.delete.title")}
+        message={t("settings.capabilities.voice.delete.msg")}
+        confirmText={t("settings.capabilities.voice.delete.confirm")}
+        onCancel={() => setShowWhisperDeleteConfirm(false)}
+        onConfirm={confirmDeleteWhisper}
       />
 
       <ModelPickerSheet

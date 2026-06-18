@@ -20,25 +20,14 @@ import { ModelPickerSheet, getModelIcon } from "../../components/chat/ModelPicke
 import { ModelChip } from "../../components/chat/ModelChip";
 import { useProviderStore } from "../../store/provider-store";
 import { OpenAIProvider, OpenAICompatibleProvider } from "@omnia/providers";
-import { openDatabase, createMessageRepo, createConversationRepo } from "@omnia/storage";
+import { chatService } from "../../services/ChatService";
 import { AlignLeft, Settings, Sparkles, ChevronDown, ChevronLeft } from "lucide-react-native";
 import { BlurView } from "expo-blur";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
 
-let _db: any;
-let _msgRepo: any;
-let _convRepo: any;
 
-function getDb() {
-  if (!_db) {
-    _db = openDatabase();
-    _msgRepo = createMessageRepo(_db);
-    _convRepo = createConversationRepo(_db);
-  }
-  return { db: _db, msgRepo: _msgRepo, convRepo: _convRepo };
-}
 
 function generateId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -83,20 +72,15 @@ export default function HomeScreen() {
     const providerCtx = getProvider();
     if (!providerCtx) return;
 
-    const { convRepo, msgRepo } = getDb();
     const newConvId = generateId();
     const now = Date.now();
 
-    // Pre-save conversation and user message to SQLite BEFORE navigating.
+    // Pre-save conversation and user message via ChatService BEFORE navigating.
     // This way the chat screen loads with existing content and never shows empty.
-    convRepo.create({
-      id: newConvId,
-      title: text.slice(0, 40),
-      createdAt: now,
-      updatedAt: now,
-    });
+    chatService.createConversation(newConvId, text.slice(0, 40));
+    
     const userMsgId = generateId();
-    msgRepo.create({
+    chatService.saveMessage({
       id: userMsgId,
       conversationId: newConvId,
       role: "user",
@@ -133,7 +117,7 @@ export default function HomeScreen() {
             <BlurView 
               intensity={isDark ? 60 : 100} 
               tint={isDark ? "dark" : "light"} 
-              style={[styles.floatingBtnInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
+              style={[styles.floatingBtnInner, { backgroundColor: theme.glassBg }]}
             >
               <ChevronLeft size={20} color={theme.textPrimary} strokeWidth={2.5} />
             </BlurView>
@@ -155,7 +139,7 @@ export default function HomeScreen() {
             <BlurView 
               intensity={isDark ? 60 : 100} 
               tint={isDark ? "dark" : "light"} 
-              style={[styles.floatingBtnInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
+              style={[styles.floatingBtnInner, { backgroundColor: theme.glassBg }]}
             >
               <Settings size={18} color={theme.textPrimary} strokeWidth={2} />
             </BlurView>
@@ -256,7 +240,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     borderRadius: 18,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: theme.glassBorder,
   },
   floatingBtnInner: {
     width: 36,
@@ -268,7 +252,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     borderRadius: 18,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: theme.glassBorder,
     maxWidth: 200,
   },
   floatingChipInner: {

@@ -2,19 +2,20 @@
   "expo": {
     "name": "Omnia",
     "slug": "omnia",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/favicon.png",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#05050f",
     "scheme": "omnia-mobile",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.marceloserra.omnia"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#05050f",
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/favicon.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
@@ -24,16 +25,27 @@
       "backgroundColor": "#05050f",
       "package": "com.marceloserra.omnia"
     },
-    "androidStatusBar": {
-      "translucent": false
-    },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-sqlite",
       "./plugins/with-android-cleartext-traffic",
-      "@config-plugins/detox"
+      "@config-plugins/detox",
+      "expo-image",
+      [
+        "expo-document-picker",
+        {
+          "appleTeamId": "XXXXX"
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow Omnia to access the microphone for dictation.",
+          "speechRecognitionPermission": "Allow Omnia to securely recognize user speech."
+        }
+      ]
     ]
   }
 }

@@ -1,8 +1,8 @@
-<h1 align="center">Omnia AI</h1>
+<h1 align="center">Omnia: The Ultimate Local LLM & Self-Hosted AI Mobile Client</h1>
 
 <p align="center">
   <img
-    src="./apps/mobile/assets/omnia-logo.jpg"
+    src="./apps/mobile/assets/favicon.png"
     alt="Omnia icon"
     width="96"
     height="96"
@@ -11,11 +11,11 @@
 </p>
 
 <p align="center">
-  <strong>A fast, offline-capable native client for your Self-Hosted and Cloud AI models.</strong>
+  <strong>Omnia is a premium, open-source mobile application designed for privacy-conscious users and AI enthusiasts. Whether you want to connect to your own self-hosted local LLMs, run offline Speech-to-Text (STT) engines directly on your device, or fallback to cloud-native providers, Omnia delivers a secure, FAANG-grade UI/UX experience on both iOS and Android.</strong>
 </p>
 
 <p align="center">
-  <img alt="Latest Release" src="https://img.shields.io/badge/Release-v1.0.0-0A84FF?style=flat-square" />
+  <img alt="Latest Release" src="https://img.shields.io/badge/Release-v1.2.0-0A84FF?style=flat-square" />
   <img alt="React Native" src="https://img.shields.io/badge/React_Native-05050f?style=flat-square&logo=react" />
   <img alt="Expo" src="https://img.shields.io/badge/Expo-SDK_56-black?style=flat-square&logo=expo" />
   <img alt="SQLite" src="https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite" />
@@ -33,11 +33,10 @@
 <br>
 
 <p align="center">
-  <!-- TODO: Replace with actual .gif demo from Simulator -->
   <img
-    src="https://via.placeholder.com/360x640/05050f/6366f1?text=Omnia+Demo+Video+.gif"
-    alt="Omnia demo"
-    width="360"
+    src="./apps/mobile/assets/omnia-app-hero.png"
+    alt="Omnia demo!!"
+    width="800"
   />
 </p>
 <br>
@@ -92,6 +91,14 @@ Most AI clients crash or lose your long prompt when you switch apps. Omnia is en
 - **Single Source of Truth:** The chat streams write directly to a synchronous SQLite database running on the device. Even if you kill the app mid-generation, your chat history is perfectly preserved.
 - **Auto-Fallback Circuit Breakers:** If the cloud rate-limits you or your network drops, Omnia's network layer automatically intercepts the error and routes the prompt to your fallback local models.
 - **Feature-Sliced Design:** The monorepo architecture strictly isolates concerns into domain-specific packages (`@omnia/storage`, `@omnia/providers`, etc.).
+
+---
+
+## System Requirements
+
+Omnia is built on React Native and Expo SDK 56, leveraging modern native bridges. The minimum supported OS versions are:
+- **iOS:** 15.1 or newer
+- **Android:** 7.0 (API Level 24) or newer
 
 ---
 

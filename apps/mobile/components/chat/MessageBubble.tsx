@@ -13,7 +13,8 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Clipboard from "expo-clipboard";
 import Markdown, { ASTNode } from "react-native-markdown-display";
-import { CheckCircle2, Copy } from "lucide-react-native";
+import { CheckCircle2, Copy, FileText } from "lucide-react-native";
+import { Image } from "expo-image";
 import { TypingIndicator } from "../ui/TypingIndicator";
 import { useTheme, ThemePalette } from "../../lib/theme";
 
@@ -283,7 +284,29 @@ export const MessageBubble = React.memo(({ message, isStreaming = false }: Messa
           end={{ x: 1, y: 1 }}
           style={[styles.bubble, styles.userBubble]}
         >
-          <Text style={[styles.text, { color: "#ffffff" }]}>{message.content}</Text>
+          {message.attachments && message.attachments.length > 0 && (
+            <View style={styles.attachmentsGrid}>
+              {message.attachments.map((att, idx) => (
+                att.type === 'image' ? (
+                  <Image
+                    key={idx}
+                    source={{ uri: att.uri }}
+                    style={styles.attachmentImage}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                ) : (
+                  <View key={idx} style={styles.attachmentDocument}>
+                    <FileText size={24} color="#ffffff" />
+                    <Text style={styles.attachmentDocumentName} numberOfLines={1}>{att.name}</Text>
+                  </View>
+                )
+              ))}
+            </View>
+          )}
+          {!!message.content && (
+            <Text style={[styles.text, { color: "#ffffff" }]}>{message.content}</Text>
+          )}
           <View style={styles.metaRow}>
             {copied && <CheckCircle2 size={12} color="#fff" style={{ marginRight: 4 }} />}
             <Text style={[styles.metaText, styles.userMetaText]}>
@@ -362,9 +385,10 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     flexShrink: 1,
     borderRadius: 20,
     borderBottomLeftRadius: 6,
-    borderWidth: 0, // Removed border for cleaner glass look
+    borderWidth: 1, 
+    borderColor: theme.messageBorder,
     overflow: "hidden",
-    backgroundColor: theme.bg === "#05050f" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
+    backgroundColor: theme.messageBg,
   },
   text: {
     color: theme.textPrimary,
@@ -383,6 +407,35 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: 11,
   },
   userMetaText: {
-    color: "rgba(255,255,255,0.7)",
+    color: theme.textOnIndigo,
+    opacity: 0.7,
+  },
+  attachmentsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 8,
+  },
+  attachmentImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 12,
+    backgroundColor: theme.activeBg,
+  },
+  attachmentDocument: {
+    width: 140,
+    height: 80,
+    borderRadius: 12,
+    backgroundColor: theme.activeBg,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 8,
+  },
+  attachmentDocumentName: {
+    color: theme.textOnIndigo,
+    fontSize: 12,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 4,
   },
 });

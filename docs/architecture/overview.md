@@ -19,6 +19,14 @@ In `apps/mobile/app`, we follow the "colocation" principle popularized by Next.j
 - **`components/ui/`**: Strict, dumb, purely visual primitive components (e.g., `ConfirmDialog`, `Input`). These take props and return UI. They hold no business logic.
 - **`components/chat/`**: Domain-aware composed components (e.g., `ChatInput`, `ModelPickerSheet`). These are tightly coupled to the Chat feature, injecting stores and reading theme contexts directly. They live next to the screens that use them.
 
+## Speech-to-Text Strategy (Whisper On-Device)
+
+Omnia enforces a strict **Local-First, Privacy-First** philosophy. As of Phase 11 (ADR-0029), we have standardized on **`whisper.rn`** (C++ `whisper.cpp` bindings) for Speech-to-Text, eschewing the native Android/iOS `SpeechRecognizer` APIs.
+
+1. **Why Not OS APIs?**: The default Apple/Google OS APIs secretly fallback to cloud processing (sending audio to their servers) when the device lacks local language packs or NPU power. Their accuracy for mumbled speech or accents is also sub-par.
+2. **Why Whisper.cpp?**: It brings OpenAI's state-of-the-art neural network directly to the user's processor (via Core ML on iOS and NDK on Android), ensuring 100% offline transcription with unparalleled accuracy.
+3. **App Size Mitigation**: To prevent the Omnia app binary from ballooning to 200MB+, the `ggml-tiny.bin` Whisper model (~75MB) is **not bundled** in the app. It is dynamically downloaded from Hugging Face via `expo-file-system` on the user's first interaction with the microphone, balancing initial install size with premium offline capability.
+
 ## Testing Strategy (The "Testing Trophy")
 
 Mobile UI testing is historically fragile, slow, and prone to false negatives due to the React Native bridge and native view hierarchies. For Omnia, we adopt the "Testing Trophy" methodology:

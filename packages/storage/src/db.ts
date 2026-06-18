@@ -7,10 +7,13 @@ import * as SQLite from "expo-sqlite";
  * Schema version: 1
  * Migrations: tracked in the `schema_version` table.
  */
+let _dbInstance: SQLite.SQLiteDatabase | null = null;
+
 export function openDatabase() {
-  const db = SQLite.openDatabaseSync("omnia.db");
-  runMigrations(db);
-  return db;
+  if (_dbInstance) return _dbInstance;
+  _dbInstance = SQLite.openDatabaseSync("omnia.db");
+  runMigrations(_dbInstance);
+  return _dbInstance;
 }
 
 function runMigrations(db: SQLite.SQLiteDatabase) {
@@ -56,6 +59,13 @@ function runMigrations(db: SQLite.SQLiteDatabase) {
     db.execSync(`
       ALTER TABLE conversations ADD COLUMN is_pinned INTEGER DEFAULT 0;
       UPDATE schema_version SET version = 2;
+    `);
+  }
+
+  if (currentVersion < 3) {
+    db.execSync(`
+      ALTER TABLE messages ADD COLUMN attachments TEXT;
+      UPDATE schema_version SET version = 3;
     `);
   }
 }

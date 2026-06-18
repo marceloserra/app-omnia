@@ -20,8 +20,8 @@ interface ModelChipProps {
 
 export function ModelChip({ providerId, modelId, isDark, theme, onPress }: ModelChipProps) {
   const providerLabel = providerId === "openai" ? "OpenAI" : "Local";
-  const chipBg = isDark ? "rgba(20,20,40,0.85)" : "rgba(255,255,255,0.92)";
-  const chipBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)";
+  const chipBg = theme.surface;
+  const chipBorder = theme.border;
 
   if (!providerId) {
     return (
