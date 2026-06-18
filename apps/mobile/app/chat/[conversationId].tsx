@@ -151,10 +151,43 @@ export default function ChatScreen() {
 
     const prev = messagesRef.current;
     const snapshotForApi = isInitialPrompt ? [...prev] : [...prev, userMessage!];
-    const chatHistory = snapshotForApi.map((m) => ({
-      role: m.role as "user" | "assistant" | "system",
-      content: m.content,
+    
+    // Construct multi-modal payload
+    const chatHistory = await Promise.all(snapshotForApi.map(async (m) => {
+      if (m.attachments && m.attachments.length > 0) {
+        const contentParts: any[] = [];
+        if (m.content) {
+          contentParts.push({ type: "text", text: m.content });
+        }
+        for (const att of m.attachments) {
+          if (att.type === 'image') {
+            try {
+              const base64 = await FileSystem.readAsStringAsync(att.uri, { encoding: FileSystem.EncodingType.Base64 });
+              const mime = att.mimeType || 'image/jpeg';
+              contentParts.push({
+                type: "image_url",
+                image_url: { url: `data:${mime};base64,${base64}` }
+              });
+            } catch (err) {
+              logger.error("FileSystem", `Failed to read attachment ${att.uri} as Base64`, err);
+            }
+          }
+        }
+        // If it only had documents or reading failed, fallback to text
+        if (contentParts.length === 0) {
+           return { role: m.role as "user" | "assistant" | "system", content: m.content };
+        }
+        return {
+          role: m.role as "user" | "assistant" | "system",
+          content: contentParts,
+        };
+      }
+      return {
+        role: m.role as "user" | "assistant" | "system",
+        content: m.content,
+      };
     }));
+    
     const isFirstMessage = prev.length === 0 && userMessage;
 
     setMessages((currentPrev) => {
