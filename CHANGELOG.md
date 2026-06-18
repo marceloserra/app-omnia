@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. See [standa
 - Add **App Capabilities Menu** to the Settings screen, allowing users to actively monitor, download, and delete the Voice Dictation offline model.
 - Add **Device Profile Menu** featuring an advanced OS-level Hardware Profiler (`deviceSpecs.ts`) that reads the exact System on a Chip (SoC), mapping precise CPU/GPU/NPU details (e.g., Exynos, Lahaina, Apple Silicon).
 - Add **Hardware Supported Features Menu** that explicitly maps device support for STT AI Engines based on hardware capabilities.
+- Add **Husky Pre-commit Hooks** globally across the monorepo. It validates all commits via `lint-staged` and `turbo`, ensuring `pnpm lint` and `pnpm typecheck` pass flawlessly before pushing code to GitHub Actions.
 
 ### Changed
 
@@ -30,6 +31,7 @@ All notable changes to this project will be documented in this file. See [standa
 - Fix silent `expo-sqlite` crash and failure to create new conversations by ensuring `updatedAt` is explicitly passed in the SQLite `INSERT` parameter array.
 - Fix memory calculation logic where 12GB RAM Android devices were being identified as 10GB due to OS kernel reservations. RAM reads now gracefully ceil to advertised commercial tiers.
 - Fix a regression where running the app on a Virtual Device/Simulator hard-disabled Voice Dictation. Simulators can now test local voice models.
+- Fix strict `exhaustive-deps` and `rules-of-hooks` React warnings caught by CI pipelines (`settings.tsx`, `ModelPickerSheet.tsx`, `ConfirmDialog.tsx` and `AttachmentMenu.stories.tsx`), ensuring a 100% clean ESLint state.
 
 
 ## [1.1.0] - Phase 10: Multi-Modal Attachments (2026-06-18)
