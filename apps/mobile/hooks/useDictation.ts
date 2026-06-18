@@ -63,7 +63,7 @@ export function useDictation() {
       setUsingCloudFallback(true);
       
       await ExpoSpeechRecognitionModule.start({
-        lang: language === 'auto' ? 'en-US' : language,
+        lang: language,
         interimResults: true,
       });
       

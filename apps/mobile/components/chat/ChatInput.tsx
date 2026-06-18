@@ -17,6 +17,8 @@ import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, wit
 import { ArrowUp, Square, Plus, FileText, Mic } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
+import { logger } from "@omnia/logger";
 import { isModelDownloaded } from "../../lib/whisper";
 import { useDictation } from "../../hooks/useDictation";
 import { useTheme, ThemePalette } from "../../lib/theme";
@@ -61,6 +63,33 @@ function WaveformBar({ delay, isRecording, theme }: { delay: number; isRecording
 
   return (
     <Animated.View style={[{ width: 3, backgroundColor: theme.red, borderRadius: 2, marginHorizontal: 1.5 }, style]} />
+  );
+}
+
+function AnimatedRecordingIndicator({ delay }: { delay: number }) {
+  const theme = useTheme();
+  const opacity = useSharedValue(0.3);
+
+  React.useEffect(() => {
+    opacity.value = withDelay(
+      delay,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 500 }),
+          withTiming(0.3, { duration: 500 })
+        ),
+        -1,
+        true
+      )
+    );
+  }, [delay, opacity]);
+
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View style={[{ width: 6, height: 6, borderRadius: 3, backgroundColor: theme.red, marginHorizontal: 2 }, style]} />
   );
 }
 
