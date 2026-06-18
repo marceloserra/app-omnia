@@ -251,3 +251,21 @@ This document serves as a centralized knowledge base for critical errors encount
     ```
 - **Important User Note:** On a physical Android device, `localhost` points to the phone itself. To reach LM Studio, Ollama, or another server running on a computer, use the computer's LAN IP, for example `http://192.168.1.100:1234/v1`, and make sure the server binds to a reachable interface.
 - **Validation:** Run `expo prebuild --platform android --clean --no-install`, then inspect `apps/mobile/android/app/src/main/AndroidManifest.xml` and `apps/mobile/android/app/src/main/res/xml/network_security_config.xml`.
+
+### Issue 14: CI Typecheck Fails Resolving Test-Only React Native Testing Library
+- **Date:** 2026-06-17
+- **Phase/Context:** Phase 09 (Hotfix CI Stabilization)
+- **Status:** RESOLVED
+- **Error/Symptom:**
+  ```text
+  components/ui/__tests__/ConfirmDialog.test.tsx(2,43): error TS2307:
+  Cannot find module '@testing-library/react-native' or its corresponding type declarations.
+  ```
+- **Root Cause:**
+  - `apps/mobile/tsconfig.json` included every `*.tsx` file, including Jest test files under `__tests__`.
+  - The mobile production typecheck therefore depended on test-only dependencies and pnpm hoisting behavior in CI.
+  - Local typecheck passed because the module was available from the root `node_modules`; the GitHub runner exposed the fragility by not resolving the same hoisted layout.
+- **Solution:**
+  - Excluded test files from `apps/mobile/tsconfig.json`.
+  - Kept `pnpm test` as the required gate for test files and test-only dependencies.
+- **Rule:** App `typecheck` validates production/source TypeScript. Jest test compilation belongs to `pnpm test`.

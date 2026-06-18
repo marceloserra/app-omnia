@@ -18,5 +18,16 @@
     "**/*.tsx",
     ".expo/**/*.js",
     ".expo/**/*.jsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "android",
+    "ios",
+    "dist",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
   ]
 }
