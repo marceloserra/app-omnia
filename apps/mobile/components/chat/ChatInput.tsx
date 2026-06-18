@@ -114,7 +114,7 @@ export function ChatInput({
         try {
           const docResult = await DocumentPicker.getDocumentAsync({
             type: ['application/pdf', 'text/*'],
-            copyToCacheDirectory: false, // Let our downstream logic handle the copy to avoid OS cache lock issues
+            copyToCacheDirectory: true, // REQUIRED on iOS to resolve security-scoped iCloud URLs into readable cache files
             multiple: true,
           });
           if (!docResult.canceled && docResult.assets) {
