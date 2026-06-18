@@ -26,6 +26,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProviderStore } from "../../store/provider-store";
+import Constants from "expo-constants";
 
 import { useTheme, ThemePalette } from "../../lib/theme";
 import { useTranslation } from "../../lib/i18n";
@@ -433,6 +434,12 @@ export default function SettingsScreen() {
                 <Text style={[styles.iosRowLabel, { color: "#ef4444", flex: 1 }]}>{t("settings.data.deleteall")}</Text>
               </Pressable>
             </View>
+          </View>
+
+          {/* Version Info (FAANG style footer) */}
+          <View style={{ marginTop: 16, marginBottom: 40, alignItems: "center", opacity: 0.6 }}>
+            <Text style={{ fontSize: 15, fontWeight: "600", color: theme.textPrimary, marginBottom: 4 }}>Omnia AI</Text>
+            <Text style={{ fontSize: 13, color: theme.textSecondary }}>v{Constants.expoConfig?.version || "1.0.0"}</Text>
           </View>
 
         </ScrollView>
