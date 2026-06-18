@@ -11,6 +11,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence, withDelay } from 'react-native-reanimated';
 import { ArrowUp, Square, Plus, FileText, Mic } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
@@ -42,6 +43,36 @@ export interface ChatInputProps {
   onFocus?: () => void;
 }
 
+function WaveformBar({ delay, isRecording, theme }: { delay: number; isRecording: boolean; theme: ThemePalette }) {
+  const height = useSharedValue(4);
+
+  React.useEffect(() => {
+    if (isRecording) {
+      height.value = withDelay(
+        delay,
+        withRepeat(
+          withSequence(
+            withTiming(14, { duration: 350 }),
+            withTiming(4, { duration: 350 })
+          ),
+          -1,
+          true
+        )
+      );
+    } else {
+      height.value = withTiming(4, { duration: 200 });
+    }
+  }, [isRecording, delay, height]);
+
+  const style = useAnimatedStyle(() => ({
+    height: height.value,
+  }));
+
+  return (
+    <Animated.View style={[{ width: 3, backgroundColor: theme.red, borderRadius: 2, marginHorizontal: 1.5 }, style]} />
+  );
+}
+
 export function ChatInput({
   onSend,
   onStop,
@@ -65,13 +96,7 @@ export function ChatInput({
 
   const canSend = (text.trim().length > 0 || attachments.length > 0) && !disabled;
 
-  useSpeechRecognitionEvent("start", () => {
-    pendingTranscript.current = "";
-    setIsRecording(true);
-  });
-
-  useSpeechRecognitionEvent("end", () => {
-    setIsRecording(false);
+  const flushTranscript = React.useCallback(() => {
     if (pendingTranscript.current) {
       setText((prev) => {
         const prefix = prev.length > 0 && !prev.endsWith(" ") ? prev + " " : prev;
@@ -79,19 +104,31 @@ export function ChatInput({
       });
       pendingTranscript.current = "";
     }
+  }, []);
+
+  useSpeechRecognitionEvent("start", () => {
+    pendingTranscript.current = "";
+    setIsRecording(true);
   });
 
-  useSpeechRecognitionEvent("result", (event) => {
+  useSpeechRecognitionEvent("end", () => {
+    setIsRecording(false);
+    flushTranscript();
+  });
+
+  useSpeechRecognitionEvent("result", (event: any) => {
     const transcript = event.results[0]?.transcript;
     if (transcript) {
       pendingTranscript.current = transcript;
     }
   });
 
-  useSpeechRecognitionEvent("error", (event) => {
-    console.error("Speech recognition error:", event.error);
+  useSpeechRecognitionEvent("error", (event: any) => {
+    console.warn("Speech recognition error:", event.error);
     setIsRecording(false);
-    if (event.error !== "client") {
+    flushTranscript();
+    // Ignore no-speech as it's just a timeout, we simply flush the accumulated text
+    if (event.error !== "client" && event.error !== "no-speech" && event.error !== "no-match") {
       Alert.alert("Dictation Error", event.error);
     }
   });
@@ -297,7 +334,13 @@ export function ChatInput({
           {isRecording ? (
             <View style={styles.recordingOverlay}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                <View style={styles.recordingPulse} />
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 10, height: 16 }}>
+                  <WaveformBar delay={0} isRecording={isRecording} theme={theme} />
+                  <WaveformBar delay={150} isRecording={isRecording} theme={theme} />
+                  <WaveformBar delay={300} isRecording={isRecording} theme={theme} />
+                  <WaveformBar delay={100} isRecording={isRecording} theme={theme} />
+                  <WaveformBar delay={250} isRecording={isRecording} theme={theme} />
+                </View>
                 <Text style={styles.recordingText}>{t("chat.input.listening") || "Listening..."}</Text>
               </View>
               <Pressable 
@@ -487,13 +530,6 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     marginRight: 12,
     borderWidth: 1,
     borderColor: theme.red + '40',
-  },
-  recordingPulse: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.red,
-    marginRight: 10,
   },
   recordingText: {
     color: theme.red,
