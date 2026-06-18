@@ -119,7 +119,7 @@ export default function ChatScreen() {
       conversationId: conversationId,
       role: "assistant",
       // @ts-ignore
-      content: hasDocuments ? `_${t("chat.status.extracting")}..._` : "",
+      content: hasDocuments ? `_${t("chat.status.extracting.1")}..._` : "",
       providerId: store.activeProviderId ?? undefined,
       modelId: providerCtx.modelId,
       timestamp: baseTimestamp + 1,
@@ -175,13 +175,23 @@ export default function ChatScreen() {
     (async () => {
       let extractingInterval: NodeJS.Timeout | null = null;
       if (hasDocuments) {
+        const extractingPhases = [
+          "chat.status.extracting.1",
+          "chat.status.extracting.2",
+          "chat.status.extracting.3",
+          "chat.status.extracting.4",
+        ];
+        
         let dots = 1;
+        let cycle = 0;
         extractingInterval = setInterval(() => {
           dots = (dots % 3) + 1;
+          if (dots === 1) cycle++;
+          const phaseKey = extractingPhases[cycle % extractingPhases.length];
           // @ts-ignore
-          const pulsingText = `_${t("chat.status.extracting")}${".".repeat(dots)}_`;
+          const pulsingText = `_${t(phaseKey)}${".".repeat(dots)}_`;
           setMessages((cur) => cur.map((m) => m.id === assistantId ? { ...m, content: pulsingText } : m));
-        }, 500);
+        }, 600);
       }
 
       let chatHistory: any[];
