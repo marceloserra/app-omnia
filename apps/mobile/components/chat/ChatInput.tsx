@@ -327,11 +327,11 @@ export function ChatInput({
               ref={inputRef}
               value={text}
               onChangeText={setText}
-              placeholder={isRecording ? (t("chat.input.listening") || "Listening...") : t("chat.input.placeholder")}
-              placeholderTextColor={isRecording ? theme.red : theme.textMuted}
+              placeholder={t("chat.input.placeholder")}
+              placeholderTextColor={theme.textMuted}
               multiline
               maxLength={4000}
-              style={[styles.textInput, { paddingRight: isRecording ? 80 : 40 }]}
+              style={[styles.textInput, { paddingRight: isRecording ? 100 : 40 }]}
               onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
               blurOnSubmit={false}
               editable={!isRecording}
@@ -348,6 +348,9 @@ export function ChatInput({
             
             {isRecording ? (
               <View style={{ position: 'absolute', right: 8, bottom: 6, flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ color: theme.red, fontSize: 12, fontWeight: '600', marginRight: 8 }}>
+                  {t("chat.input.listening") || "Listening..."}
+                </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, height: 16 }}>
                   <WaveformBar delay={0} isRecording={isRecording} theme={theme} />
                   <WaveformBar delay={150} isRecording={isRecording} theme={theme} />
