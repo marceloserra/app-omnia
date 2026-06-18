@@ -61,7 +61,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    backgroundColor: theme.activeBg,
   },
   menuContainer: {
     marginLeft: 16,
@@ -69,7 +69,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: theme.glassBorder,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.3,
@@ -78,7 +78,7 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
   },
   menuInner: {
     paddingVertical: 8,
-    backgroundColor: theme.bg === '#05050f' ? 'rgba(20,20,30,0.7)' : 'rgba(255,255,255,0.7)',
+    backgroundColor: theme.glassBg,
   },
   menuItem: {
     flexDirection: 'row',

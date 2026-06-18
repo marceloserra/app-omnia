@@ -386,9 +386,9 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     borderRadius: 20,
     borderBottomLeftRadius: 6,
     borderWidth: 1, 
-    borderColor: theme.bg === "#05050f" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)",
+    borderColor: theme.messageBorder,
     overflow: "hidden",
-    backgroundColor: theme.bg === "#05050f" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+    backgroundColor: theme.messageBg,
   },
   text: {
     color: theme.textPrimary,
@@ -407,7 +407,8 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: 11,
   },
   userMetaText: {
-    color: "rgba(255,255,255,0.7)",
+    color: theme.textOnIndigo,
+    opacity: 0.7,
   },
   attachmentsGrid: {
     flexDirection: "row",
@@ -419,22 +420,22 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: theme.activeBg,
   },
   attachmentDocument: {
     width: 140,
     height: 80,
     borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: theme.activeBg,
     alignItems: "center",
     justifyContent: "center",
     padding: 8,
   },
   attachmentDocumentName: {
-    color: "#ffffff",
+    color: theme.textOnIndigo,
     fontSize: 12,
     fontWeight: "600",
-    marginTop: 6,
     textAlign: "center",
+    marginTop: 4,
   },
 });

@@ -62,7 +62,7 @@ export default function ChatScreen() {
             <BlurView 
               intensity={isDark ? 60 : 100} 
               tint={isDark ? "dark" : "light"} 
-              style={[styles.floatingBtnInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
+              style={styles.floatingBtnInner}
             >
               <ChevronLeft size={20} color={theme.textPrimary} strokeWidth={2.5} />
             </BlurView>
@@ -77,16 +77,15 @@ export default function ChatScreen() {
           />
 
           <Pressable
-            onPress={() => router.push("/settings")}
-            accessibilityLabel="Settings"
+            onPress={() => setModelPickerVisible(true)}
             style={({ pressed }) => [styles.floatingBtnContainer, pressed && { opacity: 0.7 }]}
           >
             <BlurView 
               intensity={isDark ? 60 : 100} 
               tint={isDark ? "dark" : "light"} 
-              style={[styles.floatingBtnInner, { backgroundColor: isDark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)" }]}
+              style={[styles.floatingBtnInner, { width: 36, height: 36 }]}
             >
-              <Settings size={18} color={theme.textPrimary} strokeWidth={2} />
+              <Settings size={18} color={theme.textPrimary} strokeWidth={2.5} />
             </BlurView>
           </Pressable>
         </View>
@@ -95,7 +94,7 @@ export default function ChatScreen() {
           <View style={{ position: 'absolute', top: insets.top + 60, left: 16, right: 16, alignItems: 'center', zIndex: 5 }} pointerEvents="box-none">
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: theme.red, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, shadowColor: theme.red, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4, maxWidth: "100%" }}>
               <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "600", marginRight: 12, flexShrink: 1 }} numberOfLines={2}>{t("chat.error.disconnected")}</Text>
-              <Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [{ backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, flexShrink: 0 }, pressed && { opacity: 0.7 }]}>
+              <Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [{ backgroundColor: theme.activeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, flexShrink: 0 }, pressed && { opacity: 0.7 }]}>
                 <Text style={{ color: "#ffffff", fontSize: 12, fontWeight: "700" }}>{t("chat.error.reconnect")}</Text>
               </Pressable>
             </View>
@@ -214,13 +213,14 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     borderRadius: 18,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: theme.glassBorder,
   },
   floatingBtnInner: {
     width: 36,
     height: 36,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: theme.glassBg,
   },
   floatingChipContainer: {
     borderRadius: 18,
