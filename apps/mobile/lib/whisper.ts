@@ -84,12 +84,19 @@ export async function startWhisperRealtime(
       audioStream,
     },
     {
-      audioSliceSec: 60,
-      realtimeProcessingPauseMs: 200,
-      initRealtimeAfterMs: 200,
+      // Keep buffer small so inference doesn't take exponentially longer
+      audioSliceSec: 15,
+      // Process every 800ms instead of 200ms to eliminate CPU choke and UI lag
+      realtimeProcessingPauseMs: 800,
+      initRealtimeAfterMs: 500,
       initialPrompt: promptHint,
+      // Default heuristic VAD to help cut silence automatically
+      vadPreset: 'default',
       transcribeOptions: {
         language: 'auto',
+        // Use beam search instead of greedy to massively improve understanding of "tiny" model
+        beamSize: 5,
+        temperature: 0.0,
       }
     },
     {
