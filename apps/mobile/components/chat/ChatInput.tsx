@@ -365,8 +365,8 @@ export function ChatInput({
                   multiline
                   maxLength={4000}
                   style={[styles.textInput, { 
-                    paddingRight: 40, 
-                    paddingBottom: isRecording ? 36 : (isDownloadingModel ? 14 : 12) 
+                    paddingRight: isRecording ? 100 : 40, 
+                    paddingBottom: isDownloadingModel ? 14 : 12 
                   }]}
                   onSubmitEditing={Platform.OS !== "ios" ? handleSendPress : undefined}
                   blurOnSubmit={false}
@@ -381,30 +381,27 @@ export function ChatInput({
                   onBlur={() => setIsFocused(false)}
                   testID="chat-input"
                 />
-                
-                {isRecording && (
-                  <View style={{ position: 'absolute', left: 8, bottom: 6, flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface2, paddingRight: 8 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', height: 16 }}>
+
+                {isRecording ? (
+                  <View style={{ position: 'absolute', right: 8, bottom: 6, flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', height: 16, marginRight: 12 }}>
                       <WaveformBar delay={0} isRecording={isRecording} theme={theme} />
                       <WaveformBar delay={150} isRecording={isRecording} theme={theme} />
                       <WaveformBar delay={300} isRecording={isRecording} theme={theme} />
                       <WaveformBar delay={100} isRecording={isRecording} theme={theme} />
                       <WaveformBar delay={250} isRecording={isRecording} theme={theme} />
                     </View>
+                    <Pressable 
+                      onPress={handleDictation}
+                      style={({ pressed }) => [
+                        { width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: theme.red + '20' },
+                        pressed && { opacity: 0.7 }
+                      ]}
+                      accessibilityLabel="Stop dictation"
+                    >
+                      <Square size={14} color={theme.red} fill={theme.red} />
+                    </Pressable>
                   </View>
-                )}
-
-                {isRecording ? (
-                  <Pressable 
-                    onPress={handleDictation}
-                    style={({ pressed }) => [
-                      { position: 'absolute', right: 8, bottom: 6, width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: theme.red + '20' },
-                      pressed && { opacity: 0.7 }
-                    ]}
-                    accessibilityLabel="Stop dictation"
-                  >
-                    <Square size={14} color={theme.red} fill={theme.red} />
-                  </Pressable>
                 ) : (
                   <Pressable 
                     onPress={handleDictation} 
