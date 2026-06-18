@@ -185,7 +185,9 @@ export default function ChatScreen() {
             }
           } else if (att.type === 'document') {
             const ext = att.name.toLowerCase().split('.').pop() || '';
-            if (ext === 'pdf') {
+            const isPdf = ext === 'pdf' || att.mimeType === 'application/pdf';
+            
+            if (isPdf) {
               try {
                 const text = await extractText(att.uri);
                 if (text && text.trim().length > 0) {
