@@ -130,19 +130,22 @@ export default function ChatScreen() {
         if (!dirInfo.exists) {
           await FileSystem.makeDirectoryAsync(attachmentDir, { intermediates: true });
         }
-        for (const att of attachments) {
+      } catch (e) {
+        logger.error("FileSystem", "Failed to create attachments dir", e);
+      }
+
+      for (const att of attachments) {
+        try {
           const ext = att.uri.split('.').pop() || 'tmp';
           const newFileName = `${generateId()}.${ext}`;
           const destUri = attachmentDir + newFileName;
           await FileSystem.copyAsync({ from: att.uri, to: destUri });
           processedAttachments.push({ ...att, uri: destUri });
-        }
-      } catch (err) {
-        logger.error("FileSystem", "Failed to persist attachments", err);
-        console.error("FileSystem Error:", err);
-        // Fallback to ephemeral URIs so the chat doesn't break
-        if (processedAttachments.length === 0) {
-          processedAttachments.push(...attachments);
+        } catch (err) {
+          logger.error("FileSystem", `Failed to copy attachment ${att.uri}`, err);
+          console.error(`Copy failed for ${att.uri}`, err);
+          // Fallback to the ephemeral cache URI for this specific attachment
+          processedAttachments.push(att);
         }
       }
     }
@@ -177,6 +180,7 @@ export default function ChatScreen() {
               });
             } catch (err) {
               logger.error("FileSystem", `Failed to read attachment ${att.uri} as Base64`, err);
+              contentParts.push({ type: "text", text: "\n[System: Could not read image attachment data]" });
             }
           }
         }
